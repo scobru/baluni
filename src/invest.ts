@@ -1,6 +1,7 @@
 import { BigNumber } from "ethers";
 import { DexWallet } from "./dexWallet";
 import { swapUSDT } from "./uniswap/rebalance";
+import { swap } from "./uniswap/swap";
 
 export async function invest(
   dexWallet: DexWallet,

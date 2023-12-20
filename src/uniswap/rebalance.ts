@@ -100,12 +100,24 @@ export async function rebalancePortfolio(
 
   // Calcolo dei valori correnti di ogni token nel portafoglio
   for (const token of desiredTokens) {
-    const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
-    const tokenBalance = await tokenContract.balanceOf(dexWallet.walletAddress);
-    const tokenPriceInUSDT = await quotePair(token, usdtAddress);
-    const tokenValue = tokenBalance.mul(BigNumber.from(tokenPriceInUSDT));
-    tokenValues[token] = tokenValue;
-    totalPortfolioValue = totalPortfolioValue.add(tokenValue);
+    if (token !== usdtAddress) {
+      const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
+      const tokenBalance = await tokenContract.balanceOf(
+        dexWallet.walletAddress
+      );
+      const tokenPriceInUSDT = await quotePair(token, usdtAddress);
+      const tokenValue = tokenBalance.mul(BigNumber.from(tokenPriceInUSDT));
+      tokenValues[token] = tokenValue;
+      totalPortfolioValue = totalPortfolioValue.add(tokenValue);
+    } else {
+      // Se il token è USDT, il suo valore in USDT è semplicemente la sua quantità
+      const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
+      const tokenBalance = await tokenContract.balanceOf(
+        dexWallet.walletAddress
+      );
+      tokenValues[token] = tokenBalance;
+      totalPortfolioValue = totalPortfolioValue.add(tokenBalance);
+    }
   }
 
   // Calcolo degli scambi necessari per il rebilanciamento
@@ -116,7 +128,7 @@ export async function rebalancePortfolio(
     const desiredAllocation = BigNumber.from(desiredAllocations[token]);
     const difference = desiredAllocation.sub(currentAllocation);
 
-    if (difference.abs().gt(BigNumber.from(100))) {
+    if (difference.abs().gt(BigNumber.from(100)) && token !== usdtAddress) {
       // Soglia per attivare il rebilanciamento (es. 1%)
       // Determinare l'importo da scambiare
       const amountToRebalance = totalPortfolioValue.mul(difference).div(10000);
