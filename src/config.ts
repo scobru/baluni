@@ -1,0 +1,14 @@
+// set TOKENS and WEIGHTS
+
+export const TOKENS = [
+  "0x6b175474e89094c44da98b954eedeac495271d0f", // DAI
+  "0x0000000000085d4780B73119b644AE5ecd22b376", // TUSD
+];
+
+export const WEIGHTS = {
+    "0x6b175474e89094c44da98b954eedeac495271d0f": 5000, // DAI
+    "0x0000000000085d4780B73119b644AE5ecd22b376": 5000, // TUSD
+    };
+
+
+export const USDT = "0xdac17f958d2ee523a2206206994597c13d831ec7"; // USDT
