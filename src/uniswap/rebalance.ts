@@ -53,7 +53,7 @@ export async function swapUSDT(
   );
   console.log("Token A spenditure allowance:", allowance.toBigInt());
 
-  if (allowance.lt(swapAmount!)) {
+  if (allowance != swapAmount) {
     const approvalResult = await callContractMethod(
       tokenAContract,
       "approve",
@@ -104,7 +104,7 @@ export async function rebalancePortfolio(
   for (const token of desiredTokens) {
     if (token !== usdtAddress) {
       console.log("Token:", token);
-      console.log("Total Portfolio Value:", formatEther(totalPortfolioValue));
+      console.log("Total Portfolio Value:", Number(totalPortfolioValue) / 1e18);
 
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
       const tokenBalance = await tokenContract.balanceOf(
@@ -113,13 +113,14 @@ export async function rebalancePortfolio(
       console.log("Token Balance:", formatEther(tokenBalance));
 
       const tokenPriceInUSDT = await quotePair(token, usdtAddress);
-      const tokenPriceFormatted = Number(tokenPriceInUSDT);
-      const tokenValueFormatted = tokenBalance * tokenPriceFormatted;
+      const tokenPriceFormatted = Number(tokenPriceInUSDT) * 10 ** 18;
+      const tokenValueFormatted =
+        (tokenBalance * tokenPriceFormatted) / 10 ** 18;
       const tokenValue = tokenValueFormatted as any;
-      console.log("Token Value:", formatEther(tokenValue));
 
       tokenValues[token] = tokenValue;
       totalPortfolioValue = totalPortfolioValue + tokenValue;
+      console.log("Token Value:", tokenValue / 10 ** 18);
     } else {
       // Se il token è USDT, il suo valore in USDT è semplicemente la sua quantità
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
@@ -133,13 +134,15 @@ export async function rebalancePortfolio(
 
   // Calcolo degli scambi necessari per il rebilanciamento
   for (const token of desiredTokens) {
+    console.log("-------------------------------------------------");
     const currentAllocation =
-      (Number(tokenValues[token]) * 10000) / Number(totalPortfolioValue);
+      ((Number(tokenValues[token]) * 10000) / Number(totalPortfolioValue)) *
+      1e18;
     const desiredAllocation = desiredAllocations[token];
     const difference = desiredAllocation - currentAllocation;
 
     console.log("Token:", token);
-    console.log("Total Portfolio Value:", formatEther(totalPortfolioValue));
+    console.log("Total Portfolio Value:", Number(totalPortfolioValue) / 1e18);
     console.log("Desired Allocation:", Number(desiredAllocation));
     console.log("Current Allocation:", currentAllocation);
     console.log("Difference:", Number(difference));
@@ -148,8 +151,7 @@ export async function rebalancePortfolio(
       // Soglia per attivare il rebilanciamento (es. 1%)
       // Determinare l'importo da scambiare
       const amountToRebalance =
-        (Number(totalPortfolioValue) * Math.abs(difference)) / 10000;
-      console.log("Amount to rebalance:", formatEther(amountToRebalance));
+        (Number(totalPortfolioValue) * 1e18 * Math.abs(difference)) / 10000;
 
       // Implementazione della logica di scambio
       if (difference > 0) {
