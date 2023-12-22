@@ -1,21 +1,23 @@
-import { initializeWallet } from "./dexWallet"; // Import the initializeWallet function
+import { initializeWallet } from "./dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalance";
-import { TOKENS, WEIGHTS, USDT } from "./config";
+import { TOKENS, WEIGHTS, USDC } from "./config";
+import { POLYGON } from "./networks";
 
 async function rebalancer() {
   try {
     // Initialize your DexWallet here
-    const dexWallet = await initializeWallet(/* necessary parameters */);
+    const dexWallet = await initializeWallet(POLYGON[0]);
+    await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
 
     // Set an interval to perform rebalancing every 5 minutes
-    setInterval(async () => {
+    /*  setInterval(async () => {
       try {
         console.log("Checking portfolio for rebalancing...");
-        await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDT);
+        await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }
-    }, 300000); // 300000 milliseconds = 5 minutes
+    }, 300000); // 300000 milliseconds = 5 minutes */
   } catch (error) {
     console.error("Error during initialization:", error);
   }

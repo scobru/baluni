@@ -5,6 +5,7 @@ import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
 import { quotePair } from "./quote";
+import { formatEther } from "ethers/lib/utils";
 
 export async function swapUSDT(
   dexWallet: DexWallet,
@@ -95,20 +96,30 @@ export async function rebalancePortfolio(
   desiredAllocations: { [token: string]: number },
   usdtAddress: string
 ) {
+  console.log("Rebalance Portfolio");
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
 
   // Calcolo dei valori correnti di ogni token nel portafoglio
   for (const token of desiredTokens) {
     if (token !== usdtAddress) {
+      console.log("Token:", token);
+      console.log("Total Portfolio Value:", formatEther(totalPortfolioValue));
+
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
       const tokenBalance = await tokenContract.balanceOf(
         dexWallet.walletAddress
       );
+      console.log("Token Balance:", formatEther(tokenBalance));
+
       const tokenPriceInUSDT = await quotePair(token, usdtAddress);
-      const tokenValue = tokenBalance.mul(BigNumber.from(tokenPriceInUSDT));
+      const tokenPriceFormatted = Number(tokenPriceInUSDT);
+      const tokenValueFormatted = tokenBalance * tokenPriceFormatted;
+      const tokenValue = tokenValueFormatted as any;
+      console.log("Token Value:", formatEther(tokenValue));
+
       tokenValues[token] = tokenValue;
-      totalPortfolioValue = totalPortfolioValue.add(tokenValue);
+      totalPortfolioValue = totalPortfolioValue + tokenValue;
     } else {
       // Se il token è USDT, il suo valore in USDT è semplicemente la sua quantità
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
@@ -116,31 +127,38 @@ export async function rebalancePortfolio(
         dexWallet.walletAddress
       );
       tokenValues[token] = tokenBalance;
-      totalPortfolioValue = totalPortfolioValue.add(tokenBalance);
+      totalPortfolioValue = totalPortfolioValue + tokenBalance;
     }
   }
 
   // Calcolo degli scambi necessari per il rebilanciamento
   for (const token of desiredTokens) {
-    const currentAllocation = tokenValues[token]
-      .mul(10000)
-      .div(totalPortfolioValue);
-    const desiredAllocation = BigNumber.from(desiredAllocations[token]);
-    const difference = desiredAllocation.sub(currentAllocation);
+    const currentAllocation =
+      (Number(tokenValues[token]) * 10000) / Number(totalPortfolioValue);
+    const desiredAllocation = desiredAllocations[token];
+    const difference = desiredAllocation - currentAllocation;
 
-    if (difference.abs().gt(BigNumber.from(100)) && token !== usdtAddress) {
+    console.log("Token:", token);
+    console.log("Total Portfolio Value:", formatEther(totalPortfolioValue));
+    console.log("Desired Allocation:", Number(desiredAllocation));
+    console.log("Current Allocation:", currentAllocation);
+    console.log("Difference:", Number(difference));
+
+    if (Math.abs(difference) > 100 && token !== usdtAddress) {
       // Soglia per attivare il rebilanciamento (es. 1%)
       // Determinare l'importo da scambiare
-      const amountToRebalance = totalPortfolioValue.mul(difference).div(10000);
+      const amountToRebalance =
+        (Number(totalPortfolioValue) * Math.abs(difference)) / 10000;
+      console.log("Amount to rebalance:", formatEther(amountToRebalance));
 
       // Implementazione della logica di scambio
-      if (difference.lt(0)) {
+      if (difference > 0) {
         // Vendi il token in eccesso
         await swapUSDT(
           dexWallet,
           [token, usdtAddress],
           true,
-          amountToRebalance
+          amountToRebalance as any
         );
       } else {
         // Acquista il token sottorappresentato
@@ -148,7 +166,7 @@ export async function rebalancePortfolio(
           dexWallet,
           [usdtAddress, token],
           false,
-          amountToRebalance
+          amountToRebalance as any
         );
       }
     }

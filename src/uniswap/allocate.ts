@@ -1,7 +1,8 @@
 import { BigNumber, Contract } from "ethers";
-import { quotePair } from "./uniswap/quote";
-import erc20Abi from "./uniswap/contracts/ERC20.json";
-import { DexWallet } from "./dexWallet";
+import { quotePair } from "./quote";
+import erc20Abi from "./contracts/ERC20.json";
+import { DexWallet } from "../dexWallet";
+import { swapUSDT } from "./rebalance";
 
 export async function changeAllocation(
   dexWallet: DexWallet,

@@ -1,15 +1,19 @@
-import { BigNumber } from "ethers";
-import { DexWallet } from "./dexWallet";
-import { swapUSDT } from "./uniswap/rebalance";
-import { swap } from "./uniswap/swap";
+import { BigNumber, Contract, Signer } from "ethers";
+import { DexWallet } from "../dexWallet";
+import { swapUSDT } from "./rebalance";
+import erc20Abi from "./contracts/ERC20.json";
 
 export async function invest(
   dexWallet: DexWallet,
-  usdtAmount: BigNumber,
   allocations: { [token: string]: number },
   usdtAddress: string,
   desiredTokens: string[]
 ) {
+  const tokenContract = new Contract(usdtAddress, erc20Abi, dexWallet.wallet);
+  const tokenABalance: BigNumber = await tokenContract.balanceOf(
+    dexWallet.wallet.address
+  );
+
   let totalAllocation = 0;
   for (const token of desiredTokens) {
     totalAllocation += allocations[token];
@@ -22,7 +26,7 @@ export async function invest(
 
   for (const token of desiredTokens) {
     const allocationPercentage = BigNumber.from(allocations[token]);
-    const tokenAmount = usdtAmount.mul(allocationPercentage).div(10000);
+    const tokenAmount = tokenABalance.mul(allocationPercentage).div(10000);
 
     // Swap USDT for the current token based on its allocation
     if (!tokenAmount.isZero()) {
