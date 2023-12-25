@@ -120,7 +120,7 @@ export async function rebalancePortfolio(
 
   Object.keys(tokenValues).forEach((token) => {
     currentAllocations[token] = tokenValues[token]
-      .mul(100)
+      .mul(10000)
       .div(totalPortfolioValue)
       .toNumber(); // Store as percentage
   });
@@ -135,7 +135,7 @@ export async function rebalancePortfolio(
 
     const valueToRebalance = totalPortfolioValue
       .mul(BigNumber.from(Math.abs(difference)))
-      .div(100); // USDT value to rebalance
+      .div(10000); // USDT value to rebalance
 
     console.group(
       `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}%`

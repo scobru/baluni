@@ -19,14 +19,14 @@ export async function invest(
     totalAllocation += allocations[token];
   }
 
-  if (totalAllocation !== 100) {
+  if (totalAllocation !== 10000) {
     // Assuming allocations are in basis points (10000 = 100%)
     throw new Error("Total allocation must sum up to 100%");
   }
 
   for (const token of desiredTokens) {
     const allocationPercentage = BigNumber.from(allocations[token]);
-    const tokenAmount = tokenABalance.mul(allocationPercentage).div(100);
+    const tokenAmount = tokenABalance.mul(allocationPercentage).div(10000);
 
     // Swap USDT for the current token based on its allocation
     if (!tokenAmount.isZero()) {
