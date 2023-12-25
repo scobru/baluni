@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import uniswapV3FactoryAbi from "./contracts/UniswapV3Factory.json";
 import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json";
+import erc20Abi from "./contracts/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
 
 export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const uniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
@@ -30,6 +31,13 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const walletAddress = await wallet.getAddress();
   const walletBalance = await wallet.getBalance();
 
+  const tokenAContract = new ethers.Contract(tokenAAddress, erc20Abi, wallet);
+  const tokenBContract = new ethers.Contract(tokenBAddress, erc20Abi, wallet);
+
+  // Fetch decimals for both tokens
+  const tokenADecimals = await tokenAContract.decimals();
+  const tokenBDecimals = await tokenBContract.decimals();
+
   console.log(walletAddress + ":", walletBalance.toBigInt());
 
   const txInputs = [tokenAAddress, tokenBAddress, 3000];
@@ -47,7 +55,11 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const { tick } = slot0;
   const tokenBPrice = 1 / (1.0001 ** tick * 10 ** -12);
 
-  console.log("Tick:", tick, "Price:", tokenBPrice);
-
-  return tokenBPrice;
+  if (tokenADecimals == 8) {
+    console.log("Tick:", tick, "Price:", (tokenBPrice / 1e5) * 2);
+    return (tokenBPrice / 1e5) * 2;
+  } else {
+    console.log("Tick:", tick, "Price:", tokenBPrice);
+    return tokenBPrice;
+  }
 }

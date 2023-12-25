@@ -10,14 +10,14 @@ async function rebalancer() {
     await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
 
     // Set an interval to perform rebalancing every 5 minutes
-    /*  setInterval(async () => {
+    setInterval(async () => {
       try {
         console.log("Checking portfolio for rebalancing...");
         await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }
-    }, 300000); // 300000 milliseconds = 5 minutes */
+    }, 60000); // 1 minute = 60000 ms
   } catch (error) {
     console.error("Error during initialization:", error);
   }

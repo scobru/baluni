@@ -41,7 +41,7 @@ export async function swap(
   );
 
   console.log("Provider gas price:", providerGasPrice.toBigInt());
-  const gasPrice: BigNumber = providerGasPrice.mul(15).div(10);
+  const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
   console.log("  Actual gas price:", gasPrice.toBigInt());
 
   const allowance: BigNumber = await tokenAContract.allowance(

@@ -3,8 +3,6 @@ import { TOKENS, WEIGHTS, USDC } from "./config";
 import { invest } from "./uniswap/invest";
 import { POLYGON } from "./networks";
 
-const startAmount = 20;
-
 async function investor() {
   try {
     // Initialize your DexWallet here

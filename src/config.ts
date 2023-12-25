@@ -1,13 +1,23 @@
 // set TOKENS and WEIGHTS
 
 export const TOKENS = [
-  "0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39", // LINK
+  "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39", // LINK
   "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619", // WETH
+  "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6", //WBTC
+  "0xb33eaad8d922b1083446dc23f610c2567fb5180f", // UNI
+  "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063", // DAI
 ];
 
 export const WEIGHTS = {
-  "0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39": 5000,
-  "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619": 5000,
+  "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39": 10,
+  "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619": 28,
+  "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6": 50,
+  "0xb33eaad8d922b1083446dc23f610c2567fb5180f": 10,
+  "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063": 2,
 };
 
 export const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDT
+
+export const LIMIT = 1; // 2%
+
+export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
