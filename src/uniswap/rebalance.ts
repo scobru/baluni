@@ -135,6 +135,13 @@ export async function rebalancePortfolio(
     const currentAllocation = currentAllocations[token]; // current allocation as percentage
     const desiredAllocation = desiredAllocations[token];
     const difference = desiredAllocation - currentAllocation; // Calculate the difference for each token
+    const tokenContract = new ethers.Contract(
+      token,
+      erc20Abi,
+      dexWallet.wallet
+    );
+    const tokenBalance = await tokenContract.balanceOf(dexWallet.walletAddress);
+    const tokenSymbol = await tokenContract.symbol();
 
     const valueToRebalance = totalPortfolioValue
       .mul(BigNumber.from(Math.abs(difference)))
@@ -143,7 +150,9 @@ export async function rebalancePortfolio(
     console.group(
       `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}% | Value: ${formatEther(
         tokenValues[token]
-      )} USD | ValueToRebalance: ${formatEther(valueToRebalance)} USD `
+      )} USD | ValueToRebalance: ${formatEther(
+        valueToRebalance
+      )} USD | Balance: ${formatEther(tokenBalance)} ${tokenSymbol} `
     );
     console.groupEnd();
 
