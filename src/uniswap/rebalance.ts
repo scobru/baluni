@@ -145,7 +145,12 @@ export async function rebalancePortfolio(
 
     if (difference < 0 && Math.abs(difference) > LIMIT) {
       // Calculate token amount to sell
-      const tokenPriceInUSDT = await quotePair(token, usdtAddress); // Ensure this returns a value
+      //const tokenPriceInUSDT = await quotePair(token, usdtAddress);
+      const _token = {
+        address: token,
+        decimals: decimals,
+      };
+      const tokenPriceInUSDT: any = await fetchPrices(_token); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(
         tokenPriceInUSDT!.toString(),
         "ether"
@@ -214,7 +219,7 @@ async function getTokenValue(
   if (token === usdtAddress) {
     return balance; // USDT value is the balance itself
   } else {
-    //const price = await quotePair(token, usdtAddress);
+    // const price = await quotePair(token, usdtAddress);
     const _token = {
       address: token,
       decimals: decimals,
