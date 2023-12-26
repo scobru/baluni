@@ -70,7 +70,6 @@ export async function swap(
   }
 
   console.log("Swap", tokenAName, "for", tokenBName);
-
   const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60);
   const swapTxInputs = [
     tokenAAddress,

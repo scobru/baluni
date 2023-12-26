@@ -378,7 +378,7 @@ export async function fetchPrices(token: Token): Promise<number> {
   const numerator = 10 ** token.decimals;
   const denominator = 1e18; // eth decimals
   const price = (parseFloat(rate) * numerator) / denominator / 1e18;
+  const priceUSD = (price * rateUSDFormatted) / denominator;
 
-  const priceUSD = (price * rateUSDFormatted) / 1e18;
   return priceUSD;
 }

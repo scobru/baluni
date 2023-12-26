@@ -35,6 +35,7 @@ export async function swapUSDT(
   );
 
   console.log("Provider gas price:", providerGasPrice.toBigInt());
+
   const gasPrice: BigNumber = providerGasPrice.mul(180).div(100);
   console.log("  Actual gas price:", gasPrice.toBigInt());
 
@@ -52,7 +53,9 @@ export async function swapUSDT(
       [swapRouterAddress, swapAmount],
       gasPrice
     );
+
     const broadcasted = await waitForTx(wallet.provider, approvalResult.hash);
+
     if (!broadcasted) {
       throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);
     } else {
@@ -149,12 +152,18 @@ export async function rebalancePortfolio(
       .mul(BigNumber.from(Math.abs(difference)))
       .div(10000); // USDT value to rebalance
 
+    const decimals = await getDecimals(token);
+    const tokenBalanceFormatted =
+      decimals == 6
+        ? formatEther(String(Number(tokenBalance) * 1e12))
+        : tokenBalance;
+
     console.group(
       `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}% | Value: ${formatEther(
         tokenValues[token]
       )} USD | ValueToRebalance: ${formatEther(
         valueToRebalance
-      )} USD | Balance: ${formatEther(tokenBalance)} ${tokenSymbol} `
+      )} USD | Balance: ${formatEther(tokenBalanceFormatted)} ${tokenSymbol} `
     );
     console.groupEnd();
 
@@ -262,9 +271,14 @@ async function getTokenValue(
     );
     console.log("Token Symbol:", tokenSymbol);
     console.log("Token:", token);
-    console.log("Balance:", balance.toString());
-    console.log("Price:", price?.toString());
-    console.log("Value:", value.toString());
+    console.log(
+      "Balance:",
+      decimals == 6
+        ? formatEther(String(Number(balance) * 1e12))
+        : formatEther(balance.toString())
+    );
+    console.log("Price:", formatEther(price?.toString()));
+    console.log("Value:", formatEther(value.toString()));
 
     return value;
   }
