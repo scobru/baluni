@@ -21,6 +21,7 @@ export const WEIGHTS = {
 };
 
 export const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDT
+export const NATIVE = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"; // USDT
 
 export const LIMIT = 100; // 2%
 

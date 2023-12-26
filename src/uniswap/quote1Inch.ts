@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import { USDC, NATIVE } from "../config";
 
 const provider = new ethers.providers.JsonRpcProvider(
   "https://polygon-rpc.com/"
@@ -362,6 +363,13 @@ export async function fetchPrices(token: Token): Promise<number> {
     provider
   );
 
+  const rateUSD = await offchainOracle.getRate(
+    NATIVE,
+    USDC, // source token
+    true // use source wrappers
+  );
+  const rateUSDFormatted = rateUSD.mul(1e12);
+
   const rate = await offchainOracle.getRateToEth(
     token.address, // source token
     true // use source wrappers
@@ -370,5 +378,7 @@ export async function fetchPrices(token: Token): Promise<number> {
   const numerator = 10 ** token.decimals;
   const denominator = 1e18; // eth decimals
   const price = (parseFloat(rate) * numerator) / denominator / 1e18;
-  return price;
+
+  const priceUSD = (price * rateUSDFormatted) / 1e18;
+  return priceUSD;
 }
