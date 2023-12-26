@@ -103,7 +103,9 @@ export async function rebalancePortfolio(
     );
     const tokenBalance = await tokenContract.balanceOf(dexWallet.walletAddress);
     const decimals = await getDecimals(token);
+    const tokenSymbol = await tokenContract.symbol();
     const tokenValue = await getTokenValue(
+      tokenSymbol,
       token,
       tokenBalance,
       decimals,
@@ -226,6 +228,7 @@ async function getDecimals(tokenAddress: string): Promise<number> {
 }
 
 async function getTokenValue(
+  tokenSymbol: string,
   token: string,
   balance: BigNumber,
   decimals: number,
@@ -257,6 +260,7 @@ async function getTokenValue(
     console.log(
       "**************************************************************************"
     );
+    console.log("Token Symbol:", tokenSymbol);
     console.log("Token:", token);
     console.log("Balance:", balance.toString());
     console.log("Price:", price?.toString());
