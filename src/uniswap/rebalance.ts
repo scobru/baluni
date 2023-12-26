@@ -4,7 +4,6 @@ import { callContractMethod } from "../contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { quotePair } from "./quote";
 import { formatEther } from "ethers/lib/utils";
 import { LIMIT, ROUTER, USDC } from "../config";
 import { fetchPrices } from "./quote1Inch";
@@ -146,6 +145,7 @@ export async function rebalancePortfolio(
     if (difference < 0 && Math.abs(difference) > LIMIT) {
       // Calculate token amount to sell
       //const tokenPriceInUSDT = await quotePair(token, usdtAddress);
+      const decimals = await getDecimals(token);
       const _token = {
         address: token,
         decimals: decimals,
@@ -155,7 +155,6 @@ export async function rebalancePortfolio(
         tokenPriceInUSDT!.toString(),
         "ether"
       );
-      const decimals = await getDecimals(token);
       const tokenAmountToSell = valueToRebalance
         .mul(BigNumber.from(10).pow(decimals))
         .div(pricePerToken);
