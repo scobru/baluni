@@ -1,7 +1,8 @@
 import { initializeWallet } from "./dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalance";
-import { TOKENS, WEIGHTS, USDC } from "./config";
+import { TOKENS, WEIGHTS, WEIGHTS_2, USDC } from "./config";
 import { POLYGON } from "./networks";
+import { invest } from "./uniswap/invest";
 
 async function rebalancer() {
   try {
@@ -11,7 +12,28 @@ async function rebalancer() {
     setInterval(async () => {
       try {
         console.log("Checking portfolio for rebalancing...");
-        await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
+
+        const {
+          kstCross,
+          getDetachSourceFromOHLCV,
+        } = require("trading-indicator");
+
+        const { input } = await getDetachSourceFromOHLCV(
+          "binance",
+          "BTC/USDT",
+          "1h",
+          false
+        ); // true if you want to get future market
+
+        const trend = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
+        console.log(trend);
+
+        if (trend.direction == "up" || trend.direction == "none") {
+          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
+        } else if (trend.direction == "down") {
+          await invest(dexWallet, WEIGHTS_2, USDC, TOKENS, true);
+          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_2, USDC);
+        }
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }

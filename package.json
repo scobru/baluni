@@ -18,6 +18,7 @@
     "@types/node": "^20.10.5",
     "dotenv": "^16.3.1",
     "ethers": "^5.7.2",
-    "promisify": "^0.0.3"
+    "promisify": "^0.0.3",
+    "trading-indicator": "^2.0.4"
   }
 }

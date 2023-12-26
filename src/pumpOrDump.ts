@@ -1,4 +1,3 @@
-import { promisify } from "util";
 import { swap } from "./uniswap/swap";
 import { initializeWallet } from "./dexWallet";
 import { POLYGON } from "./networks";
