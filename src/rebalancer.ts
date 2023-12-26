@@ -8,8 +8,6 @@ async function rebalancer() {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
     // Set an interval to perform rebalancing every 5 minutes
-    await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
-
     setInterval(async () => {
       try {
         console.log("Checking portfolio for rebalancing...");
@@ -25,7 +23,6 @@ async function rebalancer() {
 
 async function main() {
   await rebalancer();
-  console.log("Rebalancer operation started");
 }
 
 main().catch((error) => {

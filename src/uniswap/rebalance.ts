@@ -158,13 +158,14 @@ export async function rebalancePortfolio(
         ? formatEther(String(Number(tokenBalance) * 1e10))
         : formatEther(tokenBalance);
 
-    console.group(
-      `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}% | Value: ${formatEther(
-        tokenValues[token]
-      )} USD | ValueToRebalance: ${formatEther(
-        valueToRebalance
-      )} USD | Balance: ${tokenBalanceFormatted} ${tokenSymbol} `
-    );
+    console.group(`Token Details:`);
+    console.log(`Token: ${token}`);
+    console.log(`Current Allocation: ${currentAllocation}%`);
+    console.log(`Desired Allocation: ${desiredAllocation}%`);
+    console.log(`Difference: ${difference}%`);
+    console.log(`Value (USD): ${formatEther(tokenValues[token])}`);
+    console.log(`Value to Rebalance (USD): ${formatEther(valueToRebalance)}`);
+    console.log(`Balance: ${tokenBalanceFormatted} ${tokenSymbol}`);
     console.groupEnd();
 
     if (difference < 0 && Math.abs(difference) > LIMIT) {
