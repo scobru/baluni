@@ -87,7 +87,9 @@ export async function rebalancePortfolio(
   desiredAllocations: { [token: string]: number },
   usdtAddress: string
 ) {
-  console.log("*************************************");
+  console.log(
+    "**************************************************************************"
+  );
   console.log("Rebalance Portfolio");
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
@@ -197,7 +199,9 @@ export async function rebalancePortfolio(
   }
 
   console.log("Rebalance completed.");
-  console.log("*************************************");
+  console.log(
+    "**************************************************************************"
+  );
 }
 
 // Add the function to fetch token decimals if not already present.
@@ -239,7 +243,9 @@ async function getTokenValue(
       value = balance.mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
     }
 
-    console.log("*************************************");
+    console.log(
+      "**************************************************************************"
+    );
     console.log("Token:", token);
     console.log("Balance:", balance.toString());
     console.log("Price:", price?.toString());
