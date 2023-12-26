@@ -141,7 +141,9 @@ export async function rebalancePortfolio(
       .div(10000); // USDT value to rebalance
 
     console.group(
-      `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}% | Value: ${formatEther(tokenValues[token])}% | ValueToRebalance: ${formatEther(valueToRebalance)}% `
+      `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}% | Value: ${formatEther(
+        tokenValues[token]
+      )} USD | ValueToRebalance: ${formatEther(valueToRebalance)} USD `
     );
     console.groupEnd();
 
