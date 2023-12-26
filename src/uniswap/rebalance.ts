@@ -156,14 +156,14 @@ export async function rebalancePortfolio(
     const tokenBalanceFormatted =
       decimals == 8
         ? formatEther(String(Number(tokenBalance) * 1e10))
-        : tokenBalance;
+        : formatEther(tokenBalance);
 
     console.group(
       `Token: ${token} | Current Allocation: ${currentAllocation}% | Desired Allocation: ${desiredAllocation}% | Difference: ${difference}% | Value: ${formatEther(
         tokenValues[token]
       )} USD | ValueToRebalance: ${formatEther(
         valueToRebalance
-      )} USD | Balance: ${formatEther(tokenBalanceFormatted)} ${tokenSymbol} `
+      )} USD | Balance: ${tokenBalanceFormatted} ${tokenSymbol} `
     );
     console.groupEnd();
 
