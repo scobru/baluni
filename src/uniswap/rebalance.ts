@@ -4,7 +4,7 @@ import { callContractMethod } from "../contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { formatEther } from "ethers/lib/utils";
+import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
 import { LIMIT, ROUTER, USDC } from "../config";
 import { fetchPrices } from "./quote1Inch";
 
@@ -154,8 +154,8 @@ export async function rebalancePortfolio(
 
     const decimals = await getDecimals(token);
     const tokenBalanceFormatted =
-      decimals == 6
-        ? formatEther(String(Number(tokenBalance) * 1e12))
+      decimals == 8
+        ? formatEther(String(Number(tokenBalance) * 1e10))
         : tokenBalance;
 
     console.group(
@@ -273,11 +273,11 @@ async function getTokenValue(
     console.log("Token:", token);
     console.log(
       "Balance:",
-      decimals == 6
-        ? formatEther(String(Number(balance) * 1e12))
+      decimals == 8
+        ? formatEther(String(Number(balance) * 1e10))
         : formatEther(balance.toString())
     );
-    console.log("Price:", formatEther(price?.toString()));
+    console.log("Price:", price?.toString());
     console.log("Value:", formatEther(value.toString()));
 
     return value;
