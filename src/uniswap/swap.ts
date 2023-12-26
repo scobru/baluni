@@ -22,9 +22,13 @@ export async function swap(
   const tokenABalance: BigNumber = await tokenAContract.balanceOf(
     walletAddress
   );
+
   const tokenBBalance: BigNumber = await tokenBContract.balanceOf(
     walletAddress
   );
+
+  const tokenAName = await tokenAContract.symbol();
+  const tokenBName = await tokenBContract.symbol();
 
   console.log(
     "Token A",
@@ -65,6 +69,8 @@ export async function swap(
     }
   }
 
+  console.log("Swap", tokenAName, "for", tokenBName);
+
   const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60);
   const swapTxInputs = [
     tokenAAddress,
@@ -73,74 +79,6 @@ export async function swap(
     walletAddress,
     BigNumber.from(swapDeadline),
     tokenABalance,
-    BigNumber.from(0),
-    BigNumber.from(0),
-  ];
-
-  const swapTxResponse = await callContractMethod(
-    swapRouterContract,
-    "exactInputSingle",
-    [swapTxInputs],
-    gasPrice
-  );
-
-  return swapTxResponse;
-}
-
-export async function swapAmount(
-  dexWallet: DexWallet,
-  pair: [string, string],
-  amount: Number,
-  reverse?: boolean
-) {
-  const { wallet, walletAddress, walletBalance, providerGasPrice } = dexWallet;
-
-  console.log(walletAddress + ":", walletBalance.toBigInt());
-
-  const tokenAAddress = reverse ? pair[1] : pair[0];
-  const tokenBAddress = reverse ? pair[0] : pair[1];
-  const tokenAContract = new Contract(tokenAAddress, erc20Abi, wallet);
-
-  const swapRouterAddress = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // polygon
-  const swapRouterContract = new Contract(
-    swapRouterAddress,
-    swapRouterAbi,
-    wallet
-  );
-
-  console.log("Provider gas price:", providerGasPrice.toBigInt());
-  const gasPrice: BigNumber = providerGasPrice.mul(15).div(10);
-  console.log("  Actual gas price:", gasPrice.toBigInt());
-
-  const allowance: BigNumber = await tokenAContract.allowance(
-    walletAddress,
-    swapRouterAddress
-  );
-  console.log("Token A spenditure allowance:", allowance.toBigInt());
-
-  if (allowance.lt(amount)) {
-    const approvalResult = await callContractMethod(
-      tokenAContract,
-      "approve",
-      [swapRouterAddress, amount],
-      gasPrice
-    );
-    const broadcasted = await waitForTx(wallet.provider, approvalResult.hash);
-    if (!broadcasted) {
-      throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);
-    } else {
-      console.log(`Spending of ${amount} approved.`);
-    }
-  }
-
-  const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60);
-  const swapTxInputs = [
-    tokenAAddress,
-    tokenBAddress,
-    BigNumber.from(3000),
-    walletAddress,
-    BigNumber.from(swapDeadline),
-    amount,
     BigNumber.from(0),
     BigNumber.from(0),
   ];

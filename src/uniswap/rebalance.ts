@@ -7,6 +7,7 @@ import swapRouterAbi from "./contracts/SwapRouter.json";
 import { quotePair } from "./quote";
 import { formatEther } from "ethers/lib/utils";
 import { LIMIT, ROUTER, USDC } from "../config";
+import { fetchPrices } from "./quote1Inch";
 
 export async function swapUSDT(
   dexWallet: DexWallet,
@@ -23,6 +24,9 @@ export async function swapUSDT(
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
   const tokenAContract = new Contract(tokenAAddress, erc20Abi, wallet);
+  const tokenBContract = new Contract(tokenBAddress, erc20Abi, wallet);
+  const tokenAName = await tokenAContract.symbol();
+  const tokenBName = await tokenBContract.symbol();
 
   const swapRouterAddress = ROUTER;
   const swapRouterContract = new Contract(
@@ -32,7 +36,7 @@ export async function swapUSDT(
   );
 
   console.log("Provider gas price:", providerGasPrice.toBigInt());
-  const gasPrice: BigNumber = providerGasPrice.mul(150).div(100);
+  const gasPrice: BigNumber = providerGasPrice.mul(180).div(100);
   console.log("  Actual gas price:", gasPrice.toBigInt());
 
   const allowance: BigNumber = await tokenAContract.allowance(
@@ -56,9 +60,8 @@ export async function swapUSDT(
       console.log(`Spending of ${swapAmount.toString()} approved.`);
     }
   }
-
+  console.log("Swap", tokenAName, "for", tokenBName);
   const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-
   const swapTxInputs = [
     tokenAAddress,
     tokenBAddress,
@@ -86,12 +89,10 @@ export async function rebalancePortfolio(
   usdtAddress: string
 ) {
   console.log("Rebalance Portfolio");
-
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
 
   // First, calculate the current value of each token in the portfolio
-
   for (const token of desiredTokens) {
     const tokenContract = new ethers.Contract(
       token,
@@ -213,7 +214,13 @@ async function getTokenValue(
   if (token === usdtAddress) {
     return balance; // USDT value is the balance itself
   } else {
-    const price = await quotePair(token, usdtAddress);
+    //const price = await quotePair(token, usdtAddress);
+    const _token = {
+      address: token,
+      decimals: decimals,
+    };
+    const price: any = await fetchPrices(_token);
+    console.log("Price", price);
     if (!price) throw new Error("Price is undefined");
     // Here, ensure that the price is parsed with respect to the token's decimals
     let pricePerToken = ethers.utils.parseUnits(price.toString(), 18); // Assume price is in 18 decimals
@@ -229,7 +236,7 @@ async function getTokenValue(
 
     console.log("Token:", token);
     console.log("Balance:", balance.toString());
-    console.log("Price:", price.toString());
+    console.log("Price:", price?.toString());
     console.log("Value:", value.toString());
 
     return value;
