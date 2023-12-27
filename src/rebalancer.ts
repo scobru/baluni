@@ -1,8 +1,10 @@
 import { initializeWallet } from "./dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalance";
-import { TOKENS, WEIGHTS, WEIGHTS_2, USDC } from "./config";
+import { TOKENS, WEIGHTS_UP, WEIGHTS_DOWN, USDC } from "./config";
 import { POLYGON } from "./networks";
 import { invest } from "./uniswap/invest";
+
+let currentStrategy = "up";
 
 async function rebalancer() {
   try {
@@ -29,10 +31,17 @@ async function rebalancer() {
         console.log(trend);
 
         if (trend.direction == "up" || trend.direction == "none") {
-          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS, USDC);
+          if (currentStrategy == "down") {
+            await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, true);
+          }
+          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_UP, USDC);
+          currentStrategy = "up";
         } else if (trend.direction == "down") {
-          await invest(dexWallet, WEIGHTS_2, USDC, TOKENS, true);
-          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_2, USDC);
+          if (currentStrategy == "up" || currentStrategy == "none") {
+            await invest(dexWallet, WEIGHTS_DOWN, USDC, TOKENS, true);
+          }
+          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_DOWN, USDC);
+          currentStrategy = "down";
         }
       } catch (error) {
         console.error("Error during rebalancing:", error);

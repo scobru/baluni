@@ -1,8 +1,7 @@
-import { BigNumber, Contract, Signer } from "ethers";
+import { BigNumber, Contract } from "ethers";
 import { DexWallet } from "../dexWallet";
 import { swapUSDT } from "./rebalance";
 import { swap } from "./swap";
-
 import erc20Abi from "./contracts/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
 

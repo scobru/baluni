@@ -1,12 +1,13 @@
 import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../dexWallet";
-import { callContractMethod } from "../contractUtils";
+import { callContractMethod, simulateContractMethod } from "../contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
+import { formatEther } from "ethers/lib/utils";
 import { LIMIT, ROUTER, USDC } from "../config";
 import { fetchPrices } from "./quote1Inch";
+import { POLYGON } from "../networks";
 
 export async function swapUSDT(
   dexWallet: DexWallet,
@@ -26,19 +27,16 @@ export async function swapUSDT(
   const tokenBContract = new Contract(tokenBAddress, erc20Abi, wallet);
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
-
   const swapRouterAddress = ROUTER;
   const swapRouterContract = new Contract(
     swapRouterAddress,
     swapRouterAbi,
     wallet
   );
-
   console.log("Provider gas price:", providerGasPrice.toBigInt());
-
   const gasPrice: BigNumber = providerGasPrice.mul(180).div(100);
-  console.log("  Actual gas price:", gasPrice.toBigInt());
 
+  console.log("  Actual gas price:", gasPrice.toBigInt());
   const allowance: BigNumber = await tokenAContract.allowance(
     walletAddress,
     swapRouterAddress
@@ -53,7 +51,6 @@ export async function swapUSDT(
       [swapRouterAddress, swapAmount],
       gasPrice
     );
-
     const broadcasted = await waitForTx(wallet.provider, approvalResult.hash);
 
     if (!broadcasted) {
@@ -62,7 +59,9 @@ export async function swapUSDT(
       console.log(`Spending of ${swapAmount.toString()} approved.`);
     }
   }
+
   console.log("Swap", tokenAName, "for", tokenBName);
+
   const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   const swapTxInputs = [
     tokenAAddress,
@@ -94,9 +93,9 @@ export async function rebalancePortfolio(
     "**************************************************************************"
   );
   console.log("Rebalance Portfolio");
+
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
-
   // First, calculate the current value of each token in the portfolio
   for (const token of desiredTokens) {
     const tokenContract = new ethers.Contract(
@@ -125,7 +124,6 @@ export async function rebalancePortfolio(
   );
 
   let currentAllocations: { [token: string]: number } = {};
-
   Object.keys(tokenValues).forEach((token) => {
     currentAllocations[token] = tokenValues[token]
       .mul(10000)
@@ -176,11 +174,13 @@ export async function rebalancePortfolio(
         address: token,
         decimals: decimals,
       };
+
       const tokenPriceInUSDT: any = await fetchPrices(_token); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(
         tokenPriceInUSDT!.toString(),
         "ether"
       );
+
       const tokenAmountToSell = valueToRebalance
         .mul(BigNumber.from(10).pow(decimals))
         .div(pricePerToken);
@@ -202,8 +202,6 @@ export async function rebalancePortfolio(
 
   // Execute purchases next
   for (let { token, amount } of tokensToBuy) {
-    // Here, the amount represents the percentage of total portfolio value to purchase
-
     // Call swapUSDT or equivalent function to buy the token
     // Here we're assuming that swapUSDT is flexible enough to handle both buying and selling
     const usdContract = new Contract(USDC, erc20Abi, dexWallet.wallet);
@@ -229,10 +227,7 @@ export async function rebalancePortfolio(
 
 // Add the function to fetch token decimals if not already present.
 async function getDecimals(tokenAddress: string): Promise<number> {
-  const provider = new ethers.providers.JsonRpcProvider(
-    "https://polygon-rpc.com/"
-  );
-
+  const provider = new ethers.providers.JsonRpcProvider(POLYGON[0]);
   const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, provider);
   return tokenContract.decimals();
 }
@@ -254,10 +249,13 @@ async function getTokenValue(
       decimals: decimals,
     };
     const price: any = await fetchPrices(_token);
+
     if (!price) throw new Error("Price is undefined");
     // Here, ensure that the price is parsed with respect to the token's decimals
+
     let pricePerToken = ethers.utils.parseUnits(price.toString(), 18); // Assume price is in 18 decimals
     let value;
+
     if (decimals == 8) {
       value = balance
         .mul(1e10)

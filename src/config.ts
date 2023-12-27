@@ -10,7 +10,7 @@ export const TOKENS = [
   "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063", // DAI
 ];
 
-export const WEIGHTS = {
+export const WEIGHTS_UP = {
   "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39": 1000,
   "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619": 1800,
   "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6": 4000,
@@ -20,7 +20,7 @@ export const WEIGHTS = {
   "0x8f3cf7ad23cd3cadbd9735aff958023239c6a063": 200,
 };
 
-export const WEIGHTS_2 = {
+export const WEIGHTS_DOWN = {
   "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39": 500,
   "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619": 1000,
   "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6": 1000,
@@ -31,8 +31,9 @@ export const WEIGHTS_2 = {
 };
 
 export const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDT
-export const NATIVE = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"; // USDT
+export const NATIVE = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"; // WMATIC
+
+export const ORACLE = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8"; // CHAINLINK OFFHCAIN ORACLE
+export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
 export const LIMIT = 100; // 2%
-
-export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
