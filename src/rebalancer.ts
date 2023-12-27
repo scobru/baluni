@@ -58,7 +58,11 @@ async function rebalancer() {
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_DOWN, USDC);
           currentStrategy = "down";
         } else if (trend.direction == "none" && currentStrategy != "none") {
-          if (currentStrategy == "up" || currentStrategy == "down") {
+          if (
+            currentStrategy == "up" ||
+            currentStrategy == "down" ||
+            currentStrategy == "undefined"
+          ) {
             await invest(dexWallet, WEIGHTS_NONE, USDC, TOKENS, true);
           }
 
