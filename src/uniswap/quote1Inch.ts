@@ -1,9 +1,7 @@
 import { ethers } from "ethers";
-import { USDC, NATIVE } from "../config";
+import { USDC, WNATIVE, ORACLE } from "../config";
 import { POLYGON } from "../networks";
 import OffChainOracleAbi from "./contracts/OffChainOracle.json";
-
-const provider = new ethers.providers.JsonRpcProvider(POLYGON[0]);
 
 interface Token {
   address: string;
@@ -11,7 +9,9 @@ interface Token {
 }
 
 export async function fetchPrices(token: Token): Promise<number> {
-  const offChainOracleAddress = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8";
+  const provider = new ethers.providers.JsonRpcProvider(POLYGON[0]);
+
+  const offChainOracleAddress = ORACLE;
   const offchainOracle = new ethers.Contract(
     offChainOracleAddress,
     OffChainOracleAbi,
@@ -19,7 +19,7 @@ export async function fetchPrices(token: Token): Promise<number> {
   );
 
   const rateUSD = await offchainOracle.getRate(
-    NATIVE,
+    WNATIVE,
     USDC, // source token
     true // use source wrappers
   );

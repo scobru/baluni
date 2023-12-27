@@ -1,6 +1,6 @@
 import { BigNumber, Contract } from "ethers";
 import { DexWallet } from "../dexWallet";
-import { swapUSDT } from "./rebalance";
+import { swapCustom } from "./rebalance";
 import { swap } from "./swap";
 import erc20Abi from "./contracts/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
@@ -50,7 +50,7 @@ export async function invest(
 
     // Swap USDT for the current token based on its allocation
     if (!tokenAmount.isZero()) {
-      await swapUSDT(dexWallet, [token, usdtAddress], true, tokenAmount);
+      await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
       await new Promise((resolve) => setTimeout(resolve, 10000));
     }
   }

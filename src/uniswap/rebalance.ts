@@ -8,8 +8,8 @@ import { formatEther } from "ethers/lib/utils";
 import { LIMIT, ROUTER, USDC } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
-
-export async function swapUSDT(
+import { rechargeFees } from "./rechargeFees";
+export async function swapCustom(
   dexWallet: DexWallet,
   pair: [string, string],
   reverse?: boolean,
@@ -93,6 +93,8 @@ export async function rebalancePortfolio(
     "**************************************************************************"
   );
   console.log("Rebalance Portfolio");
+  console.log("Check Gas and Recharge");
+  await rechargeFees();
 
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
@@ -194,16 +196,16 @@ export async function rebalancePortfolio(
 
   for (let { token, amount } of tokensToSell) {
     console.log(`Selling ${formatEther(amount)} worth of ${token}`);
-    // Call swapUSDT or equivalent function to sell the token
-    // Assume that the swapUSDT function takes in the token addresses, direction, and amount in token units
-    await swapUSDT(dexWallet, [token, usdtAddress], false, amount); // true for reverse because we're selling
+    // Call swapCustom or equivalent function to sell the token
+    // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
+    await swapCustom(dexWallet, [token, usdtAddress], false, amount); // true for reverse because we're selling
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
 
   // Execute purchases next
   for (let { token, amount } of tokensToBuy) {
-    // Call swapUSDT or equivalent function to buy the token
-    // Here we're assuming that swapUSDT is flexible enough to handle both buying and selling
+    // Call swapCustom or equivalent function to buy the token
+    // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
     const usdContract = new Contract(USDC, erc20Abi, dexWallet.wallet);
     const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
     console.log("Amount to Swap", Number(amount));
@@ -211,7 +213,7 @@ export async function rebalancePortfolio(
 
     if (Number(usdBalance) > Number(amount)) {
       console.log(`Buying ${formatEther(amount)} worth of ${token}`);
-      await swapUSDT(dexWallet, [token, usdtAddress], true, amount); // false for reverse because we're buying
+      await swapCustom(dexWallet, [token, usdtAddress], true, amount); // false for reverse because we're buying
       // wait 5 seconds before moving on to the next token
       await new Promise((resolve) => setTimeout(resolve, 5000));
     } else {
