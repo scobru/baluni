@@ -38,7 +38,7 @@ export async function rechargeFees() {
       balanceNATIVEB4 < parseEther("2")
     ) {
       console.log("Withdrawing WNATIVE");
-      await WNATIVEContract.withdraw(parseEther("2"));
+      await WNATIVEContract.withdraw(parseEther("2"), { gasLimit: 500000 });
     }
 
     balanceNATIVEB4 = await NATIVEContract.balanceOf(dexWallet.wallet.address);
