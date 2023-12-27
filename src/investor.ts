@@ -1,5 +1,5 @@
 import { initializeWallet } from "./dexWallet"; // Import the initializeWallet function
-import { TOKENS, WEIGHTS_UP, USDC, WNATIVE, NATIVE } from "./config";
+import { TOKENS, WEIGHTS_NONE, USDC } from "./config";
 import { invest } from "./uniswap/invest";
 import { POLYGON } from "./networks";
 import { rechargeFees } from "./uniswap/rechargeFees";
@@ -12,7 +12,7 @@ async function investor() {
     await rechargeFees();
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[1]);
-    await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, sellAll);
+    await invest(dexWallet, WEIGHTS_NONE, USDC, TOKENS, sellAll);
     console.log("Investing operation completed");
   } catch (error) {
     console.error("Error during initialization:", error);
