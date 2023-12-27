@@ -59,6 +59,7 @@ async function rebalancer() {
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_NONE, USDC);
           currentStrategy = "none";
         }
+        console.log("Current Strategy:", currentStrategy);
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }
