@@ -44,6 +44,7 @@ async function rebalancer() {
           if (currentStrategy == "down" || currentStrategy == "none") {
             await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, true);
           }
+
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_UP, USDC);
           currentStrategy = "up";
         } else if (
@@ -53,12 +54,14 @@ async function rebalancer() {
           if (currentStrategy == "up" || currentStrategy == "none") {
             await invest(dexWallet, WEIGHTS_DOWN, USDC, TOKENS, true);
           }
+
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_DOWN, USDC);
           currentStrategy = "down";
         } else if (trend.direction == "none" && currentStrategy != "none") {
           if (currentStrategy == "up" || currentStrategy == "down") {
             await invest(dexWallet, WEIGHTS_NONE, USDC, TOKENS, true);
           }
+
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_NONE, USDC);
           currentStrategy = "none";
         }
