@@ -9,8 +9,8 @@ async function investor() {
   try {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
-    await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, Boolean(sellAll);
-  } catch (error) {)
+    await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, Boolean(sellAll));
+  } catch (error) {
     console.error("Error during initialization:", error);
   }
 }
