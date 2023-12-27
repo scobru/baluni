@@ -35,7 +35,7 @@ export async function swapCustom(
     wallet
   );
   console.log("Provider gas price:", providerGasPrice.toBigInt());
-  const gasPrice: BigNumber = providerGasPrice.mul(120).div(100);
+  const gasPrice: BigNumber = providerGasPrice.mul(15).div(10);
 
   console.log("  Actual gas price:", gasPrice.toBigInt());
   const allowance: BigNumber = await tokenAContract.allowance(
@@ -97,7 +97,12 @@ export async function rebalancePortfolio(
   console.log("Check Gas and Recharge");
   await rechargeFees();
 
-  let totalPortfolioValue = BigNumber.from(0);
+  const usdContract = new Contract(USDC, erc20Abi, dexWallet.wallet);
+  const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
+
+  let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
+  //let totalPortfolioValue =BigNumber.from(0);
+
   let tokenValues: { [token: string]: BigNumber } = {};
   // First, calculate the current value of each token in the portfolio
   for (const token of desiredTokens) {

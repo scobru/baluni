@@ -9,9 +9,6 @@ import {
   INTERVAL,
 } from "./config";
 import { POLYGON } from "./networks";
-import { invest } from "./uniswap/invest";
-
-let currentStrategy = "undefined";
 
 async function rebalancer() {
   try {
@@ -37,39 +34,13 @@ async function rebalancer() {
         const trend = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
         console.log(trend);
 
-        if (
-          (trend.direction == "up" && currentStrategy == "none") ||
-          currentStrategy == "down"
-        ) {
-          if (currentStrategy == "down" || currentStrategy == "none") {
-            await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, true);
-          }
-
+        if (trend.direction == "up") {
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_UP, USDC);
-          currentStrategy = "up";
-        } else if (
-          (trend.direction == "down" && currentStrategy == "none") ||
-          currentStrategy == "up"
-        ) {
-          if (currentStrategy == "up" || currentStrategy == "none") {
-            await invest(dexWallet, WEIGHTS_DOWN, USDC, TOKENS, true);
-          }
-
+        } else if (trend.direction === "down") {
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_DOWN, USDC);
-          currentStrategy = "down";
-        } else if (trend.direction == "none" && currentStrategy != "none") {
-          if (
-            currentStrategy == "up" ||
-            currentStrategy == "down" ||
-            currentStrategy == "undefined"
-          ) {
-            await invest(dexWallet, WEIGHTS_NONE, USDC, TOKENS, true);
-          }
-
+        } else if (trend.direction === "none") {
           await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_NONE, USDC);
-          currentStrategy = "none";
         }
-        console.log("Current Strategy:", currentStrategy);
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }
