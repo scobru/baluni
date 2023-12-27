@@ -1,6 +1,6 @@
 import { initializeWallet } from "./dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalance";
-import { TOKENS, WEIGHTS_UP, WEIGHTS_DOWN, USDC } from "./config";
+import { TOKENS, WEIGHTS_UP, WEIGHTS_DOWN, USDC, INTERVAL } from "./config";
 import { POLYGON } from "./networks";
 import { invest } from "./uniswap/invest";
 
@@ -46,7 +46,7 @@ async function rebalancer() {
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }
-    }, 120000); // 1 minute = 60000 ms
+    }, INTERVAL * 1000); // 1 minute = 60000 ms
   } catch (error) {
     console.error("Error during initialization:", error);
   }
