@@ -27,7 +27,7 @@ async function rebalancer() {
         const { input } = await getDetachSourceFromOHLCV(
           "binance",
           "BTC/USDT",
-          "1h",
+          "15m",
           false
         ); // true if you want to get future market
 
