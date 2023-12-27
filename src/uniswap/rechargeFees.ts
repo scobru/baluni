@@ -45,7 +45,7 @@ export async function rechargeFees() {
 
     console.log("Balance NATIVE:", formatEther(balanceNATIVEB4.toString()));
 
-    if (balanceNATIVEB4 < parseEther("2")) {
+    if (balanceNATIVEB4 < parseEther("2") &&  balanceWNATIVEB4 < parseEther("2") &&) {
       console.log("Swapping USDC for NATIVE");
       await swapCustom(
         dexWallet,
