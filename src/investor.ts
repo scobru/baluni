@@ -6,6 +6,8 @@ import { POLYGON } from "./networks";
 const sellAll = Boolean(process.argv[2]);
 
 async function investor() {
+  console.log("Sell All?", sellAll);
+
   try {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
