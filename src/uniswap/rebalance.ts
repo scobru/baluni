@@ -9,6 +9,7 @@ import { LIMIT, ROUTER } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
 import { rechargeFees } from "./rechargeFees";
+import { rsiCheck, getDetachSourceFromOHLCV } from "trading-indicator";
 
 export async function swapCustom(
   dexWallet: DexWallet,
@@ -94,13 +95,27 @@ export async function rebalancePortfolio(
     "**************************************************************************"
   );
   console.log("Rebalance Portfolio");
+
   console.log("Check Gas and Recharge");
   await rechargeFees();
 
   const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
 
-  let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
+  // Check Rsi before invest USD
+  const { input } = await getDetachSourceFromOHLCV(
+    "binance",
+    "BTC/USDT",
+    "5m",
+    false
+  ); // true if you want to get future market
+  const rsiResult = await rsiCheck(14, 75, 25, input);
+
+  let totalPortfolioValue =
+    rsiResult.overSold == true
+      ? BigNumber.from(usdBalance.mul(1e12).toString())
+      : BigNumber.from(0);
+
   console.log(
     "Total Portfolio Value (in USDT) at Start:",
     formatEther(totalPortfolioValue)
