@@ -101,6 +101,10 @@ export async function rebalancePortfolio(
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
 
   let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
+  console.log(
+    "Total Portfolio Value (in USDT) at Start:",
+    formatEther(totalPortfolioValue)
+  );
   //let totalPortfolioValue =BigNumber.from(0);
 
   let tokenValues: { [token: string]: BigNumber } = {};
@@ -142,6 +146,7 @@ export async function rebalancePortfolio(
   // Segregate tokens into sell and buy lists
   let tokensToSell = [];
   let tokensToBuy = [];
+
   for (const token of desiredTokens) {
     const currentAllocation = currentAllocations[token]; // current allocation as percentage
     const desiredAllocation = desiredAllocations[token];
@@ -222,8 +227,14 @@ export async function rebalancePortfolio(
       await swapCustom(dexWallet, [token, usdtAddress], true, amount); // false for reverse because we're buying
       // wait 5 seconds before moving on to the next token
       await new Promise((resolve) => setTimeout(resolve, 5000));
+    } else if (
+      Number(usdBalance) < Number(amount) &&
+      Number(usdBalance) > (Number(amount) * 6000) / 10000
+    ) {
+      console.log("Use all USDT to buy");
+      await swapCustom(dexWallet, [token, usdtAddress], true, usdBalance);
     } else {
-      console.log("Insufficient USD BALANCE");
+      console.log("Not enough USDT to buy, balance under 60% of required USD");
     }
   }
 
