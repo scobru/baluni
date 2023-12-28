@@ -55,8 +55,16 @@ export async function rechargeFees() {
         dexWallet.wallet.address
       );
       console.log("Balance:", formatEther(balanceNATIVE.toString()));
-    }
+    } else if (balanceNATIVEB4 > parseEther("3")) { 
+      const amountToWithdraw = balanceNATIVEB4.sub(parseEther("2"));
+      console.log("Withdrawing WNATIVE");
+      await WNATIVEContract.deposit({value: amountToWithdraw});
 
+      // check balance after
+      const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
+        dexWallet.wallet.address
+      );
+      console.log("Balance:", formatEther(balanceNATIVE.toString()));
     console.log("Fee recharge operation completed");
   } catch (error) {
     console.error("Error during fee recharge:", error);
