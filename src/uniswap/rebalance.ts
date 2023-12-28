@@ -9,7 +9,6 @@ import { LIMIT, ROUTER } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
 import { rechargeFees } from "./rechargeFees";
-import { rsiCheck, getDetachSourceFromOHLCV } from "trading-indicator";
 
 export async function swapCustom(
   dexWallet: DexWallet,
@@ -101,6 +100,7 @@ export async function rebalancePortfolio(
 
   const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
+  const { rsiCheck, getDetachSourceFromOHLCV } = require("trading-indicator");
 
   // Check Rsi before invest USD
   const { input } = await getDetachSourceFromOHLCV(
@@ -110,6 +110,7 @@ export async function rebalancePortfolio(
     false
   ); // true if you want to get future market
   const rsiResult = await rsiCheck(14, 75, 25, input);
+  console.log("RSI:", rsiResult);
 
   let totalPortfolioValue =
     rsiResult.overSold == true
