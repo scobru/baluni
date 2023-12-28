@@ -12,6 +12,7 @@ import { POLYGON } from "./networks";
 
 async function rebalancer() {
   try {
+    let selectedWeights = WEIGHTS_NONE;
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
     // Set an interval to perform rebalancing every 5 minutes
@@ -35,12 +36,12 @@ async function rebalancer() {
         console.log(trend);
 
         if (trend.direction == "up") {
-          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_UP, USDC);
+          selectedWeights = WEIGHTS_UP;
         } else if (trend.direction === "down") {
-          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_DOWN, USDC);
-        } else if (trend.direction === "none") {
-          await rebalancePortfolio(dexWallet, TOKENS, WEIGHTS_NONE, USDC);
+          selectedWeights = WEIGHTS_DOWN;
         }
+        console.log("Selected weights:", selectedWeights);
+        await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
       } catch (error) {
         console.error("Error during rebalancing:", error);
       }
