@@ -33,20 +33,7 @@ export async function rechargeFees() {
     console.log("Balance WNATIVE: ", formatEther(balanceWNATIVEB4.toString()));
     console.log("Balance NATIVE:", formatEther(balanceNATIVEB4.toString()));
 
-    if (
-      balanceWNATIVEB4 > parseEther("2") &&
-      balanceNATIVEB4 < parseEther("2")
-    ) {
-      console.log("Withdrawing WNATIVE");
-      await WNATIVEContract.withdraw(parseEther("2"), { gasLimit: 500000 });
-    }
-
-    console.log("Balance NATIVE:", formatEther(balanceNATIVEB4.toString()));
-
-    if (
-      balanceNATIVEB4 < parseEther("2") &&
-      balanceWNATIVEB4 < parseEther("2")
-    ) {
+    if (balanceNATIVEB4 < parseEther("2")) {
       console.log("Swapping USDC for NATIVE");
       await swapCustom(
         dexWallet,
