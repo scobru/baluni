@@ -5,7 +5,7 @@ import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
 import { formatEther } from "ethers/lib/utils";
-import { LIMIT, ROUTER, USDC } from "../config";
+import { LIMIT, ROUTER, DAI } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
 import { rechargeFees } from "./rechargeFees";
@@ -88,7 +88,7 @@ export async function rebalancePortfolio(
   dexWallet: DexWallet,
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
-  usdtAddress: string
+  usdcAddress: string
 ) {
   console.log(
     "**************************************************************************"
@@ -97,8 +97,11 @@ export async function rebalancePortfolio(
   console.log("Check Gas and Recharge");
   await rechargeFees();
 
-  const usdContract = new Contract(USDC, erc20Abi, dexWallet.wallet);
+  const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
+
+  const daiContract = new Contract(DAI, erc20Abi, dexWallet.wallet);
+  const daiBalance = await daiContract?.balanceOf(dexWallet.walletAddress);
 
   let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
   console.log(
@@ -123,7 +126,7 @@ export async function rebalancePortfolio(
       token,
       tokenBalance,
       decimals,
-      usdtAddress,
+      usdcAddress,
       dexWallet.wallet
     );
     tokenValues[token] = tokenValue;
@@ -181,7 +184,7 @@ export async function rebalancePortfolio(
 
     if (difference < 0 && Math.abs(difference) > LIMIT) {
       // Calculate token amount to sell
-      //const tokenPriceInUSDT = await quotePair(token, usdtAddress);
+      //const tokenPriceInUSDT = await quotePair(token, usdcAddress);
       const decimals = await getDecimals(token);
       const _token = {
         address: token,
@@ -209,7 +212,7 @@ export async function rebalancePortfolio(
     console.log(`Selling ${formatEther(amount)} worth of ${token}`);
     // Call swapCustom or equivalent function to sell the token
     // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
-    await swapCustom(dexWallet, [token, usdtAddress], false, amount); // true for reverse because we're selling
+    await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
 
@@ -217,14 +220,14 @@ export async function rebalancePortfolio(
   for (let { token, amount } of tokensToBuy) {
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
-    const usdContract = new Contract(USDC, erc20Abi, dexWallet.wallet);
+    const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
     const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
     console.log("Amount to Swap", Number(amount));
     console.log("Usd Balance", Number(usdBalance));
 
     if (Number(usdBalance) > Number(amount)) {
       console.log(`Buying ${formatEther(amount)} worth of ${token}`);
-      await swapCustom(dexWallet, [token, usdtAddress], true, amount); // false for reverse because we're buying
+      await swapCustom(dexWallet, [token, usdcAddress], true, amount); // false for reverse because we're buying
       // wait 5 seconds before moving on to the next token
       await new Promise((resolve) => setTimeout(resolve, 5000));
     } else if (
@@ -232,9 +235,21 @@ export async function rebalancePortfolio(
       Number(usdBalance) > (Number(amount) * 6000) / 10000
     ) {
       console.log("Use all USDT to buy");
-      await swapCustom(dexWallet, [token, usdtAddress], true, usdBalance);
+      await swapCustom(dexWallet, [token, usdcAddress], true, usdBalance);
     } else {
       console.log("Not enough USDT to buy, balance under 60% of required USD");
+      console.log("Try using DAI");
+      if (Number(daiBalance) / 1e12 > Number(amount)) {
+        await swapCustom(
+          dexWallet,
+          [DAI, usdcAddress],
+          false,
+          amount.mul(1e12)
+        );
+        await swapCustom(dexWallet, [token, usdcAddress], true, amount);
+      } else {
+        console.log("Not enough DAI to buy, balance under 60% of required USD");
+      }
     }
   }
 
@@ -256,13 +271,13 @@ async function getTokenValue(
   token: string,
   balance: BigNumber,
   decimals: number,
-  usdtAddress: string,
+  usdcAddress: string,
   wallet: ethers.Wallet
 ): Promise<BigNumber> {
-  if (token === usdtAddress) {
+  if (token === usdcAddress) {
     return balance; // USDT value is the balance itself
   } else {
-    // const price = await quotePair(token, usdtAddress);
+    // const price = await quotePair(token, usdcAddress);
     const _token = {
       address: token,
       decimals: decimals,

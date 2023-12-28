@@ -6,6 +6,7 @@ import { BigNumber, ethers } from "ethers";
 import wethAbi from "./contracts/WETH.json";
 import { formatEther, parseEther } from "ethers/lib/utils";
 import { POLYGON } from "../networks";
+import { callContractMethod } from "../contractUtils";
 
 export async function rechargeFees() {
   try {
@@ -21,6 +22,7 @@ export async function rechargeFees() {
       wethAbi,
       dexWallet.wallet
     );
+    const USDCContract = new ethers.Contract(USDC, wethAbi, dexWallet.wallet);
     const balanceWNATIVEB4: BigNumber = await WNATIVEContract.balanceOf(
       dexWallet.wallet.address
     );
@@ -29,36 +31,59 @@ export async function rechargeFees() {
       dexWallet.wallet.address
     );
 
+    const balanceUSDCB4: BigNumber = await USDCContract.balanceOf(
+      dexWallet.wallet.address
+    );
     // wallet balance
     console.log("Balance WNATIVE: ", formatEther(balanceWNATIVEB4.toString()));
     console.log("Balance NATIVE:", formatEther(balanceNATIVEB4.toString()));
 
-    if (balanceNATIVEB4 < parseEther("2")) {
-      console.log("Swapping USDC for NATIVE");
-      await swapCustom(
-        dexWallet,
-        [WNATIVE, USDC],
-        true,
-        BigNumber.from(2).mul(BigNumber.from(10).pow(6))
-      );
+    if (
+      Number(formatEther(balanceNATIVEB4.toString())) < 2 &&
+      Number(formatEther(balanceWNATIVEB4.toString())) > 0
+    ) {
+      if (
+        Number(formatEther(balanceWNATIVEB4.toString())) < 2 &&
+        balanceUSDCB4.gt(BigNumber.from(2).mul(10).pow(6))
+      ) {
+        await swapCustom(
+          dexWallet,
+          [WNATIVE, USDC],
+          true,
+          BigNumber.from(2).mul(10).pow(6)
+        );
+      }
 
-      const balanceWNATIVEAfter: BigNumber = await WNATIVEContract.balanceOf(
-        dexWallet.wallet.address
-      );
-      const amountToWithdraw = balanceWNATIVEAfter.sub(balanceWNATIVEB4);
+      const amountToWithdraw = parseEther("2");
+
+      const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
 
       console.log("Withdrawing WNATIVE");
-      await WNATIVEContract.withdraw(amountToWithdraw);
+      const withrawalResult = await callContractMethod(
+        WNATIVEContract,
+        "withdraw",
+        [amountToWithdraw],
+        gasPrice
+      );
+
+      console.log("Withrawal result:", withrawalResult);
 
       // check balance after
       const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
         dexWallet.wallet.address
       );
       console.log("Balance:", formatEther(balanceNATIVE.toString()));
-    } else if (balanceNATIVEB4 > parseEther("3")) {
-      const amountToWithdraw = balanceNATIVEB4.sub(parseEther("2"));
-      console.log("Withdrawing WNATIVE");
-      await WNATIVEContract.deposit({ value: amountToWithdraw });
+    } else if (Number(formatEther(balanceNATIVEB4.toString())) > 3) {
+      const amountToDeposit = balanceNATIVEB4.sub(parseEther("3"));
+      console.log("Deposit WNATIVE");
+      const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
+      const depositResult = await callContractMethod(
+        WNATIVEContract,
+        "deposit",
+        [{ value: amountToDeposit }],
+        gasPrice
+      );
+      console.log("Deposit result:", depositResult);
 
       // check balance after
       const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
