@@ -9,7 +9,8 @@ export async function callContractMethod(
   contract: Contract,
   method: string,
   inputs: any[],
-  gasPrice: BigNumber
+  gasPrice: BigNumber,
+  value?: BigNumber
 ) {
   // Leggi le transazioni esistenti
 
@@ -42,7 +43,11 @@ export async function callContractMethod(
     console.log("Default gas limit:", gasLimit.toBigInt());
   }
 
-  const txResponse = await contract[method](...inputs, { gasPrice, gasLimit });
+  const txResponse = await contract[method](...inputs, {
+    value,
+    gasPrice,
+    gasLimit,
+  });
   console.log("Done! Tx Hash:", txResponse.hash);
 
   // Salva la transazione nel file JSON

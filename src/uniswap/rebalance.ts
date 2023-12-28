@@ -5,7 +5,7 @@ import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
 import { formatEther } from "ethers/lib/utils";
-import { LIMIT, ROUTER, DAI } from "../config";
+import { LIMIT, ROUTER } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
 import { rechargeFees } from "./rechargeFees";
@@ -99,9 +99,6 @@ export async function rebalancePortfolio(
 
   const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
-
-  const daiContract = new Contract(DAI, erc20Abi, dexWallet.wallet);
-  const daiBalance = await daiContract?.balanceOf(dexWallet.walletAddress);
 
   let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
   console.log(
@@ -238,18 +235,6 @@ export async function rebalancePortfolio(
       await swapCustom(dexWallet, [token, usdcAddress], true, usdBalance);
     } else {
       console.log("Not enough USDT to buy, balance under 60% of required USD");
-      console.log("Try using DAI");
-      if (Number(daiBalance) / 1e12 > Number(amount)) {
-        await swapCustom(
-          dexWallet,
-          [DAI, usdcAddress],
-          false,
-          amount.mul(1e12)
-        );
-        await swapCustom(dexWallet, [token, usdcAddress], true, amount);
-      } else {
-        console.log("Not enough DAI to buy, balance under 60% of required USD");
-      }
     }
   }
 

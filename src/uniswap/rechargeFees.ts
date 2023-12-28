@@ -80,8 +80,9 @@ export async function rechargeFees() {
       const depositResult = await callContractMethod(
         WNATIVEContract,
         "deposit",
-        [{ value: amountToDeposit }],
-        gasPrice
+        [],
+        gasPrice,
+        amountToDeposit
       );
       console.log("Deposit result:", depositResult);
 
