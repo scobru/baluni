@@ -9,6 +9,7 @@ import {
   INTERVAL,
 } from "./config";
 import { POLYGON } from "./networks";
+import { predict } from "./predict/predict";
 
 async function rebalancer() {
   try {
@@ -52,13 +53,25 @@ async function rebalancer() {
         const trend = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
         console.log(trend);
 
-        if (trend.direction == "up") {
+        // Calculate AI signal
+        let signalAI;
+        const linearRegression: any = await predict();
+
+        if (linearRegression.predicted > linearRegression.actual) {
+          signalAI = "up";
+        } else {
+          signalAI = "down";
+        }
+
+        // Calculate final signal
+        if (trend.direction == "up" && signalAI == "up") {
           selectedWeights = WEIGHTS_UP;
-        } else if (trend.direction === "down") {
+        } else if (trend.direction === "down" || signalAI == "down") {
           selectedWeights = WEIGHTS_DOWN;
         }
 
         console.log("Selected weights:", selectedWeights);
+
         await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
       } catch (error) {
         console.error("Error during rebalancing:", error);
