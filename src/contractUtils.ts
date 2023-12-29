@@ -1,6 +1,12 @@
 import { BigNumber, Contract, providers } from "ethers";
 import fs from "fs";
 import { POLYGON } from "./networks";
+import { PrettyConsole } from "./utils/prettyConsole";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 
 const TX_FILE = "./transactions.json";
 const provider = new providers.JsonRpcProvider(POLYGON[0]); // Sostituisci con il tuo provider
@@ -23,12 +29,12 @@ export async function callContractMethod(
   ) {
     await updateTransactionStatus();
 
-    console.log("Waiting for some transactions to complete...");
+    prettyConsole.log("Waiting for some transactions to complete...");
     await new Promise((resolve) => setTimeout(resolve, 10000)); // attendi 10 secondi
     transactions = readTransactions(); // Aggiorna le transazioni
   }
 
-  console.log(`${method}(${inputs})`);
+  prettyConsole.info(`${method}(${inputs})`);
 
   let gasLimit = BigNumber.from(500000);
 
@@ -37,8 +43,8 @@ export async function callContractMethod(
       ...inputs
     );
     gasLimit = gasEstimate.mul(2);
-    console.log("Gas estimate:", gasEstimate.toBigInt());
-    console.log("Gas limit:", gasLimit.toBigInt());
+    prettyConsole.log("Gas estimate:", gasEstimate.toBigInt());
+    prettyConsole.log("Gas limit:", gasLimit.toBigInt());
   } catch (error) {
     console.log("Default gas limit:", gasLimit.toBigInt());
   }
@@ -48,7 +54,7 @@ export async function callContractMethod(
     gasPrice: gasPrice,
     gasLimit: gasLimit,
   });
-  console.log("Done! Tx Hash:", txResponse.hash);
+  prettyConsole.success("Done! Tx Hash:", txResponse.hash);
 
   // Salva la transazione nel file JSON
   transactions.push({
@@ -66,7 +72,7 @@ function readTransactions() {
     const txData = fs.readFileSync(TX_FILE);
     return JSON.parse(txData as any);
   } catch (e) {
-    console.error("Unable to read transactions file:", e);
+    prettyConsole.error("Unable to read transactions file:", e);
     return []; // restituisce un array vuoto se non riesce a leggere
   }
 }
@@ -76,7 +82,7 @@ function writeTransactions(transactions: any) {
   try {
     fs.writeFileSync(TX_FILE, JSON.stringify(transactions, null, 2));
   } catch (e) {
-    console.error("Unable to write transactions file:", e);
+    prettyConsole.error("Unable to write transactions file:", e);
   }
 }
 
@@ -92,7 +98,9 @@ async function updateTransactionStatus() {
         );
         if (receipt && receipt.confirmations > 0) {
           // Transazione confermata, la segna per la rimozione
-          console.log(`Transaction confirmed! Hash: ${transactions[i].hash}`);
+          prettyConsole.success(
+            `Transaction confirmed! Hash: ${transactions[i].hash}`
+          );
           continue; // Salta l'aggiunta di questa transazione agli aggiornamenti perché è confermata
         }
       } catch (error) {

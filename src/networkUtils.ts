@@ -1,4 +1,10 @@
 import { ethers } from "ethers";
+import { PrettyConsole } from "./utils/prettyConsole";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 
 export async function waitForTx(
   provider: ethers.providers.Provider,
@@ -14,7 +20,7 @@ export async function waitForTx(
   }
 
   if (txReceipt) {
-    console.log(`TX ${hash} broadcasted`);
+    prettyConsole.success(`TX ${hash} broadcasted`);
     return true;
   }
 

@@ -1,10 +1,18 @@
-import { BigNumber, Contract } from "ethers";
+import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../dexWallet";
 import { callContractMethod } from "../contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { ROUTER } from "../config";
+import { QUOTER, ROUTER, SLIPPAGE } from "../config";
+import { PrettyConsole } from "../utils/prettyConsole";
+import quoterAbi from "./contracts/Quoter.json";
+import { formatEther, parseEther } from "ethers/lib/utils";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 
 export async function swap(
   dexWallet: DexWallet,
@@ -13,7 +21,7 @@ export async function swap(
 ) {
   const { wallet, walletAddress, walletBalance, providerGasPrice } = dexWallet;
 
-  console.log(walletAddress + ":", walletBalance.toBigInt());
+  prettyConsole.log(walletAddress + ":", walletBalance.toBigInt());
 
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
@@ -31,7 +39,7 @@ export async function swap(
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
 
-  console.log(
+  prettyConsole.log(
     "Token A",
     tokenABalance.toBigInt(),
     "Token B:",
@@ -45,15 +53,15 @@ export async function swap(
     wallet
   );
 
-  console.log("Provider gas price:", providerGasPrice.toBigInt());
+  prettyConsole.log("Provider gas price:", providerGasPrice.toBigInt());
   const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
-  console.log("  Actual gas price:", gasPrice.toBigInt());
+  prettyConsole.log("  Actual gas price:", gasPrice.toBigInt());
 
   const allowance: BigNumber = await tokenAContract.allowance(
     walletAddress,
     swapRouterAddress
   );
-  console.log("Token A spenditure allowance:", allowance.toBigInt());
+  prettyConsole.log("Token A spenditure allowance:", allowance.toBigInt());
 
   if (allowance.lt(tokenABalance)) {
     const approvalResult = await callContractMethod(
@@ -66,12 +74,36 @@ export async function swap(
     if (!broadcasted) {
       throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);
     } else {
-      console.log(`Spending of ${tokenABalance.toBigInt()} approved.`);
+      prettyConsole.success(
+        `Spending of ${tokenABalance.toBigInt()} approved.`
+      );
     }
   }
 
-  console.log("Swap", tokenAName, "for", tokenBName);
+  prettyConsole.log(`Swap ${tokenAName} for ${tokenBName}`);
+
   const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60);
+  const slippageTolerance = SLIPPAGE;
+
+  const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
+  const expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
+    tokenAAddress,
+    tokenBAddress,
+    3000,
+    tokenABalance.toString(),
+    0
+  );
+
+  prettyConsole.log(
+    "Amount A: ",
+    formatEther(tokenABalance),
+    "Expected amount B:",
+    formatEther(expectedAmountB.toString())
+  );
+
+  const minimumAmountB = expectedAmountB
+    .mul(10000 - slippageTolerance)
+    .div(10000);
   const swapTxInputs = [
     tokenAAddress,
     tokenBAddress,
@@ -79,7 +111,7 @@ export async function swap(
     walletAddress,
     BigNumber.from(swapDeadline),
     tokenABalance,
-    BigNumber.from(0),
+    minimumAmountB, // BigNumber.from(0),
     BigNumber.from(0),
   ];
 

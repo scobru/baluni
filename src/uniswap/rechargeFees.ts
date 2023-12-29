@@ -7,6 +7,12 @@ import wethAbi from "./contracts/WETH.json";
 import { formatEther, parseEther } from "ethers/lib/utils";
 import { POLYGON } from "../networks";
 import { callContractMethod } from "../contractUtils";
+import { PrettyConsole } from "../utils/prettyConsole";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 
 export async function rechargeFees() {
   try {
@@ -35,8 +41,14 @@ export async function rechargeFees() {
       dexWallet.wallet.address
     );
     // wallet balance
-    console.log("Balance WNATIVE: ", formatEther(balanceWNATIVEB4.toString()));
-    console.log("Balance NATIVE:", formatEther(balanceNATIVEB4.toString()));
+    prettyConsole.info(
+      "BALANCE WNATIVE",
+      formatEther(balanceWNATIVEB4.toString())
+    );
+    prettyConsole.info(
+      "BALANCE NATIVE",
+      formatEther(balanceNATIVEB4.toString())
+    );
 
     if (
       Number(formatEther(balanceNATIVEB4.toString())) < 2 &&
@@ -58,7 +70,7 @@ export async function rechargeFees() {
 
       const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
 
-      console.log("Withdrawing WNATIVE");
+      prettyConsole.log("Withdrawing WNATIVE");
       const withrawalResult = await callContractMethod(
         WNATIVEContract,
         "withdraw",
@@ -66,16 +78,16 @@ export async function rechargeFees() {
         gasPrice
       );
 
-      console.log("Withrawal result:", withrawalResult);
+      prettyConsole.log("Withrawal result:", withrawalResult);
 
       // check balance after
       const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
         dexWallet.wallet.address
       );
-      console.log("Balance:", formatEther(balanceNATIVE.toString()));
+      prettyConsole.log("Balance:", formatEther(balanceNATIVE.toString()));
     } else if (Number(formatEther(balanceNATIVEB4.toString())) > 3) {
       const amountToDeposit = balanceNATIVEB4.sub(parseEther("3"));
-      console.log("Deposit WNATIVE");
+      prettyConsole.log("Deposit WNATIVE");
       const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
       const depositResult = await callContractMethod(
         WNATIVEContract,
@@ -84,15 +96,15 @@ export async function rechargeFees() {
         gasPrice,
         amountToDeposit
       );
-      console.log("Deposit result:", depositResult);
+      prettyConsole.log("Deposit result:", depositResult);
 
       // check balance after
       const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
         dexWallet.wallet.address
       );
-      console.log("Balance:", formatEther(balanceNATIVE.toString()));
+      prettyConsole.log("Balance:", formatEther(balanceNATIVE.toString()));
     }
-    console.log("Fee recharge operation completed");
+    prettyConsole.log("Fee recharge operation completed");
   } catch (error) {
     console.error("Error during fee recharge:", error);
   }

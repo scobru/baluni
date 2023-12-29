@@ -1,14 +1,21 @@
 import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../dexWallet";
-import { callContractMethod, simulateContractMethod } from "../contractUtils";
+import { callContractMethod } from "../contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
+import quoterAbi from "./contracts/Quoter.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { formatEther } from "ethers/lib/utils";
-import { LIMIT, ROUTER } from "../config";
+import { formatEther, parseEther } from "ethers/lib/utils";
+import { LIMIT, ROUTER, QUOTER, SLIPPAGE } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
 import { rechargeFees } from "./rechargeFees";
+import { PrettyConsole } from "../utils/prettyConsole";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 
 export async function swapCustom(
   dexWallet: DexWallet,
@@ -17,7 +24,7 @@ export async function swapCustom(
   swapAmount?: BigNumber
 ) {
   if (!swapAmount || swapAmount.isZero()) {
-    console.error("Swap amount must be a positive number.");
+    prettyConsole.error("Swap amount must be a positive number.");
     return;
   }
 
@@ -29,23 +36,29 @@ export async function swapCustom(
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
   const swapRouterAddress = ROUTER;
+
   const swapRouterContract = new Contract(
     swapRouterAddress,
     swapRouterAbi,
     wallet
   );
-  console.log("Provider gas price:", providerGasPrice.toBigInt());
+
+  const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
   const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
 
-  console.log("  Actual gas price:", gasPrice.toBigInt());
+  prettyConsole.log(
+    `Actual gas price: ${gasPrice.toBigInt()}`,
+    `Provider gas price: ${providerGasPrice.toBigInt()}`
+  );
+
   const allowance: BigNumber = await tokenAContract.allowance(
     walletAddress,
     swapRouterAddress
   );
-  console.log("Token A spenditure allowance:", allowance.toBigInt());
+  prettyConsole.log("Token A spenditure allowance:", allowance.toBigInt());
 
   if (allowance.lt(swapAmount)) {
-    console.log("Approving spending of token A for swap");
+    prettyConsole.log("Approving spending of token A for swap");
     const approvalResult = await callContractMethod(
       tokenAContract,
       "approve",
@@ -57,13 +70,30 @@ export async function swapCustom(
     if (!broadcasted) {
       throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);
     } else {
-      console.log(`Spending of ${swapAmount.toString()} approved.`);
+      prettyConsole.success(`Spending of ${swapAmount.toString()} approved.`);
     }
   }
 
-  console.log("Swap", tokenAName, "for", tokenBName);
-
+  prettyConsole.log(`Swap ${tokenAName} for ${tokenBName}`);
   const swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
+  const slippageTolerance = SLIPPAGE;
+  const expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
+    tokenAAddress,
+    tokenBAddress,
+    3000,
+    swapAmount.toString(),
+    0
+  );
+
+  prettyConsole.log(
+    `Amount A: ${swapAmount.toString()}`,
+    `Expected amount B: ${expectedAmountB.toString()}`
+  );
+
+  const minimumAmountB = expectedAmountB
+    .mul(10000 - slippageTolerance)
+    .div(10000);
+
   const swapTxInputs = [
     tokenAAddress,
     tokenBAddress,
@@ -71,9 +101,10 @@ export async function swapCustom(
     walletAddress,
     BigNumber.from(swapDeadline),
     swapAmount,
-    BigNumber.from(0),
+    minimumAmountB, // BigNumber.from(0),
     BigNumber.from(0),
   ];
+
   const swapTxResponse = await callContractMethod(
     swapRouterContract,
     "exactInputSingle",
@@ -90,35 +121,18 @@ export async function rebalancePortfolio(
   desiredAllocations: { [token: string]: number },
   usdcAddress: string
 ) {
-  console.log(
+  prettyConsole.log(
     "**************************************************************************"
   );
-  console.log("Rebalance Portfolio");
-
-  console.log("Check Gas and Recharge");
+  prettyConsole.log("Rebalance Portfolio\n", "Check Gas and Recharge\n");
   await rechargeFees();
 
   const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
-  const { rsiCheck, getDetachSourceFromOHLCV } = require("trading-indicator");
 
-  // Check Rsi before invest USD
-  const { input } = await getDetachSourceFromOHLCV(
-    "binance",
-    "BTC/USDT",
-    "5m",
-    false
-  ); // true if you want to get future market
-  const rsiResult = await rsiCheck(14, 75, 25, input);
-  console.log("RSI:", rsiResult);
-
-  let totalPortfolioValue =
-    rsiResult.overSold == true
-      ? BigNumber.from(usdBalance.mul(1e12).toString())
-      : BigNumber.from(0);
-
-  console.log(
-    "Total Portfolio Value (in USDT) at Start:",
+  let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
+  prettyConsole.info(
+    "Total Portfolio Value (in USDT) at Start: ",
     formatEther(totalPortfolioValue)
   );
   //let totalPortfolioValue =BigNumber.from(0);
@@ -145,13 +159,13 @@ export async function rebalancePortfolio(
     tokenValues[token] = tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
   }
-
-  console.log(
-    "Total Portfolio Value (in USDT):",
+  prettyConsole.info(
+    "Total Portfolio Value (in USDT): ",
     formatEther(totalPortfolioValue)
   );
 
   let currentAllocations: { [token: string]: number } = {};
+
   Object.keys(tokenValues).forEach((token) => {
     currentAllocations[token] = tokenValues[token]
       .mul(10000)
@@ -185,15 +199,14 @@ export async function rebalancePortfolio(
         ? formatEther(String(Number(tokenBalance) * 1e10))
         : formatEther(tokenBalance);
 
-    console.group(`Token Details:`);
-    console.log(`Token: ${token}`);
-    console.log(`Current Allocation: ${currentAllocation}%`);
-    console.log(`Desired Allocation: ${desiredAllocation}%`);
-    console.log(`Difference: ${difference}%`);
-    console.log(`Value (USD): ${formatEther(tokenValues[token])}`);
-    console.log(`Value to Rebalance (USD): ${formatEther(valueToRebalance)}`);
-    console.log(`Balance: ${tokenBalanceFormatted} ${tokenSymbol}`);
-    console.groupEnd();
+    prettyConsole.info(
+      `Token: ${token}`,
+      `Current Allocation: ${currentAllocation}%`,
+      `Difference: ${difference}%`,
+      `Value (USD): ${formatEther(tokenValues[token])}`,
+      `Value to Rebalance (USD): ${formatEther(valueToRebalance)}`,
+      `Balance: ${tokenBalanceFormatted} ${tokenSymbol}`
+    );
 
     if (difference < 0 && Math.abs(difference) > LIMIT) {
       // Calculate token amount to sell
@@ -222,42 +235,65 @@ export async function rebalancePortfolio(
   }
 
   for (let { token, amount } of tokensToSell) {
-    console.log(`Selling ${formatEther(amount)} worth of ${token}`);
-    // Call swapCustom or equivalent function to sell the token
-    // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
-    await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
+    const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
+    const tokenSymbol = await tokenContract.symbol();
+    const [rsiResult] = await getRSI(tokenSymbol);
+    if (rsiResult.overBought == true) {
+      // Call swapCustom or equivalent function to sell the token
+      // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
+      await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+    } else {
+      prettyConsole.warn("Waiting for RSI OverSold");
+    }
   }
 
   // Execute purchases next
   for (let { token, amount } of tokensToBuy) {
+    prettyConsole.assert(
+      `Buying ${Number(amount) / 1e6} USDC worth of ${token}`
+    );
+
+    const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
+    const tokenSymbol = await tokenContract.symbol();
+
+    const [rsiResult] = await getRSI(tokenSymbol);
+
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
     const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
     const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
-    console.log("Amount to Swap", Number(amount));
-    console.log("Usd Balance", Number(usdBalance));
+    prettyConsole.info(
+      `Amount to Swap ${Number(amount)}`,
+      `Usd Balance ${Number(usdBalance)}`
+    );
 
-    if (Number(usdBalance) > Number(amount)) {
-      console.log(`Buying ${formatEther(amount)} worth of ${token}`);
-      await swapCustom(dexWallet, [token, usdcAddress], true, amount); // false for reverse because we're buying
-      // wait 5 seconds before moving on to the next token
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-    } else if (
-      Number(usdBalance) < Number(amount) &&
-      Number(usdBalance) > (Number(amount) * 6000) / 10000
-    ) {
-      console.log("Use all USDT to buy");
-      await swapCustom(dexWallet, [token, usdcAddress], true, usdBalance);
+    if (rsiResult.overSold == true) {
+      if (Number(usdBalance) > Number(amount)) {
+        prettyConsole.assert(
+          `Buying ${Number(amount) / 1e6} worth of ${token}`
+        );
+
+        await swapCustom(dexWallet, [token, usdcAddress], true, amount); // false for reverse because we're buying
+        // wait 5 seconds before moving on to the next token
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      } else if (
+        Number(usdBalance) < Number(amount) &&
+        Number(usdBalance) > (Number(amount) * 6000) / 10000
+      ) {
+        prettyConsole.log("Use all USDT to buy");
+        await swapCustom(dexWallet, [token, usdcAddress], true, usdBalance);
+      } else {
+        prettyConsole.log(
+          "Not enough USDT to buy, balance under 60% of required USD"
+        );
+      }
     } else {
-      console.log("Not enough USDT to buy, balance under 60% of required USD");
+      prettyConsole.warn("Waiting for RSI OverSold");
     }
   }
-
-  console.log("Rebalance completed.");
-  console.log(
-    "**************************************************************************"
-  );
+  prettyConsole.success("Rebalance completed.");
 }
 
 // Add the function to fetch token decimals if not already present.
@@ -300,20 +336,38 @@ async function getTokenValue(
       value = balance.mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
     }
 
-    console.log(
-      "**************************************************************************"
-    );
-    console.log("Token Symbol:", tokenSymbol);
-    console.log("Token:", token);
-    console.log(
-      "Balance:",
+    const _balance =
       decimals == 8
         ? formatEther(String(Number(balance) * 1e10))
-        : formatEther(balance.toString())
-    );
-    console.log("Price:", price?.toString());
-    console.log("Value:", formatEther(value.toString()));
+        : formatEther(balance.toString());
 
+    prettyConsole.info(
+      `Token Symbol: ${tokenSymbol}`,
+      `Token: ${token}`,
+      `Balance:${_balance}`,
+      `Price:${price?.toString()}`,
+      `Value:${formatEther(value.toString())}`
+    );
     return value;
   }
+}
+
+async function getRSI(symbol: string) {
+  const { rsiCheck, getDetachSourceFromOHLCV } = require("trading-indicator");
+
+  if (symbol.startsWith("W")) {
+    symbol = symbol.substring(1);
+  }
+
+  const { input } = await getDetachSourceFromOHLCV(
+    "binance",
+    `${symbol}/USDT`,
+    "5m",
+    false
+  ); // true if you want to get future market
+
+  const rsiResult = await rsiCheck(8, 70, 30, input);
+  prettyConsole.debug(`Getting RSI for:${symbol}`, `RSI:${rsiResult.rsiVal}`);
+
+  return [rsiResult];
 }

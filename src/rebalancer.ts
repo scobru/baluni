@@ -10,13 +10,19 @@ import {
 } from "./config";
 import { POLYGON } from "./networks";
 import { predict } from "./predict/predict";
+import { PrettyConsole } from "./utils/prettyConsole";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 
 async function rebalancer() {
   try {
     const selectedWeightsInput = String(process.argv[2]);
 
     let selectedWeights = WEIGHTS_NONE;
-    console.log("Selected weights input:", selectedWeightsInput);
+    prettyConsole.log("Selected weights input:", selectedWeightsInput);
 
     if (selectedWeightsInput === "up") {
       selectedWeights = WEIGHTS_UP;
@@ -25,8 +31,7 @@ async function rebalancer() {
     } else {
       selectedWeights = WEIGHTS_NONE;
     }
-
-    console.log("Selected weights:", selectedWeights);
+    prettyConsole.log("Selected weights:", selectedWeights);
 
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
@@ -34,8 +39,7 @@ async function rebalancer() {
     // Set an interval to perform rebalancing every 5 minutes
     setInterval(async () => {
       try {
-        console.log("Checking portfolio for rebalancing...");
-
+        prettyConsole.log("Checking portfolio");
         const {
           kstCross,
           getDetachSourceFromOHLCV,
@@ -51,8 +55,7 @@ async function rebalancer() {
         // kstCross(input, roc1, roc2, roc3, roc4, sma1, sma2, sma3, sma4, signalPeriod)
         // Calculate KST
         const trend = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
-        console.log(trend);
-
+        prettyConsole.debug("KST:", trend);
         // Calculate AI signal
         let signalAI;
         const linearRegression: any = await predict();
@@ -62,24 +65,25 @@ async function rebalancer() {
         } else {
           signalAI = "down";
         }
-        console.log("Signal AI:", signalAI);
+        prettyConsole.debug("Signal AI:", signalAI);
+        prettyConsole.debug("KST trend:", trend.direction);
 
         // Calculate final signal
-        if (trend.direction == "up" && signalAI == "up") {
+        if (trend.direction === "up" && signalAI === "up") {
           selectedWeights = WEIGHTS_UP;
-        } else if (trend.direction === "down" || signalAI == "down") {
+        } else if (trend.direction === "down" || signalAI === "down") {
           selectedWeights = WEIGHTS_DOWN;
         }
 
-        console.log("Selected weights:", selectedWeights);
+        prettyConsole.info("Selected weights:", selectedWeights);
 
         await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
       } catch (error) {
-        console.error("Error during rebalancing:", error);
+        prettyConsole.error("Error during rebalancing:", error);
       }
     }, INTERVAL * 1000); // 1 minute = 60000 ms
   } catch (error) {
-    console.error("Error during initialization:", error);
+    prettyConsole.error("Error during initialization:", error);
   }
 }
 
@@ -88,5 +92,5 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error("An error occurred:", error);
+  prettyConsole.error("An error occurred:", error);
 });

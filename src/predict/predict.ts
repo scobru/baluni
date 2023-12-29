@@ -1,6 +1,11 @@
 import { fetchPriceData } from "./fetchPriceData";
 import { trainAndPredict } from "./trainAndPredict";
+import { PrettyConsole } from "../utils/prettyConsole";
 
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 //const [tokenSymbol] = process.argv.slice(2);
 
 export async function predict() {
@@ -23,8 +28,8 @@ export async function predict() {
       endDate
     );
     const results = await trainAndPredict(timePrices, predictTime);
-    console.log(`Prediction for ${new Date(predictTime)}: ${results} `);
-    console.log(`Actual: ${actualPrice}`);
+    prettyConsole.log(`Prediction for ${new Date(predictTime)}: ${results} `);
+    prettyConsole.log(`Actual: ${actualPrice}`);
     return { actual: actualPrice, predicted: results };
   } catch (error) {
     console.error("Error:", error);

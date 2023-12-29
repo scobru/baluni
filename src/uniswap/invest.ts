@@ -4,7 +4,12 @@ import { swapCustom } from "./rebalance";
 import { swap } from "./swap";
 import erc20Abi from "./contracts/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
+import { PrettyConsole } from "../utils/prettyConsole";
 
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
 export async function invest(
   dexWallet: DexWallet,
   allocations: { [token: string]: number },
@@ -33,13 +38,13 @@ export async function invest(
       const tokenBalance: BigNumber = await tokenContract.balanceOf(
         dexWallet.wallet.address
       );
-      console.log("Balance for", token, "is", formatEther(tokenBalance));
+      prettyConsole.log("Balance for", token, "is", formatEther(tokenBalance));
       if (tokenBalance > BigNumber.from(0)) {
-        console.log("Selling", token);
+        prettyConsole.log("Selling", token);
         await swap(dexWallet, [token, usdtAddress], false);
         await new Promise((resolve) => setTimeout(resolve, 10000));
       } else {
-        console.log("No Balance for", token);
+        prettyConsole.log("No Balance for", token);
       }
     }
   }
@@ -55,5 +60,5 @@ export async function invest(
     }
   }
 
-  console.log("Investment distributed according to allocations.");
+  prettyConsole.log("Investment distributed according to allocations.");
 }

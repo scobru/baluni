@@ -2,13 +2,20 @@ import { ethers } from "ethers";
 import uniswapV3FactoryAbi from "./contracts/UniswapV3Factory.json";
 import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json";
 import erc20Abi from "./contracts/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
+import { PrettyConsole } from "../utils/prettyConsole";
+
+const prettyConsole = new PrettyConsole();
+prettyConsole.clear();
+prettyConsole.closeByNewLine = true;
+prettyConsole.useIcons = true;
+
 
 export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const uniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const { PRIVATE_KEY } = process.env;
 
   if (!PRIVATE_KEY) {
-    console.log("Private key missing from env variables");
+    prettyConsole.log("Private key missing from env variables");
     return;
   }
 
@@ -38,12 +45,12 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const tokenADecimals = await tokenAContract.decimals();
   const tokenBDecimals = await tokenBContract.decimals();
 
-  console.log(walletAddress + ":", walletBalance.toBigInt());
+  prettyConsole.log(walletAddress + ":", walletBalance.toBigInt());
 
   const txInputs = [tokenAAddress, tokenBAddress, 3000];
 
   const poolAddress = await factoryContract.getPool(...txInputs);
-  console.log("Pool address:", poolAddress);
+  prettyConsole.log("Pool address:", poolAddress);
 
   const poolContract = new ethers.Contract(
     poolAddress,
@@ -56,10 +63,10 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const tokenBPrice = 1 / (1.0001 ** tick * 10 ** -12);
 
   if (tokenADecimals == 8) {
-    console.log("Tick:", tick, "Price:", (tokenBPrice / 1e5) * 2);
+    prettyConsole.log("Tick:", tick, "Price:", (tokenBPrice / 1e5) * 2);
     return (tokenBPrice / 1e5) * 2;
   } else {
-    console.log("Tick:", tick, "Price:", tokenBPrice);
+    prettyConsole.log("Tick:", tick, "Price:", tokenBPrice);
     return tokenBPrice;
   }
 }
