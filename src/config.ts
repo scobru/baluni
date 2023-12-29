@@ -49,4 +49,4 @@ export const ORACLE = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8"; // CHAINLINK
 export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564";
 
 export const LIMIT = 100; // 1%
-export const INTERVAL = 60; // 1 minute
+export const INTERVAL = 300; // 1 minute

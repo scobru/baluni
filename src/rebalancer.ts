@@ -62,6 +62,7 @@ async function rebalancer() {
         } else {
           signalAI = "down";
         }
+        console.log("Signal AI:", signalAI);
 
         // Calculate final signal
         if (trend.direction == "up" && signalAI == "up") {
