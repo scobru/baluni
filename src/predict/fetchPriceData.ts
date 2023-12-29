@@ -1,3 +1,5 @@
+import fetch from "node-fetch";
+
 export async function fetchPriceData(
   tokenSymbol: string,
   fromTimestamp: number,
