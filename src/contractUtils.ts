@@ -44,9 +44,9 @@ export async function callContractMethod(
   }
 
   const txResponse = await contract[method](...inputs, {
-    value,
-    gasPrice,
-    gasLimit,
+    value: value,
+    gasPrice: gasPrice,
+    gasLimit: gasLimit,
   });
   console.log("Done! Tx Hash:", txResponse.hash);
 
