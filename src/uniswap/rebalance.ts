@@ -242,7 +242,8 @@ export async function rebalancePortfolio(
   for (let { token, amount } of tokensToSell) {
     prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
     if (token === usdcAddress) {
-      return prettyConsole.log("SKIPPING USDC");
+      prettyConsole.log("SKIPPING USDC");
+      break;
     }
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
@@ -264,7 +265,8 @@ export async function rebalancePortfolio(
     );
 
     if (token === usdcAddress) {
-      return prettyConsole.log("SKIPPING USDC");
+      prettyConsole.log("SKIPPING USDC");
+      break;
     }
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
