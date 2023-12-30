@@ -17,20 +17,10 @@ prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
+let selectedWeights = WEIGHTS_UP;
+
 async function rebalancer() {
   try {
-    const selectedWeightsInput = String(process.argv[2]);
-    let selectedWeights: any;
-    prettyConsole.log("Selected weights input:", selectedWeightsInput);
-
-    if (selectedWeightsInput === "up") {
-      selectedWeights = WEIGHTS_UP;
-    } else if (selectedWeightsInput === "down") {
-      selectedWeights = WEIGHTS_DOWN;
-    }
-
-    prettyConsole.log("Selected weights:", selectedWeights);
-
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
 
@@ -75,7 +65,6 @@ async function rebalancer() {
         } else if (trend.direction === "down" || signalAI === "down") {
           selectedWeights = WEIGHTS_DOWN;
         }
-
         prettyConsole.info("Selected weights:", selectedWeights);
 
         await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
