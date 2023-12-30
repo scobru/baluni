@@ -130,12 +130,12 @@ export async function rebalancePortfolio(
   const usdContract = new Contract(usdcAddress, erc20Abi, dexWallet.wallet);
   const usdBalance = await usdContract?.balanceOf(dexWallet.walletAddress);
 
-  let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
+  //let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
+  let totalPortfolioValue = BigNumber.from(0);
   prettyConsole.info(
     "Total Portfolio Value (in USDT) at Start: ",
     formatEther(totalPortfolioValue)
   );
-  //let totalPortfolioValue =BigNumber.from(0);
 
   let tokenValues: { [token: string]: BigNumber } = {};
   // First, calculate the current value of each token in the portfolio
