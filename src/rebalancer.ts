@@ -20,17 +20,15 @@ prettyConsole.useIcons = true;
 async function rebalancer() {
   try {
     const selectedWeightsInput = String(process.argv[2]);
-
-    let selectedWeights = WEIGHTS_NONE;
+    let selectedWeights: any;
     prettyConsole.log("Selected weights input:", selectedWeightsInput);
 
     if (selectedWeightsInput === "up") {
       selectedWeights = WEIGHTS_UP;
     } else if (selectedWeightsInput === "down") {
       selectedWeights = WEIGHTS_DOWN;
-    } else {
-      selectedWeights = WEIGHTS_NONE;
     }
+
     prettyConsole.log("Selected weights:", selectedWeights);
 
     // Initialize your DexWallet here
@@ -65,8 +63,11 @@ async function rebalancer() {
         } else {
           signalAI = "down";
         }
+
+        console.group();
         prettyConsole.debug("Signal AI:", signalAI);
         prettyConsole.debug("KST trend:", trend.direction);
+        console.groupEnd();
 
         // Calculate final signal
         if (trend.direction === "up" && signalAI === "up") {
