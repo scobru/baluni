@@ -50,14 +50,8 @@ export async function rechargeFees() {
       formatEther(balanceNATIVEB4.toString())
     );
 
-    if (
-      Number(formatEther(balanceNATIVEB4.toString())) < 2 &&
-      Number(formatEther(balanceWNATIVEB4.toString())) > 0
-    ) {
-      if (
-        Number(formatEther(balanceWNATIVEB4.toString())) < 2 &&
-        balanceUSDCB4.gt(BigNumber.from(2).mul(10).pow(6))
-      ) {
+    if (Number(formatEther(balanceNATIVEB4.toString())) < 2) {
+      if (balanceUSDCB4.gt(BigNumber.from(2).mul(10).pow(6))) {
         await swapCustom(
           dexWallet,
           [WNATIVE, USDC],
@@ -65,11 +59,10 @@ export async function rechargeFees() {
           BigNumber.from(2).mul(10).pow(6)
         );
       }
-
       const amountToWithdraw = parseEther("2");
-
       const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
       prettyConsole.log("Withdrawing WNATIVE");
+
       const withrawalResult = await callContractMethod(
         WNATIVEContract,
         "withdraw",
@@ -77,23 +70,6 @@ export async function rechargeFees() {
         gasPrice
       );
       prettyConsole.log("Withrawal result:", withrawalResult);
-      // check balance after
-      const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
-        dexWallet.wallet.address
-      );
-      prettyConsole.log("Balance:", formatEther(balanceNATIVE.toString()));
-    } else if (Number(formatEther(balanceNATIVEB4.toString())) > 3) {
-      const amountToDeposit = balanceNATIVEB4.sub(parseEther("3"));
-      prettyConsole.log("Deposit WNATIVE");
-      const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
-      const depositResult = await callContractMethod(
-        WNATIVEContract,
-        "deposit",
-        [],
-        gasPrice,
-        amountToDeposit
-      );
-      prettyConsole.log("Deposit result:", depositResult);
 
       // check balance after
       const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(

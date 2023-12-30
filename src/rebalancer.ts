@@ -41,6 +41,8 @@ async function rebalancer() {
       "                        `-'"
   );
 
+  console.log("Please wait...");
+
   try {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
