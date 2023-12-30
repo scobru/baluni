@@ -148,14 +148,19 @@ export async function rebalancePortfolio(
     const tokenBalance = await tokenContract.balanceOf(dexWallet.walletAddress);
     const decimals = await getDecimals(token);
     const tokenSymbol = await tokenContract.symbol();
-    const tokenValue = await getTokenValue(
-      tokenSymbol,
-      token,
-      tokenBalance,
-      decimals,
-      usdcAddress,
-      dexWallet.wallet
-    );
+    let tokenValue;
+    if (tokenSymbol === "USDC") {
+      tokenValue = BigNumber.from(tokenBalance.toString()).mul(1e12);
+    } else {
+      tokenValue = await getTokenValue(
+        tokenSymbol,
+        token,
+        tokenBalance,
+        decimals,
+        usdcAddress,
+        dexWallet.wallet
+      );
+    }
     tokenValues[token] = tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
   }
@@ -236,6 +241,9 @@ export async function rebalancePortfolio(
 
   for (let { token, amount } of tokensToSell) {
     prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
+    if (token === usdcAddress) {
+      return prettyConsole.log("SKIPPING USDC");
+    }
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
     const [rsiResult] = await getRSI(tokenSymbol);
@@ -254,6 +262,10 @@ export async function rebalancePortfolio(
     prettyConsole.assert(
       `Buying ${Number(amount) / 1e6} USDC worth of ${token}`
     );
+
+    if (token === usdcAddress) {
+      return prettyConsole.log("SKIPPING USDC");
+    }
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
