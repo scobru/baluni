@@ -247,14 +247,14 @@ export async function rebalancePortfolio(
     }
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
-    const [rsiResult] = await getRSI(tokenSymbol);
-    if (rsiResult.overBought == true) {
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
+    if (stochasticRSIResult > 80) {
       // Call swapCustom or equivalent function to sell the token
       // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
       await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
       await new Promise((resolve) => setTimeout(resolve, 5000));
     } else {
-      prettyConsole.warn("Waiting for RSI overBought");
+      prettyConsole.warn("Waiting for StochRSI overBought");
     }
   }
 
@@ -272,7 +272,7 @@ export async function rebalancePortfolio(
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
 
-    const [rsiResult] = await getRSI(tokenSymbol);
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
 
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
@@ -283,7 +283,7 @@ export async function rebalancePortfolio(
       `Usd Balance ${Number(usdBalance)}`
     );
 
-    if (rsiResult.overSold == true) {
+    if (stochasticRSIResult.stochRSI < 20) {
       if (Number(usdBalance) > Number(amount)) {
         prettyConsole.assert(
           `Buying ${Number(amount) / 1e6} worth of ${token}`
@@ -304,7 +304,7 @@ export async function rebalancePortfolio(
         );
       }
     } else {
-      prettyConsole.warn("Waiting for RSI OverSold");
+      prettyConsole.warn("Waiting for StochRSI OverSold");
     }
   }
   prettyConsole.success("Rebalance completed.");
@@ -367,7 +367,11 @@ async function getTokenValue(
 }
 
 async function getRSI(symbol: string) {
-  const { rsiCheck, getDetachSourceFromOHLCV } = require("trading-indicator");
+  const {
+    rsiCheck,
+    stochasticrsi,
+    getDetachSourceFromOHLCV,
+  } = require("trading-indicator");
 
   if (symbol.startsWith("W")) {
     symbol = symbol.substring(1);
@@ -381,7 +385,15 @@ async function getRSI(symbol: string) {
   ); // true if you want to get future market
 
   const rsiResult = await rsiCheck(8, 70, 30, input);
-  prettyConsole.debug(`Getting RSI for:${symbol}`, `RSI:${rsiResult.rsiVal}`);
+  const stochasticRSIResult = await stochasticrsi(3, 3, 14, 14, "close", input);
 
-  return [rsiResult];
+  prettyConsole.debug(
+    `Getting RSI for:${symbol}`,
+    `RSI:${rsiResult.rsiVal}`,
+    `StochasticRSI:${
+      stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI
+    }`
+  );
+
+  return [rsiResult, stochasticRSIResult[stochasticRSIResult.length - 1]];
 }

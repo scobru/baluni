@@ -1,13 +1,6 @@
 import { initializeWallet } from "./dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalance";
-import {
-  TOKENS,
-  WEIGHTS_UP,
-  WEIGHTS_DOWN,
-  WEIGHTS_NONE,
-  USDC,
-  INTERVAL,
-} from "./config";
+import { TOKENS, WEIGHTS_UP, WEIGHTS_DOWN, USDC, INTERVAL } from "./config";
 import { POLYGON } from "./networks";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
@@ -44,6 +37,7 @@ async function rebalancer() {
         // Calculate KST
         const trend = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
         prettyConsole.debug("KST:", trend);
+
         // Calculate AI signal
         let signalAI;
         const linearRegression: any = await predict();
@@ -66,7 +60,6 @@ async function rebalancer() {
           selectedWeights = WEIGHTS_DOWN;
         }
         prettyConsole.info("Selected weights:", selectedWeights);
-
         await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
