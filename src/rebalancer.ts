@@ -41,7 +41,7 @@ async function rebalancer() {
       "                        `-'"
   );
 
-  console.log("Please wait...");
+  console.log("\n", "Please wait...", "\n", "\n");
 
   try {
     // Initialize your DexWallet here
@@ -52,6 +52,7 @@ async function rebalancer() {
     setInterval(async () => {
       try {
         prettyConsole.log("Checking portfolio");
+
         const {
           kstCross,
           getDetachSourceFromOHLCV,
@@ -66,8 +67,19 @@ async function rebalancer() {
 
         // kstCross(input, roc1, roc2, roc3, roc4, sma1, sma2, sma3, sma4, signalPeriod)
         // Calculate KST
-        const trend = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
-        prettyConsole.debug("KST:", trend);
+        const kstResult = await kstCross(
+          input,
+          10,
+          15,
+          20,
+          30,
+          10,
+          10,
+          10,
+          15,
+          9
+        );
+        prettyConsole.debug("KST:", kstResult);
 
         // Calculate AI signal
         let signalAI;
@@ -81,15 +93,18 @@ async function rebalancer() {
 
         console.group();
         prettyConsole.debug("Signal AI:", signalAI);
-        prettyConsole.debug("KST trend:", trend.direction);
+        prettyConsole.debug("KST trend:", kstResult.direction);
         console.groupEnd();
 
         // Calculate final signal
-        if (trend.direction === "up" && signalAI === "up") {
+        if (kstResult.direction === "up" && signalAI === "up") {
           selectedWeights = WEIGHTS_UP;
-        } else if (trend.direction === "down" || signalAI === "down") {
+        }
+
+        if (kstResult.direction === "down" || signalAI === "down") {
           selectedWeights = WEIGHTS_DOWN;
         }
+
         prettyConsole.info("Selected weights:", selectedWeights);
         await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
       } catch (error) {
