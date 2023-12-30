@@ -245,7 +245,7 @@ export async function rebalancePortfolio(
       await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
       await new Promise((resolve) => setTimeout(resolve, 5000));
     } else {
-      prettyConsole.warn("Waiting for RSI OverSold");
+      prettyConsole.warn("Waiting for RSI overBought");
     }
   }
 
