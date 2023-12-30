@@ -12,6 +12,35 @@ prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
 async function rebalancer() {
+  console.log(
+    `\n` +
+      " __                  __                      __ \n" +
+      "/  |                /  |                    /  |\n" +
+      "$$ |____    ______  $$ | __    __  _______  $$/ \n" +
+      "$$      \\  /      \\ $$ |/  |  /  |/       \\ /  |\n" +
+      "$$$$$$$  | $$$$$$  |$$ |$$ |  $$ |$$$$$$$  |$$ |\n" +
+      "$$ |  $$ | /    $$ |$$ |$$ |  $$ |$$ |  $$ |$$ |\n" +
+      "$$ |__$$ |/$$$$$$$ |$$ |$$ \\__$$ |$$ |  $$ |$$ |\n" +
+      "$$    $$/ $$    $$ |$$ |$$    $$/ $$ |  $$ |$$ |\n" +
+      "$$$$$$$/   $$$$$$$/ $$/  $$$$$$/  $$/   $$/ $$/ \n" +
+      "                                                \n"
+  );
+
+  console.log(
+    `\n` +
+      '                 ,-""""-.\n' +
+      "               ,'      _ `.\n" +
+      "              /       )_)  \\\n" +
+      "             :              :\n" +
+      "             \\              /\n" +
+      "              \\            /\n" +
+      "               `.        ,'\n" +
+      "                 `.    ,'\n" +
+      "                   `.,'\n" +
+      "                    /\\`.   ,-._\n" +
+      "                        `-'"
+  );
+
   try {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
