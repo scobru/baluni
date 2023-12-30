@@ -377,6 +377,10 @@ async function getRSI(symbol: string) {
     symbol = symbol.substring(1);
   }
 
+  if (symbol == "MaticX") {
+    symbol = "MATIC";
+  }
+
   const { input } = await getDetachSourceFromOHLCV(
     "binance",
     `${symbol}/USDT`,

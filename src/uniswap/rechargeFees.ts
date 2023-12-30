@@ -69,7 +69,6 @@ export async function rechargeFees() {
       const amountToWithdraw = parseEther("2");
 
       const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
-
       prettyConsole.log("Withdrawing WNATIVE");
       const withrawalResult = await callContractMethod(
         WNATIVEContract,
@@ -77,9 +76,7 @@ export async function rechargeFees() {
         [amountToWithdraw],
         gasPrice
       );
-
       prettyConsole.log("Withrawal result:", withrawalResult);
-
       // check balance after
       const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
         dexWallet.wallet.address
