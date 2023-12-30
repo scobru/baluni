@@ -240,11 +240,11 @@ export async function rebalancePortfolio(
   }
 
   for (let { token, amount } of tokensToSell) {
-    prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
     if (token === usdcAddress) {
       prettyConsole.log("SKIPPING USDC");
       break;
     }
+    prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
@@ -260,15 +260,13 @@ export async function rebalancePortfolio(
 
   // Execute purchases next
   for (let { token, amount } of tokensToBuy) {
-    prettyConsole.assert(
-      `Buying ${Number(amount) / 1e6} USDC worth of ${token}`
-    );
-
     if (token === usdcAddress) {
       prettyConsole.log("SKIPPING USDC");
       break;
     }
-
+    prettyConsole.assert(
+      `Buying ${Number(amount) / 1e6} USDC worth of ${token}`
+    );
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
 
