@@ -13,16 +13,16 @@ import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
 
 const prettyConsole = new PrettyConsole();
+
 prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
-
-let selectedWeights = WEIGHTS_UP;
 
 async function rebalancer() {
   try {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
+    let selectedWeights = WEIGHTS_UP;
 
     // Set an interval to perform rebalancing every 5 minutes
     setInterval(async () => {
