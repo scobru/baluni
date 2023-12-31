@@ -12,37 +12,7 @@ prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
 async function rebalancer() {
-  console.log(
-    `\n` +
-      " __                  __                      __ \n" +
-      "/  |                /  |                    /  |\n" +
-      "$$ |____    ______  $$ | __    __  _______  $$/ \n" +
-      "$$      \\  /      \\ $$ |/  |  /  |/       \\ /  |\n" +
-      "$$$$$$$  | $$$$$$  |$$ |$$ |  $$ |$$$$$$$  |$$ |\n" +
-      "$$ |  $$ | /    $$ |$$ |$$ |  $$ |$$ |  $$ |$$ |\n" +
-      "$$ |__$$ |/$$$$$$$ |$$ |$$ \\__$$ |$$ |  $$ |$$ |\n" +
-      "$$    $$/ $$    $$ |$$ |$$    $$/ $$ |  $$ |$$ |\n" +
-      "$$$$$$$/   $$$$$$$/ $$/  $$$$$$/  $$/   $$/ $$/ \n" +
-      "                                                \n"
-  );
-
-  console.log(
-    `\n` +
-      '                 ,-""""-.\n' +
-      "               ,'      _ `.\n" +
-      "              /       )_)  \\\n" +
-      "             :              :\n" +
-      "             \\              /\n" +
-      "              \\            /\n" +
-      "               `.        ,'\n" +
-      "                 `.    ,'\n" +
-      "                   `.,'\n" +
-      "                    /\\`.   ,-._\n" +
-      "                        `-'"
-  );
-
-  console.log("\n", "Please wait...", "\n", "\n");
-
+  welcomeMessage();
   try {
     // Initialize your DexWallet here
     const dexWallet = await initializeWallet(POLYGON[0]);
@@ -84,6 +54,7 @@ async function rebalancer() {
 
         // Calculate AI signal
         let signalAI;
+
         const linearRegression: any = await predict();
 
         if (linearRegression.predicted > linearRegression.actual) {
@@ -124,6 +95,42 @@ async function rebalancer() {
   }
 }
 
+function welcomeMessage() {
+  console.log(
+    `\n` +
+      " __                  __                      __ \n" +
+      "/  |                /  |                    /  |\n" +
+      "$$ |____    ______  $$ | __    __  _______  $$/ \n" +
+      "$$      \\  /      \\ $$ |/  |  /  |/       \\ /  |\n" +
+      "$$$$$$$  | $$$$$$  |$$ |$$ |  $$ |$$$$$$$  |$$ |\n" +
+      "$$ |  $$ | /    $$ |$$ |$$ |  $$ |$$ |  $$ |$$ |\n" +
+      "$$ |__$$ |/$$$$$$$ |$$ |$$ \\__$$ |$$ |  $$ |$$ |\n" +
+      "$$    $$/ $$    $$ |$$ |$$    $$/ $$ |  $$ |$$ |\n" +
+      "$$$$$$$/   $$$$$$$/ $$/  $$$$$$/  $$/   $$/ $$/ \n" +
+      "                                                \n"
+  );
+
+  console.log(
+    `\n` +
+      '                 ,-""""-.\n' +
+      "               ,'      _ `.\n" +
+      "              /       )_)  \\\n" +
+      "             :              :\n" +
+      "             \\              /\n" +
+      "              \\            /\n" +
+      "               `.        ,'\n" +
+      "                 `.    ,'\n" +
+      "                   `.,'\n" +
+      "                    /\\`.   ,-._\n" +
+      "                        `-'"
+  );
+
+  console.log("\n", "Please wait...");
+  console.log(
+    "This is an experimental project. Use at your own risk. No financial advice is given."
+  );
+  console.log("\n", "\n");
+}
 async function main() {
   await rebalancer();
 }

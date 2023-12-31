@@ -41,3 +41,6 @@ export const QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"; // UNIV3 QUO
 export const LIMIT = 100; // 1%
 export const SLIPPAGE = 100; // 1%
 export const INTERVAL = 120; // 1 minute
+
+export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
+export const INVESTMENT_AMOUNT = 100;

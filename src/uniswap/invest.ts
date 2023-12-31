@@ -15,10 +15,11 @@ export async function invest(
   allocations: { [token: string]: number },
   usdtAddress: string,
   desiredTokens: string[],
-  sellAll: boolean
+  sellAll: boolean,
+  buyAmount?: Number
 ) {
   const tokenContract = new Contract(usdtAddress, erc20Abi, dexWallet.wallet);
-  const usdBalance: BigNumber = await tokenContract.balanceOf(
+  let usdBalance: BigNumber = await tokenContract.balanceOf(
     dexWallet.wallet.address
   );
 
@@ -50,6 +51,11 @@ export async function invest(
   }
 
   for (const token of desiredTokens) {
+
+    if(buyAmount){
+      usdBalance = BigNumber.from(buyAmount).mul(1e6);
+    }
+
     const allocationPercentage = BigNumber.from(allocations[token]);
     const tokenAmount = usdBalance.mul(allocationPercentage).div(10000);
 
