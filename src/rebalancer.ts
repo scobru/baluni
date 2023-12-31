@@ -53,7 +53,7 @@ async function rebalancer() {
         prettyConsole.debug("KST:", kstResult);
 
         // Calculate AI signal
-        let signalAI;
+        let signalAI: string;
 
         const linearRegression: any = await predict();
 
@@ -73,7 +73,7 @@ async function rebalancer() {
           const time = new Date().toISOString();
           const data = `${time}, ${selectedWeights}, ${kstResult.direction}, ${
             kstResult.cross
-          }, ${String(signalAI!)}\n`;
+          }, ${String(signalAI)}\n`;
           fs.appendFile("log.txt", data, function (err: any) {
             if (err) throw err;
             console.log("Saved!");
