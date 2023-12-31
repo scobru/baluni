@@ -79,6 +79,7 @@ async function rebalancer() {
           15,
           9
         );
+
         prettyConsole.debug("KST:", kstResult);
 
         // Calculate AI signal
@@ -97,11 +98,18 @@ async function rebalancer() {
         console.groupEnd();
 
         // Calculate final signal
-        if (kstResult.direction === "up" && signalAI === "up") {
+        if (
+          kstResult.direction === "up" &&
+          kstResult.cross === "true" &&
+          signalAI === "up"
+        ) {
           selectedWeights = WEIGHTS_UP;
         }
 
-        if (kstResult.direction === "down" || signalAI === "down") {
+        if (
+          (kstResult.direction === "down" && kstResult.cross === "true") ||
+          signalAI === "down"
+        ) {
           selectedWeights = WEIGHTS_DOWN;
         }
 
