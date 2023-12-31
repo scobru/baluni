@@ -248,7 +248,7 @@ export async function rebalancePortfolio(
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
-    if (stochasticRSIResult > 80) {
+    if (stochasticRSIResult.stochRSI > 80) {
       // Call swapCustom or equivalent function to sell the token
       // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
       await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
