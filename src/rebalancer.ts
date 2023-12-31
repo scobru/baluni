@@ -68,20 +68,34 @@ async function rebalancer() {
         prettyConsole.debug("KST trend:", kstResult.direction);
         console.groupEnd();
 
+        const writeLog = async function writeLog() {
+          const fs = require("fs");
+          const time = new Date().toISOString();
+          const data = `${time}, ${selectedWeights}, ${kstResult.direction}, ${
+            kstResult.cross
+          }, ${String(signalAI!)}\n`;
+          fs.appendFile("log.txt", data, function (err: any) {
+            if (err) throw err;
+            console.log("Saved!");
+          });
+        };
+
         // Calculate final signal
         if (
-          kstResult.direction === "up" &&
-          kstResult.cross === "true" &&
-          signalAI === "up"
+          kstResult.direction == "up" &&
+          kstResult.cross == true &&
+          signalAI == "up"
         ) {
           selectedWeights = WEIGHTS_UP;
+          await writeLog();
         }
 
         if (
-          (kstResult.direction === "down" && kstResult.cross === "true") ||
-          signalAI === "down"
+          (kstResult.direction == "down" && kstResult.cross == "true") ||
+          signalAI == "down"
         ) {
           selectedWeights = WEIGHTS_DOWN;
+          await writeLog();
         }
 
         prettyConsole.info("Selected weights:", selectedWeights);
