@@ -59,7 +59,7 @@ async function rebalancer() {
 
         if (linearRegression.predicted > linearRegression.actual) {
           signalAI = "up";
-        } else {
+        } else if ( linearRegression.predicted < linearRegression.actual) {
           signalAI = "down";
         }
 
@@ -91,7 +91,7 @@ async function rebalancer() {
         }
 
         if (
-          (kstResult.direction == "down" && kstResult.cross == "true") ||
+          kstResult.direction == "down" && kstResult.cross == "true" &&
           signalAI == "down"
         ) {
           selectedWeights = WEIGHTS_DOWN;
