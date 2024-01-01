@@ -71,7 +71,7 @@ async function rebalancer() {
         const writeLog = async function writeLog() {
           const fs = require("fs");
           const time = new Date().toISOString();
-          const data = `${time}, ${selectedWeights}, ${kstResult.direction}, ${
+          const data = `${time}, ${kstResult.direction}, ${
             kstResult.cross
           }, ${String(signalAI)}\n`;
           fs.appendFile("log.txt", data, function (err: any) {
