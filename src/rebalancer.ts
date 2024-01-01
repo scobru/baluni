@@ -53,7 +53,7 @@ async function rebalancer() {
         prettyConsole.debug("KST:", kstResult);
 
         // Calculate AI signal
-        let signalAI: string;
+        let signalAI = "none"
 
         const linearRegression: any = await predict();
 
