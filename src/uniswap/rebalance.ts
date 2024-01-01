@@ -5,12 +5,21 @@ import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import quoterAbi from "./contracts/Quoter.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { formatEther } from "ethers/lib/utils";
 import { LIMIT, ROUTER, QUOTER, SLIPPAGE } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { POLYGON } from "../networks";
 import { rechargeFees } from "./rechargeFees";
 import { PrettyConsole } from "../utils/prettyConsole";
+import { TradeType, Token } from "@uniswap/sdk-core";
+import {
+  AlphaRouter,
+  SwapOptionsSwapRouter02,
+  SwapType,
+  SwapRoute,
+  CurrencyAmount,
+} from "@uniswap/smart-order-router";
+import { Percent } from "@uniswap/sdk-core/dist/entities/fractions/percent";
 
 const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
@@ -36,6 +45,14 @@ export async function swapCustom(
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
   const swapRouterAddress = ROUTER;
+
+  const route = await generateRoute(
+    new Token(1, tokenAAddress, await tokenAContract.decimals()),
+    swapAmount.toString(),
+    new Token(1, tokenBAddress, await tokenBContract.decimals()),
+    dexWallet
+  );
+  console.log(route);
 
   const swapRouterContract = new Contract(
     swapRouterAddress,
@@ -112,7 +129,59 @@ export async function swapCustom(
     gasPrice
   );
 
+  /* const swapTx = await signer.sendTransaction({
+    data: route.methodParameters.calldata,
+    to: V3_SWAP_ROUTER_ADDRESS,
+    value: route.methodParameters.value,
+    from: signer.address,
+    maxFeePerGas: maxFeePerGas,
+    maxPriorityFeePerGas: maxPriorityFeePerGas,
+  }); */
+
   return swapTxResponse;
+}
+
+async function generateRoute(
+  tokenIn: Token,
+  amountIn: string,
+  tokenOut: Token,
+  dexWallet: DexWallet
+): Promise<SwapRoute> {
+  const chainId = await dexWallet.wallet.getChainId();
+
+  let provider: BaseProvider;
+  // uniswap router requires a live network provider (localhost fork not supported)
+  provider = new ethers.providers.JsonRpcProvider(POLYGON[0]);
+
+  const router = new AlphaRouter({
+    chainId,
+    provider,
+  });
+
+  const signerAddress = await hre.ethers.provider.getSigner(0).getAddress();
+  const options: SwapOptionsSwapRouter02 = {
+    recipient: signerAddress, // Recipient of the output tokens
+    slippageTolerance: new Percent(50, 10_000), // 50 bips, or 0.50%
+    deadline: Math.floor(Date.now() / 1000 + 1800), // 30 minutes from the current Unix time
+    type: SwapType.SWAP_ROUTER_02, // Uniswap v3 Swap Router
+  };
+
+  // Generate the route using tokenIn, tokenOut, and options
+  const route = await router.route(
+    CurrencyAmount.fromRawAmount(
+      tokenIn,
+      ethers.utils.parseUnits(amountIn, tokenIn.decimals).toString()
+    ),
+    tokenOut,
+    TradeType.EXACT_INPUT,
+    options
+  );
+
+  if (!route) {
+    throw new Error("No route found for the specified swap.");
+  }
+
+  return route;
 }
 
 export async function rebalancePortfolio(
