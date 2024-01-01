@@ -6,6 +6,7 @@ const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
+
 //const [tokenSymbol] = process.argv.slice(2);
 
 export async function predict() {
@@ -28,8 +29,16 @@ export async function predict() {
       endDate
     );
     const results = await trainAndPredict(timePrices, predictTime);
-    prettyConsole.log(`Prediction for ${new Date(predictTime)}: ${results} `);
-    prettyConsole.log(`Actual: ${actualPrice}`);
+
+    console.group("*** Prediction ***");
+    console.log("\n");
+    prettyConsole.info(`Prediction for ${new Date(predictTime)}: ${results}`);
+    prettyConsole.log("🌐 Actual price:");
+    prettyConsole.print("blue", "yellow", `${actualPrice}`);
+    prettyConsole.log("📈 Predicted price:");
+    prettyConsole.print("blue", "yellow", `${results}`);
+    console.groupEnd();
+
     return { actual: actualPrice, predicted: results };
   } catch (error) {
     console.error("Error:", error);

@@ -53,19 +53,21 @@ async function rebalancer() {
         prettyConsole.debug("KST:", kstResult);
 
         // Calculate AI signal
-        let signalAI = "none"
+        let signalAI = "none";
 
         const linearRegression: any = await predict();
 
         if (linearRegression.predicted > linearRegression.actual) {
           signalAI = "up";
-        } else if ( linearRegression.predicted < linearRegression.actual) {
+        } else if (linearRegression.predicted < linearRegression.actual) {
           signalAI = "down";
         }
 
         console.group();
         prettyConsole.debug("Signal AI:", signalAI);
-        prettyConsole.debug("KST trend:", kstResult.direction);
+        prettyConsole.print("blue", "yellow", signalAI);
+        prettyConsole.debug("KST trend:");
+        prettyConsole.print("blue", "yellow", kstResult.direction);
         console.groupEnd();
 
         const writeLog = async function writeLog() {
@@ -91,7 +93,8 @@ async function rebalancer() {
         }
 
         if (
-          kstResult.direction == "down" && kstResult.cross == "true" &&
+          kstResult.direction == "down" &&
+          kstResult.cross == "true" &&
           signalAI == "down"
         ) {
           selectedWeights = WEIGHTS_DOWN;
