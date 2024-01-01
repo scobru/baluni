@@ -65,9 +65,9 @@ async function rebalancer() {
 
         console.group();
         prettyConsole.debug("Signal AI:", signalAI);
-        prettyConsole.print("blue", "yellow", signalAI);
+        prettyConsole.print("black", "yellow", signalAI);
         prettyConsole.debug("KST trend:");
-        prettyConsole.print("blue", "yellow", kstResult.direction);
+        prettyConsole.print("black", "yellow", kstResult.direction);
         console.groupEnd();
 
         const writeLog = async function writeLog() {
