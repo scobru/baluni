@@ -38,7 +38,7 @@ export const ORACLE = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8"; // CHAINLINK
 export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // UNIV3 ROUTER
 export const QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"; // UNIV3 QUOTER
 
-export const LIMIT = 100; // 1%
+export const LIMIT = 200; // 1%
 export const SLIPPAGE = 100; // 1%
 export const INTERVAL = 120; // 1 minute
 
