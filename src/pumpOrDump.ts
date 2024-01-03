@@ -1,9 +1,8 @@
 import { swap } from "./uniswap/swap";
 import { initializeWallet } from "./dexWallet";
 import { POLYGON } from "./networks";
-import { PrettyConsole } from "./utils/prettyConsole";
 
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { loadPrettyConsole } from "./utils/prettyConsole";
 const prettyConsole = loadPrettyConsole();
 const token1 = process.argv[2];
 const token2 = process.argv[3];

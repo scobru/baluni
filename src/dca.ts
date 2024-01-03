@@ -9,9 +9,8 @@ import {
 import { invest } from "./uniswap/invest";
 import { POLYGON } from "./networks";
 import { rechargeFees } from "./uniswap/rechargeFees";
-import { PrettyConsole } from "./utils/prettyConsole";
+import { loadPrettyConsole } from "./utils/prettyConsole";
 
-import { loadPrettyConsole } from "../utils/prettyConsole";
 const prettyConsole = loadPrettyConsole();
 
 // DCA configuration

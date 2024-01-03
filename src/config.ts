@@ -54,8 +54,8 @@ export const INTERVAL = 300; // 1 minute
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
 export const INVESTMENT_AMOUNT = 100;
 
-export const TECNICAL_ANALYSIS = false;
-export const LINEAR_REGRESSION = false;
+export const TECNICAL_ANALYSIS = true;
+export const LINEAR_REGRESSION = true;
 export const LINEAR_REGRESSION_PERIOD = 30;
 export const LINEAR_REGRESSION_EPOCHS = 100;
 

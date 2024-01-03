@@ -3,10 +3,10 @@ import { TOKENS, WEIGHTS_NONE, USDC } from "./config";
 import { invest } from "./uniswap/invest";
 import { POLYGON } from "./networks";
 import { rechargeFees } from "./uniswap/rechargeFees";
-import { PrettyConsole } from "./utils/prettyConsole";
+import { loadPrettyConsole } from "./utils/prettyConsole";
 
-import { loadPrettyConsole } from "../utils/prettyConsole";
 const prettyConsole = loadPrettyConsole();
+
 const sellAll = Boolean(process.argv[3]);
 
 async function investor() {

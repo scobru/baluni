@@ -1,15 +1,11 @@
 import chalk from "chalk";
 import { DexWallet } from "../dexWallet";
 import { ethers } from "ethers";
-import { PrettyConsole } from "../utils/prettyConsole";
 import { WNATIVE } from "../config";
 
-const prettyConsole = new PrettyConsole();
+import { loadPrettyConsole } from "../utils/prettyConsole";
 
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
-
+const prettyConsole = loadPrettyConsole();
 const WETH_ABI = [
   // Wrap ETH
   "function deposit() payable",

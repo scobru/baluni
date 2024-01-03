@@ -1,5 +1,3 @@
-import { PrettyConsole } from "../utils/prettyConsole";
-
 import { loadPrettyConsole } from "../utils/prettyConsole";
 const prettyConsole = loadPrettyConsole();
 
