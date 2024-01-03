@@ -5,33 +5,30 @@ import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import quoterAbi from "./contracts/Quoter.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { formatEther } from "ethers/lib/utils";
 import {
   LIMIT,
   ROUTER,
   QUOTER,
-  SLIPPAGE,
-  RSI_PERIOD,
   RSI_OVERBOUGHT,
   RSI_OVERSOLD,
   STOCKRSI_OVERBOUGHT,
   STOCKRSI_OVERSOLD,
-  STOCKRSI_PERIOD,
   TECNICAL_ANALYSIS,
   WNATIVE,
   USDC,
 } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { rechargeFees } from "./rechargeFees";
-import { PrettyConsole } from "../utils/prettyConsole";
 import { quotePair } from "./quote";
 import { getTokenMetadata } from "./getTokenMetadata";
 import { getTokenBalance } from "./getTokenBalance";
-
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { getAmountOut, getPoolFee } from "./getPoolFee";
+import { approveToken } from "./approveToken";
+import { getTokenValue } from "./getTokenValue";
+import { getRSI } from "./getRSI";
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 
 export async function swapCustom(
   dexWallet: DexWallet,
@@ -162,6 +159,17 @@ export async function swapCustom(
         gasPrice
       );
 
+      let broadcasted = await waitForTx(
+        dexWallet.wallet.provider,
+        swapTxResponse.hash
+      );
+
+      if (!broadcasted) {
+        throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+      } else {
+        prettyConsole.success(`Transaction Complete!`);
+      }
+
       await approveToken(
         tokenAContractForUSDC,
         minimumAmountB,
@@ -189,6 +197,17 @@ export async function swapCustom(
         quoterContract,
         gasPrice
       );
+
+      broadcasted = await waitForTx(
+        dexWallet.wallet.provider,
+        swapTxResponse.hash
+      );
+
+      if (!broadcasted) {
+        throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+      } else {
+        prettyConsole.success(`Transaction Complete!`);
+      }
 
       return swapTxResponse;
     } else {
@@ -223,6 +242,17 @@ export async function swapCustom(
         gasPrice
       );
 
+      let broadcasted = await waitForTx(
+        dexWallet.wallet.provider,
+        swapTxResponse.hash
+      );
+
+      if (!broadcasted) {
+        throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+      } else {
+        prettyConsole.success(`Transaction Complete!`);
+      }
+
       return swapTxResponse;
     }
   }
@@ -256,6 +286,17 @@ export async function swapCustom(
     quoterContract,
     gasPrice
   );
+
+  let broadcasted = await waitForTx(
+    dexWallet.wallet.provider,
+    swapTxResponse.hash
+  );
+
+  if (!broadcasted) {
+    throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+  } else {
+    prettyConsole.success(`Transaction Complete!`);
+  }
 
   return swapTxResponse;
 }
@@ -304,8 +345,7 @@ export async function rebalancePortfolio(
         token,
         tokenBalance,
         decimals,
-        usdcAddress,
-        dexWallet.wallet
+        usdcAddress
       );
     }
     tokenValues[token] = tokenValue;
@@ -491,137 +531,6 @@ export async function rebalancePortfolio(
   prettyConsole.success("Rebalance completed.");
 }
 
-async function getTokenValue(
-  tokenSymbol: string,
-  token: string,
-  balance: BigNumber,
-  decimals: number,
-  usdcAddress: string,
-  wallet: ethers.Wallet
-): Promise<BigNumber> {
-  if (token === usdcAddress) {
-    return balance; // USDT value is the balance itself
-  } else {
-    // const price = await quotePair(token, usdcAddress);
-    const _token = {
-      address: token,
-      decimals: decimals,
-    };
-    const price: any = await fetchPrices(_token);
-
-    if (!price) throw new Error("Price is undefined");
-    // Here, ensure that the price is parsed with respect to the token's decimals
-
-    let pricePerToken = ethers.utils.parseUnits(price.toString(), 18); // Assume price is in 18 decimals
-    let value;
-
-    if (decimals == 8) {
-      value = balance
-        .mul(1e10)
-        .mul(pricePerToken)
-        .div(BigNumber.from(10).pow(18)); // Adjust for token's value
-    } else {
-      value = balance.mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
-    }
-
-    const _balance =
-      decimals == 8
-        ? formatEther(String(Number(balance) * 1e10))
-        : formatEther(balance.toString());
-
-    prettyConsole.info(
-      `Token Symbol: ${tokenSymbol}`,
-      `Token: ${token}`,
-      `Balance:${_balance}`,
-      `Price:${price?.toString()}`,
-      `Value:${formatEther(value.toString())}`
-    );
-    return value;
-  }
-}
-
-async function getRSI(symbol: string) {
-  const {
-    rsiCheck,
-    stochasticrsi,
-    getDetachSourceFromOHLCV,
-  } = require("trading-indicator");
-
-  if (symbol.startsWith("W")) {
-    symbol = symbol.substring(1);
-  }
-
-  if (symbol == "MaticX") {
-    symbol = "MATIC";
-  }
-
-  const { input } = await getDetachSourceFromOHLCV(
-    "binance",
-    `${symbol}/USDT`,
-    "5m",
-    false
-  ); // true if you want to get future market
-
-  const rsiResult = await rsiCheck(
-    RSI_PERIOD,
-    RSI_OVERBOUGHT,
-    RSI_OVERSOLD,
-    input
-  );
-  const stochasticRSIResult = await stochasticrsi(
-    3,
-    3,
-    STOCKRSI_PERIOD,
-    STOCKRSI_PERIOD,
-    "close",
-    input
-  );
-
-  prettyConsole.debug(
-    `Getting RSI for:${symbol}`,
-    `RSI:${rsiResult.rsiVal}`,
-    `StochasticRSI:${
-      stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI
-    }`
-  );
-
-  return [rsiResult, stochasticRSIResult[stochasticRSIResult.length - 1]];
-}
-
-async function approveToken(
-  tokenContract: Contract,
-  swapAmount: BigNumber,
-  to: string,
-  gasPrice: BigNumber,
-  dexWallet: DexWallet
-) {
-  let allowance: BigNumber = await tokenContract.allowance(
-    dexWallet.walletAddress,
-    to
-  );
-
-  if (allowance.lt(swapAmount)) {
-    prettyConsole.log("Approving spending of token A for swap");
-    const approvalResult = await callContractMethod(
-      tokenContract,
-      "approve",
-      [to, swapAmount],
-      gasPrice
-    );
-
-    const broadcasted = await waitForTx(
-      dexWallet.wallet.provider,
-      approvalResult.hash
-    );
-
-    if (!broadcasted) {
-      throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);
-    } else {
-      prettyConsole.success(`Spending of ${swapAmount.toString()} approved.`);
-    }
-  }
-}
-
 async function executeSwap(
   tokenA: string,
   tokenB: string,
@@ -633,7 +542,6 @@ async function executeSwap(
   gasPrice: BigNumber
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-
   let minimumAmountB = await getAmountOut(
     tokenA,
     tokenB,
@@ -661,62 +569,4 @@ async function executeSwap(
   );
 
   return [swapTxResponse, minimumAmountB];
-}
-
-async function getAmountOut(
-  tokenA: string,
-  tokenB: string,
-  poolFee: Number,
-  swapAmount: BigNumber,
-  quoterContract: Contract
-) {
-  try {
-    let slippageTolerance = SLIPPAGE;
-
-    let expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
-      tokenA,
-      tokenB,
-      poolFee,
-      swapAmount.toString(),
-      0
-    );
-
-    prettyConsole.log(
-      `Amount A: ${swapAmount.toString()}`,
-      `Expected amount B: ${expectedAmountB.toString()}`
-    );
-
-    let minimumAmountB = expectedAmountB
-      .mul(10000 - slippageTolerance)
-      .div(10000);
-
-    return minimumAmountB;
-  } catch (e) {
-    return false;
-  }
-}
-
-async function getPoolFee(
-  tokenAAddress: string,
-  tokenBAddress: string,
-  swapAmount: BigNumber,
-  quoterContract: Contract
-): Promise<number> {
-  const poolFees = [500, 3000, 10000];
-  let poolFee = 0;
-  for (const _poolFee of poolFees) {
-    let poolExist = await getAmountOut(
-      tokenAAddress,
-      tokenBAddress,
-      _poolFee,
-      swapAmount,
-      quoterContract
-    );
-
-    if (poolExist) {
-      poolFee = _poolFee;
-    }
-  }
-
-  return poolFee;
 }

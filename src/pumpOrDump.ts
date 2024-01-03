@@ -3,10 +3,8 @@ import { initializeWallet } from "./dexWallet";
 import { POLYGON } from "./networks";
 import { PrettyConsole } from "./utils/prettyConsole";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 const token1 = process.argv[2];
 const token2 = process.argv[3];
 const action = process.argv[4];

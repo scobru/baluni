@@ -1,14 +1,10 @@
 import { BigNumber, Contract, providers } from "ethers";
 import fs from "fs";
 import { POLYGON } from "./networks";
-import { PrettyConsole } from "./utils/prettyConsole";
 import { DexWallet } from "./dexWallet";
+import { loadPrettyConsole } from "./utils/prettyConsole";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
-
+const prettyConsole = loadPrettyConsole();
 const TX_FILE = "./transactions.json";
 const provider = new providers.JsonRpcProvider(POLYGON[0]); // Sostituisci con il tuo provider
 

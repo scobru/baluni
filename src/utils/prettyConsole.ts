@@ -302,3 +302,12 @@ export class PrettyConsole {
     }
   }
 }
+
+export function loadPrettyConsole() {
+  const prettyConsole = new PrettyConsole();
+  prettyConsole.clear();
+  prettyConsole.closeByNewLine = true;
+  prettyConsole.useIcons = true;
+
+  return prettyConsole;
+}

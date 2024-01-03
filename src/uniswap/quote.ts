@@ -4,10 +4,8 @@ import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json";
 import erc20Abi from "./contracts/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
 import { PrettyConsole } from "../utils/prettyConsole";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 
 export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const uniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";

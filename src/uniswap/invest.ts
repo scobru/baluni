@@ -6,10 +6,8 @@ import erc20Abi from "./contracts/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
 import { PrettyConsole } from "../utils/prettyConsole";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 export async function invest(
   dexWallet: DexWallet,
   allocations: { [token: string]: number },
@@ -51,8 +49,7 @@ export async function invest(
   }
 
   for (const token of desiredTokens) {
-
-    if(buyAmount){
+    if (buyAmount) {
       usdBalance = BigNumber.from(buyAmount).mul(1e6);
     }
 

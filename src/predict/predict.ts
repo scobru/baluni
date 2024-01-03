@@ -3,10 +3,8 @@ import { trainAndPredict } from "./trainAndPredict";
 import { PrettyConsole } from "../utils/prettyConsole";
 import { LINEAR_REGRESSION_PERIOD } from "../config";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 
 //const [tokenSymbol] = process.argv.slice(2);
 

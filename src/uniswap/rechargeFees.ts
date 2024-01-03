@@ -11,10 +11,8 @@ import { PrettyConsole } from "../utils/prettyConsole";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 
 export async function rechargeFees() {
   try {

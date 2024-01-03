@@ -5,10 +5,8 @@ import { POLYGON } from "./networks";
 import { rechargeFees } from "./uniswap/rechargeFees";
 import { PrettyConsole } from "./utils/prettyConsole";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 const sellAll = Boolean(process.argv[3]);
 
 async function investor() {

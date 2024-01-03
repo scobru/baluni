@@ -9,10 +9,8 @@ import { PrettyConsole } from "../utils/prettyConsole";
 import quoterAbi from "./contracts/Quoter.json";
 import { formatEther, parseEther } from "ethers/lib/utils";
 
-const prettyConsole = new PrettyConsole();
-prettyConsole.clear();
-prettyConsole.closeByNewLine = true;
-prettyConsole.useIcons = true;
+import { loadPrettyConsole } from "../utils/prettyConsole";
+const prettyConsole = loadPrettyConsole();
 
 export async function swap(
   dexWallet: DexWallet,
