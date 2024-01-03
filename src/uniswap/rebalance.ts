@@ -44,16 +44,6 @@ export async function swapCustom(
     return;
   }
 
-  let poolFee = 3000;
-
-  // if token is USDC and WNATIVe use 500
-  if (
-    (pair[0] === USDC && pair[1] === WNATIVE) ||
-    (pair[0] === WNATIVE && pair[1] === USDC)
-  ) {
-    poolFee = 500;
-  }
-
   const { wallet, walletAddress, providerGasPrice } = dexWallet;
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
@@ -97,7 +87,17 @@ export async function swapCustom(
   );
 
   console.log("Finding Pool...");
+  let poolFee: Number = 0;
+
+  const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
   const quote = await quotePair(tokenAAddress, tokenBAddress);
+
+  poolFee = await getPoolFee(
+    tokenAAddress,
+    tokenBAddress,
+    swapAmount,
+    quoterContract
+  );
 
   if (!quote) {
     prettyConsole.error("USDC Pool Not Found");
@@ -144,10 +144,17 @@ export async function swapCustom(
         `Swap ${tokenANameForWNATIVE} for ${tokenBNameForWNATIVE}`
       );
 
+      poolFee = await getPoolFee(
+        tokenAAddressForWNATIVE,
+        tokenBAddressForWNATIVE,
+        swapAmount,
+        quoterContract
+      );
+
       let [swapTxResponse, minimumAmountB] = await executeSwap(
         tokenAAddressForWNATIVE,
         tokenBAddressForWNATIVE,
-        500,
+        poolFee,
         swapAmount,
         walletAddress,
         swapRouterContract,
@@ -165,10 +172,17 @@ export async function swapCustom(
 
       prettyConsole.log(`Swap ${tokenANameForUSDC} for ${tokenBNameForUSDC}`);
 
+      poolFee = await getPoolFee(
+        tokenAAddressForUSDC,
+        tokenBAddressForUSDC,
+        swapAmount,
+        quoterContract
+      );
+
       [swapTxResponse, minimumAmountB] = await executeSwap(
         tokenAAddressForUSDC,
         tokenBAddressForUSDC,
-        3000,
+        Number(poolFee),
         minimumAmountB,
         walletAddress,
         swapRouterContract,
@@ -215,7 +229,6 @@ export async function swapCustom(
 
   prettyConsole.log("Pool Found!");
 
-  const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
   const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
 
   prettyConsole.log(
@@ -236,7 +249,7 @@ export async function swapCustom(
   const [swapTxResponse, minimumAmountB] = await executeSwap(
     tokenAAddress,
     tokenBAddress,
-    poolFee,
+    Number(poolFee),
     swapAmount,
     walletAddress,
     swapRouterContract,
@@ -657,24 +670,53 @@ async function getAmountOut(
   swapAmount: BigNumber,
   quoterContract: Contract
 ) {
-  let slippageTolerance = SLIPPAGE;
+  try {
+    let slippageTolerance = SLIPPAGE;
 
-  let expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
-    tokenA,
-    tokenB,
-    poolFee,
-    swapAmount.toString(),
-    0
-  );
+    let expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
+      tokenA,
+      tokenB,
+      poolFee,
+      swapAmount.toString(),
+      0
+    );
 
-  prettyConsole.log(
-    `Amount A: ${swapAmount.toString()}`,
-    `Expected amount B: ${expectedAmountB.toString()}`
-  );
+    prettyConsole.log(
+      `Amount A: ${swapAmount.toString()}`,
+      `Expected amount B: ${expectedAmountB.toString()}`
+    );
 
-  let minimumAmountB = expectedAmountB
-    .mul(10000 - slippageTolerance)
-    .div(10000);
+    let minimumAmountB = expectedAmountB
+      .mul(10000 - slippageTolerance)
+      .div(10000);
 
-  return minimumAmountB;
+    return minimumAmountB;
+  } catch (e) {
+    return false;
+  }
+}
+
+async function getPoolFee(
+  tokenAAddress: string,
+  tokenBAddress: string,
+  swapAmount: BigNumber,
+  quoterContract: Contract
+): Promise<number> {
+  const poolFees = [500, 3000, 10000];
+  let poolFee = 0;
+  for (const _poolFee of poolFees) {
+    let poolExist = await getAmountOut(
+      tokenAAddress,
+      tokenBAddress,
+      _poolFee,
+      swapAmount,
+      quoterContract
+    );
+
+    if (poolExist) {
+      poolFee = _poolFee;
+    }
+  }
+
+  return poolFee;
 }
