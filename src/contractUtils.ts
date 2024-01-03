@@ -2,6 +2,7 @@ import { BigNumber, Contract, providers } from "ethers";
 import fs from "fs";
 import { POLYGON } from "./networks";
 import { PrettyConsole } from "./utils/prettyConsole";
+import { DexWallet } from "./dexWallet";
 
 const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
@@ -10,6 +11,58 @@ prettyConsole.useIcons = true;
 
 const TX_FILE = "./transactions.json";
 const provider = new providers.JsonRpcProvider(POLYGON[0]); // Sostituisci con il tuo provider
+
+export async function callContract(
+  data: string,
+  value: string,
+  to: string,
+  dexWallet: DexWallet
+) {
+  const { maxFeePerGas, maxPriorityFeePerGas } =
+    await dexWallet.wallet.provider.getFeeData();
+
+  if (!maxFeePerGas || !maxPriorityFeePerGas) {
+    throw new Error("Failed to fetch gas fee data");
+  }
+
+  // Leggi le transazioni esistenti
+  let transactions = readTransactions();
+
+  // Controlla il numero di transazioni in attesa
+  while (
+    transactions.filter(
+      (tx: { status: string }) =>
+        tx.status === "pending" || tx.status === "dropped"
+    ).length > 2
+  ) {
+    await updateTransactionStatus();
+    prettyConsole.log("Waiting for some transactions to complete...");
+
+    await new Promise((resolve) => setTimeout(resolve, 10000)); // attendi 10 secondi
+    transactions = readTransactions(); // Aggiorna le transazioni
+  }
+
+  const txResponse = await dexWallet.wallet.sendTransaction({
+    data: data,
+    to: to,
+    value: value,
+    from: dexWallet.walletAddress,
+    maxFeePerGas: maxFeePerGas,
+    maxPriorityFeePerGas: maxPriorityFeePerGas,
+  });
+
+  prettyConsole.success("Done! Tx Hash:", txResponse.hash);
+
+  // Salva la transazione nel file JSON
+  transactions.push({
+    hash: txResponse.hash,
+    status: "pending",
+  });
+
+  writeTransactions(transactions);
+
+  return txResponse;
+}
 
 export async function callContractMethod(
   contract: Contract,
@@ -107,6 +160,24 @@ async function updateTransactionStatus() {
         console.error(`Error fetching transaction receipt: ${error}`);
       }
     }
+
+    if (transactions[i].status === "dropped") {
+      try {
+        const receipt = await provider.getTransactionReceipt(
+          transactions[i].hash
+        );
+        if (receipt && receipt.confirmations > 0) {
+          // Transazione confermata, la segna per la rimozione
+          prettyConsole.success(
+            `Transaction dropped! Hash: ${transactions[i].hash}`
+          );
+          continue; // Salta l'aggiunta di questa transazione agli aggiornamenti perché è confermata
+        }
+      } catch (error) {
+        console.error(`Error fetching transaction receipt: ${error}`);
+      }
+    }
+
     // Se lo stato non è "completed" (o qualsiasi altro stato che indichi il completamento), aggiungilo per l'aggiornamento
     if (transactions[i].status !== "confirmed") {
       updatedTransactions.push(transactions[i]);

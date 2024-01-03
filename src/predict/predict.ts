@@ -1,6 +1,7 @@
 import { fetchPriceData } from "./fetchPriceData";
 import { trainAndPredict } from "./trainAndPredict";
 import { PrettyConsole } from "../utils/prettyConsole";
+import { LINEAR_REGRESSION_PERIOD } from "../config";
 
 const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
@@ -15,7 +16,9 @@ export async function predict() {
   // CoinGecko likes timestamps in seconds, not ms
   const endDate: number = Math.floor(new Date().getTime() / 1000);
   const startDate = Math.floor(
-    new Date(endDate * 1000 - 90 * 24 * 60 * 60 * 1000).getTime() / 1000
+    new Date(
+      endDate * 1000 - LINEAR_REGRESSION_PERIOD * 24 * 60 * 60 * 1000
+    ).getTime() / 1000
   );
 
   // Use default values if arguments are not present

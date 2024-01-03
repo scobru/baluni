@@ -1,4 +1,5 @@
 const tf = require("@tensorflow/tfjs");
+import { LINEAR_REGRESSION_EPOCHS } from "../config";
 
 export async function trainAndPredict(
   timeAndPriceData: any[],
@@ -35,7 +36,7 @@ export async function trainAndPredict(
   model.compile({ optimizer: "sgd", loss: "meanSquaredError" });
 
   // Train the model
-  await model.fit(X, y, { epochs: 100 });
+  await model.fit(X, y, { epochs: LINEAR_REGRESSION_EPOCHS });
 
   // Normalize the new timestamp for prediction
   const normalizedNewTimestamp =

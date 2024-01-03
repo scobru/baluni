@@ -8,6 +8,8 @@ import { formatEther, parseEther } from "ethers/lib/utils";
 import { POLYGON } from "../networks";
 import { callContractMethod } from "../contractUtils";
 import { PrettyConsole } from "../utils/prettyConsole";
+import { unwrapETH } from "./wrapEth";
+import { getTokenBalance } from "./getTokenBalance";
 
 const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
@@ -18,33 +20,20 @@ export async function rechargeFees() {
   try {
     const dexWallet = await initializeWallet(POLYGON[1]);
 
-    const WNATIVEContract = new ethers.Contract(
-      WNATIVE,
-      wethAbi,
-      dexWallet.wallet
-    );
-    const NATIVEContract = new ethers.Contract(
-      NATIVE,
-      wethAbi,
-      dexWallet.wallet
-    );
-    const USDCContract = new ethers.Contract(USDC, wethAbi, dexWallet.wallet);
-    const balanceWNATIVEB4: BigNumber = await WNATIVEContract.balanceOf(
-      dexWallet.wallet.address
-    );
+    const { balance: balanceNATIVEB4, formatted: balanceNATIVEB4Formatted } =
+      await getTokenBalance(dexWallet, dexWallet.walletAddress, NATIVE);
 
-    const balanceNATIVEB4: BigNumber = await NATIVEContract.balanceOf(
-      dexWallet.wallet.address
-    );
+    const { balance: balanceWNATIVEB4, formatted: balanceWNATIVEB4Formatted } =
+      await getTokenBalance(dexWallet, dexWallet.walletAddress, WNATIVE);
 
-    const balanceUSDCB4: BigNumber = await USDCContract.balanceOf(
-      dexWallet.wallet.address
-    );
-    // wallet balance
+    const { balance: balanceUSDCB4, formatted: balanceUSDCB4Formatted } =
+      await getTokenBalance(dexWallet, dexWallet.walletAddress, USDC);
+
     prettyConsole.info(
       "BALANCE WNATIVE",
       formatEther(balanceWNATIVEB4.toString())
     );
+
     prettyConsole.info(
       "BALANCE NATIVE",
       formatEther(balanceNATIVEB4.toString())
@@ -59,23 +48,14 @@ export async function rechargeFees() {
           BigNumber.from(2).mul(10).pow(6)
         );
       }
-      const amountToWithdraw = parseEther("2");
-      const gasPrice: BigNumber = dexWallet.providerGasPrice.mul(15).div(10);
+
       prettyConsole.log("Withdrawing WNATIVE");
+      await unwrapETH(dexWallet, "2");
 
-      const withrawalResult = await callContractMethod(
-        WNATIVEContract,
-        "withdraw",
-        [amountToWithdraw],
-        gasPrice
-      );
-      prettyConsole.log("Withrawal result:", withrawalResult);
+      const { balance: balanceNATIVE, formatted: balanceNATIVEB4Formatted } =
+        await getTokenBalance(dexWallet, dexWallet.walletAddress, NATIVE);
 
-      // check balance after
-      const balanceNATIVE: BigNumber = await NATIVEContract.balanceOf(
-        dexWallet.wallet.address
-      );
-      prettyConsole.log("Balance:", formatEther(balanceNATIVE.toString()));
+      prettyConsole.log("Balance:", balanceNATIVEB4Formatted);
     }
     prettyConsole.log("Fee recharge operation completed");
   } catch (error) {

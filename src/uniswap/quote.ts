@@ -9,7 +9,6 @@ prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
-
 export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
   const uniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
   const { PRIVATE_KEY } = process.env;
@@ -49,24 +48,28 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
 
   const txInputs = [tokenAAddress, tokenBAddress, 3000];
 
-  const poolAddress = await factoryContract.getPool(...txInputs);
-  prettyConsole.log("Pool address:", poolAddress);
+  try {
+    const poolAddress = await factoryContract.getPool(...txInputs);
+    prettyConsole.log("Pool address:", poolAddress);
 
-  const poolContract = new ethers.Contract(
-    poolAddress,
-    uniswapV3PoolAbi,
-    wallet
-  );
-  const slot0 = await poolContract.slot0();
+    const poolContract = new ethers.Contract(
+      poolAddress,
+      uniswapV3PoolAbi,
+      wallet
+    );
+    const slot0 = await poolContract.slot0();
 
-  const { tick } = slot0;
-  const tokenBPrice = 1 / (1.0001 ** tick * 10 ** -12);
+    const { tick } = slot0;
+    const tokenBPrice = 1 / (1.0001 ** tick * 10 ** -12);
 
-  if (tokenADecimals == 8) {
-    prettyConsole.log("Tick:", tick, "Price:", (tokenBPrice / 1e5) * 2);
-    return (tokenBPrice / 1e5) * 2;
-  } else {
-    prettyConsole.log("Tick:", tick, "Price:", tokenBPrice);
-    return tokenBPrice;
+    if (tokenADecimals == 8) {
+      prettyConsole.log("Tick:", tick, "Price:", (tokenBPrice / 1e5) * 2);
+      return (tokenBPrice / 1e5) * 2;
+    } else {
+      prettyConsole.log("Tick:", tick, "Price:", tokenBPrice);
+      return tokenBPrice;
+    }
+  } catch {
+    return false;
   }
 }
