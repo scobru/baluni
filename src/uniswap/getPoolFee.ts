@@ -1,3 +1,8 @@
+import { BigNumber, Contract } from "ethers";
+import { SLIPPAGE } from "../config";
+import { loadPrettyConsole } from "../utils/prettyConsole";
+
+const prettyConsole = loadPrettyConsole();
 export async function getAmountOut(
   tokenA: string,
   tokenB: string,
