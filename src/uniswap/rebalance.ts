@@ -331,14 +331,8 @@ export async function rebalancePortfolio(
     dexWallet.wallet
   );
 
-  //const balanceYearn = await yearnContract?.balanceOf(dexWallet.walletAddress);
-  const balanceYearn = await getTokenBalance(
-    dexWallet,
-    dexWallet.walletAddress,
-    YEARN_AAVE_V3_USDC
-  );
-
-  prettyConsole.log("YEARN BALANCE", balanceYearn.toString());
+  const balanceYearn = await yearnContract?.balanceOf(dexWallet.walletAddress);
+  prettyConsole.log("YEARN BALANCE", balanceYearn.mul(1e12).toString());
 
   const interestAccrued = await accuredYearnInterest(dexWallet);
 
