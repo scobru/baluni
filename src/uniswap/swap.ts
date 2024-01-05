@@ -1,7 +1,7 @@
 import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../utils/dexWallet";
 import { callContractMethod } from "../utils/contractUtils";
-import { waitForTx } from "../networkUtils";
+import { waitForTx } from "../utils/networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
 import { QUOTER, ROUTER, SLIPPAGE } from "../config";

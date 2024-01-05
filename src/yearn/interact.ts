@@ -9,7 +9,7 @@ import { DexWallet } from "../utils/dexWallet";
 import { approveToken } from "../utils/approveToken";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { callContractMethod } from "../utils/contractUtils";
-import { waitForTx } from "../networkUtils";
+import { waitForTx } from "../utils/networkUtils";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -45,10 +45,7 @@ export async function depositToYearn(amount: BigNumber, dexWallet: DexWallet) {
   prettyConsole.success("Deposited to yearn", amount, "USDC");
 }
 
-export async function redeemFromYearn(
-  amount: BigNumber,
-  dexWallet: DexWallet
-) {
+export async function redeemFromYearn(amount: BigNumber, dexWallet: DexWallet) {
   const provider = dexWallet.wallet.provider;
   const signer = dexWallet.wallet;
   const vault = new ethers.Contract(

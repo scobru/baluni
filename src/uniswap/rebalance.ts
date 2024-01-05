@@ -1,9 +1,8 @@
 import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../utils/dexWallet";
 import { callContractMethod } from "../utils/contractUtils";
-import { waitForTx } from "../networkUtils";
+import { waitForTx } from "../utils/networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
-import yearnVaultAbi from "../yearn/contracts/YEARN_VAULT.json";
 import quoterAbi from "./contracts/Quoter.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
 import { formatEther } from "ethers/lib/utils";
@@ -45,7 +44,6 @@ export async function swapCustom(
     prettyConsole.error("Swap amount must be a positive number.");
     return;
   }
-
   const { wallet, walletAddress, providerGasPrice } = dexWallet;
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
@@ -116,7 +114,6 @@ export async function swapCustom(
       return false;
     }
 
-    const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
     const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
 
     prettyConsole.log(

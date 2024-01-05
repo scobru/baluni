@@ -1,7 +1,7 @@
 import { Contract, BigNumber } from "ethers";
 import { callContractMethod } from "./contractUtils";
 import { DexWallet } from "./dexWallet";
-import { waitForTx } from "../networkUtils";
+import { waitForTx } from "./networkUtils";
 import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
