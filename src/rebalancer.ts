@@ -11,7 +11,7 @@ import {
 import { POLYGON } from "./utils/networks";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
-
+import { welcomeMessage } from "./welcome";
 const prettyConsole = new PrettyConsole();
 
 prettyConsole.clear();
@@ -35,56 +35,6 @@ async function rebalancer() {
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
   }
-}
-
-function welcomeMessage() {
-  console.log(
-    `\n` +
-      " __                  __                      __ \n" +
-      "/  |                /  |                    /  |\n" +
-      "$$ |____    ______  $$ | __    __  _______  $$/ \n" +
-      "$$      \\  /      \\ $$ |/  |  /  |/       \\ /  |\n" +
-      "$$$$$$$  | $$$$$$  |$$ |$$ |  $$ |$$$$$$$  |$$ |\n" +
-      "$$ |  $$ | /    $$ |$$ |$$ |  $$ |$$ |  $$ |$$ |\n" +
-      "$$ |__$$ |/$$$$$$$ |$$ |$$ \\__$$ |$$ |  $$ |$$ |\n" +
-      "$$    $$/ $$    $$ |$$ |$$    $$/ $$ |  $$ |$$ |\n" +
-      "$$$$$$$/   $$$$$$$/ $$/  $$$$$$/  $$/   $$/ $$/ \n" +
-      "                                                \n"
-  );
-
-  console.log(
-    `\n` +
-      '                 ,-""""-.\n' +
-      "               ,'      _ `.\n" +
-      "              /       )_)  \\\n" +
-      "             :              :\n" +
-      "             \\              /\n" +
-      "              \\            /\n" +
-      "               `.        ,'\n" +
-      "                 `.    ,'\n" +
-      "                   `.,'\n" +
-      "                    /\\`.   ,-._\n" +
-      "                        `-'    \\__\n" +
-      "                             .\n" +
-      "              s                \\\n" +
-      "                               \\\\\n" +
-      "                                \\\\\n" +
-      "                                 >\\/7\n" +
-      "                             _.-(6'  \\\n" +
-      "                            (=___._/` \\\n" +
-      "                                 )  \\ |\n" +
-      "                                /   / |\n" +
-      "                               /    > /\n" +
-      "                              j    < _\\\n" +
-      "                          _.-' :      ``.\n" +
-      "                          \\ r=._\\        `.\n"
-  );
-
-  console.log("\n", "Please wait...");
-  console.log(
-    "This is an experimental project. Use at your own risk. No financial advice is given."
-  );
-  console.log("\n", "\n");
 }
 
 async function executeRebalance() {
