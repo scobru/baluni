@@ -12,6 +12,7 @@ import { POLYGON } from "./utils/networks";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
 import { welcomeMessage } from "./welcome";
+
 const prettyConsole = new PrettyConsole();
 
 prettyConsole.clear();

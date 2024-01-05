@@ -2,12 +2,9 @@
 import { initializeWallet } from "./dexWallet";
 import { WNATIVE, USDC, NATIVE } from "../config";
 import { swapCustom } from "../uniswap/rebalance";
-import { BigNumber, ethers } from "ethers";
-import wethAbi from "../uniswap/contracts/WETH.json";
-import { formatEther, parseEther } from "ethers/lib/utils";
-import { POLYGON } from "../networks";
-import { callContractMethod } from "./contractUtils";
-import { PrettyConsole } from "./prettyConsole";
+import { BigNumber } from "ethers";
+import { formatEther } from "ethers/lib/utils";
+import { POLYGON } from "./networks";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 
