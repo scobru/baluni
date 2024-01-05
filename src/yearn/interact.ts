@@ -1,6 +1,3 @@
-// write a deposit function to deposit into yearn finance
-// deposit function should take a token address and an amount
-
 import YEARN_VAULT_ABI from "./contracts/YEARN_VAULT.json";
 import ERC20ABI from "./contracts/ERC20.json";
 import { BigNumber, ethers } from "ethers";

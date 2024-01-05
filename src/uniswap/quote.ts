@@ -2,9 +2,8 @@ import { ethers } from "ethers";
 import uniswapV3FactoryAbi from "./contracts/UniswapV3Factory.json";
 import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json";
 import erc20Abi from "./contracts/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
-import { PrettyConsole } from "../utils/prettyConsole";
-
 import { loadPrettyConsole } from "../utils/prettyConsole";
+
 const prettyConsole = loadPrettyConsole();
 
 export async function quotePair(tokenAAddress: string, tokenBAddress: string) {

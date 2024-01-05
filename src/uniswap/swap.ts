@@ -8,8 +8,8 @@ import { QUOTER, ROUTER, SLIPPAGE } from "../config";
 import { PrettyConsole } from "../utils/prettyConsole";
 import quoterAbi from "./contracts/Quoter.json";
 import { formatEther, parseEther } from "ethers/lib/utils";
-
 import { loadPrettyConsole } from "../utils/prettyConsole";
+
 const prettyConsole = loadPrettyConsole();
 
 export async function swap(

@@ -5,9 +5,10 @@ import { swap } from "./swap";
 import erc20Abi from "./contracts/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
 import { PrettyConsole } from "../utils/prettyConsole";
-
 import { loadPrettyConsole } from "../utils/prettyConsole";
+
 const prettyConsole = loadPrettyConsole();
+
 export async function invest(
   dexWallet: DexWallet,
   allocations: { [token: string]: number },

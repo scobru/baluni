@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-
 import { loadPrettyConsole } from "./prettyConsole";
+
 const prettyConsole = loadPrettyConsole();
 
 export async function waitForTx(

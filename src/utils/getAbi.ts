@@ -1,9 +1,10 @@
 import * as dotenv from "dotenv";
-dotenv.config();
 import chalk from "chalk";
 import axios from "axios";
 import * as fs from "fs";
 import * as path from "path";
+
+dotenv.config();
 
 async function getABI(contractAddress: string, fileName: string) {
   const response = await axios.get(
