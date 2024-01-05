@@ -79,12 +79,12 @@ export async function accuredYearnInterest(dexWallet: DexWallet) {
     signer
   );
 
-  console.log(vault);
   const balanceVault = await vault.balanceOf(dexWallet.walletAddress);
   console.log("Balance in vault", balanceVault.toString());
   const balanceUSDT = await vault.maxWithdraw(dexWallet.walletAddress);
   console.log("Balance in USDT", balanceUSDT.toString());
   const interest = BigNumber.from(balanceUSDT - balanceVault);
+  
   prettyConsole.log(
     "Accured interest",
     formatEther(interest.mul(1e12)),
