@@ -1,4 +1,4 @@
-import { initializeWallet } from "./dexWallet";
+import { initializeWallet } from "./utils/dexWallet";
 import {
   TOKENS,
   INVESTMENT_AMOUNT,
@@ -8,7 +8,7 @@ import {
 } from "./config";
 import { invest } from "./uniswap/invest";
 import { POLYGON } from "./networks";
-import { rechargeFees } from "./uniswap/rechargeFees";
+import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();

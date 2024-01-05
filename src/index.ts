@@ -1,5 +1,5 @@
 import { swap } from "./uniswap/swap";
-import { initializeWallet } from "./dexWallet";
+import { initializeWallet } from "./utils/dexWallet";
 import { POLYGON } from "./networks";
 
 async function main() {

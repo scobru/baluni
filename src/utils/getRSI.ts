@@ -4,7 +4,7 @@ import {
   RSI_OVERSOLD,
   STOCKRSI_PERIOD,
 } from "../config";
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 export async function getRSI(symbol: string) {

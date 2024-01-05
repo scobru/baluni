@@ -1,5 +1,5 @@
 import { BigNumber, Contract } from "ethers";
-import { DexWallet } from "../dexWallet";
+import { DexWallet } from "../utils/dexWallet";
 import { swapCustom } from "./rebalance";
 import { swap } from "./swap";
 import erc20Abi from "./contracts/ERC20.json";

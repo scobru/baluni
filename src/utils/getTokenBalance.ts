@@ -1,10 +1,10 @@
 // import chalk from "chalk";
-import ERC20_ABI from "./contracts/ERC20.json";
-import { DexWallet } from "../dexWallet";
+import ERC20_ABI from "../uniswap/contracts/ERC20.json";
+import { DexWallet } from "./dexWallet";
 import { ethers } from "ethers";
-import { PrettyConsole } from "../utils/prettyConsole";
+import { PrettyConsole } from "./prettyConsole";
 
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { loadPrettyConsole } from "./prettyConsole";
 const prettyConsole = loadPrettyConsole();
 
 export async function getTokenBalance(

@@ -34,9 +34,9 @@ export async function predict() {
     console.log("\n");
     prettyConsole.info(`Prediction for ${new Date(predictTime)}: ${results}`);
     prettyConsole.log("🌐 Actual price:");
-    prettyConsole.print("blue", "yellow", `${actualPrice}`);
+    prettyConsole.print("black", "yellow", `${actualPrice}`);
     prettyConsole.log("📈 Predicted price:");
-    prettyConsole.print("blue", "yellow", `${results}`);
+    prettyConsole.print("black", "yellow", `${results}`);
     console.groupEnd();
 
     return { actual: actualPrice, predicted: results };

@@ -1,7 +1,7 @@
 import { BigNumber, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-import { fetchPrices } from "./quote1Inch";
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { fetchPrices } from "../uniswap/quote1Inch";
+import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 export async function getTokenValue(

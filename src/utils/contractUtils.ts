@@ -2,7 +2,7 @@ import { BigNumber, Contract, providers } from "ethers";
 import fs from "fs";
 import { POLYGON } from "./networks";
 import { DexWallet } from "./dexWallet";
-import { loadPrettyConsole } from "./utils/prettyConsole";
+import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 const TX_FILE = "./transactions.json";

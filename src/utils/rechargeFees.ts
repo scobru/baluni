@@ -1,17 +1,17 @@
 // feeRecharge.ts
-import { initializeWallet } from "../dexWallet";
+import { initializeWallet } from "./dexWallet";
 import { WNATIVE, USDC, NATIVE } from "../config";
-import { swapCustom } from "./rebalance";
+import { swapCustom } from "../uniswap/rebalance";
 import { BigNumber, ethers } from "ethers";
-import wethAbi from "./contracts/WETH.json";
+import wethAbi from "../uniswap/contracts/WETH.json";
 import { formatEther, parseEther } from "ethers/lib/utils";
 import { POLYGON } from "../networks";
-import { callContractMethod } from "../contractUtils";
-import { PrettyConsole } from "../utils/prettyConsole";
+import { callContractMethod } from "./contractUtils";
+import { PrettyConsole } from "./prettyConsole";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { loadPrettyConsole } from "./prettyConsole";
 const prettyConsole = loadPrettyConsole();
 
 export async function rechargeFees() {

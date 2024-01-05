@@ -1,4 +1,4 @@
-import { initializeWallet } from "./dexWallet";
+import { initializeWallet } from "./utils/dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalance";
 import {
   TOKENS,

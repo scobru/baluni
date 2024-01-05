@@ -1,9 +1,9 @@
 import chalk from "chalk";
-import { DexWallet } from "../dexWallet";
+import { DexWallet } from "./dexWallet";
 import { ethers } from "ethers";
 import { WNATIVE } from "../config";
 
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 const WETH_ABI = [

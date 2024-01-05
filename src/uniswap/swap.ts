@@ -1,6 +1,6 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../dexWallet";
-import { callContractMethod } from "../contractUtils";
+import { DexWallet } from "../utils/dexWallet";
+import { callContractMethod } from "../utils/contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";

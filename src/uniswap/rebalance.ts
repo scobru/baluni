@@ -1,6 +1,6 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../dexWallet";
-import { callContractMethod } from "../contractUtils";
+import { DexWallet } from "../utils/dexWallet";
+import { callContractMethod } from "../utils/contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
 import yearnVaultAbi from "../yearn/contracts/YEARN_VAULT.json";
@@ -22,16 +22,16 @@ import {
   YEARN_ENABLED,
 } from "../config";
 import { fetchPrices } from "./quote1Inch";
-import { rechargeFees } from "./rechargeFees";
+import { rechargeFees } from "../utils/rechargeFees";
 import { quotePair } from "./quote";
-import { getTokenMetadata } from "./getTokenMetadata";
-import { getTokenBalance } from "./getTokenBalance";
-import { getAmountOut, getPoolFee } from "./getPoolFee";
-import { approveToken } from "./approveToken";
-import { getTokenValue } from "./getTokenValue";
-import { getRSI } from "./getRSI";
+import { getTokenMetadata } from "../utils/getTokenMetadata";
+import { getTokenBalance } from "../utils/getTokenBalance";
+import { getAmountOut, getPoolFee } from "../utils/getPoolFee";
+import { approveToken } from "../utils/approveToken";
+import { getTokenValue } from "../utils/getTokenValue";
+import { getRSI } from "../utils/getRSI";
 import { loadPrettyConsole } from "../utils/prettyConsole";
-import { depositToYearn, withdtrawFromYearn } from "../yearn/interact";
+import { depositToYearn, redeemFromYearn } from "../yearn/interact";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -490,7 +490,7 @@ export async function rebalancePortfolio(
         YEARN_AAVE_V3_USDC
       );
       if (balanceYearn.balance.gt(amount) && YEARN_ENABLED) {
-        await withdtrawFromYearn(amount, dexWallet);
+        await redeemFromYearn(amount, dexWallet);
       } else {
         prettyConsole.warn("Not enough balance in yearn");
       }

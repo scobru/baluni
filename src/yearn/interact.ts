@@ -5,10 +5,10 @@ import YEARN_VAULT_ABI from "./contracts/YEARN_VAULT.json";
 import ERC20ABI from "./contracts/ERC20.json";
 import { BigNumber, ethers } from "ethers";
 import { YEARN_AAVE_V3_USDC, USDC } from "../config";
-import { DexWallet } from "../dexWallet";
-import { approveToken } from "../uniswap/approveToken";
+import { DexWallet } from "../utils/dexWallet";
+import { approveToken } from "../utils/approveToken";
 import { loadPrettyConsole } from "../utils/prettyConsole";
-import { callContractMethod } from "../contractUtils";
+import { callContractMethod } from "../utils/contractUtils";
 import { waitForTx } from "../networkUtils";
 
 const prettyConsole = loadPrettyConsole();
@@ -45,7 +45,7 @@ export async function depositToYearn(amount: BigNumber, dexWallet: DexWallet) {
   prettyConsole.success("Deposited to yearn", amount, "USDC");
 }
 
-export async function withdtrawFromYearn(
+export async function redeemFromYearn(
   amount: BigNumber,
   dexWallet: DexWallet
 ) {
