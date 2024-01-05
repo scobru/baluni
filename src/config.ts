@@ -47,6 +47,9 @@ export const ORACLE = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8"; // CHAINLINK
 export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // UNIV3 ROUTER
 export const QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"; // UNIV3 QUOTER
 
+export const YEARN_ENABLED = true;
+export const YEARN_AAVE_V3_USDC = "0xdB92B89Ca415c0dab40Dc96E99Fc411C08F20780"; // Yearn v3 USDC.e-A
+
 export const LIMIT = 50; // 1%
 export const SLIPPAGE = 50; // 1%
 export const INTERVAL = 300; // 1 minute

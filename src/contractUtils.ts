@@ -192,7 +192,7 @@ export async function simulateContractMethod(
 ) {
   console.log(`${method}(${inputs})`);
 
-  let gasLimit = BigNumber.from(800000);
+  let gasLimit = BigNumber.from(500000);
 
   try {
     const gasEstimate: BigNumber = await contract.estimateGas[method](

@@ -3,6 +3,7 @@ import { DexWallet } from "../dexWallet";
 import { callContractMethod } from "../contractUtils";
 import { waitForTx } from "../networkUtils";
 import erc20Abi from "./contracts/ERC20.json";
+import yearnVaultAbi from "../yearn/contracts/YEARN_VAULT.json";
 import quoterAbi from "./contracts/Quoter.json";
 import swapRouterAbi from "./contracts/SwapRouter.json";
 import { formatEther } from "ethers/lib/utils";
@@ -17,6 +18,8 @@ import {
   TECNICAL_ANALYSIS,
   WNATIVE,
   USDC,
+  YEARN_AAVE_V3_USDC,
+  YEARN_ENABLED,
 } from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { rechargeFees } from "./rechargeFees";
@@ -28,6 +31,8 @@ import { approveToken } from "./approveToken";
 import { getTokenValue } from "./getTokenValue";
 import { getRSI } from "./getRSI";
 import { loadPrettyConsole } from "../utils/prettyConsole";
+import { depositToYearn, withdtrawFromYearn } from "../yearn/interact";
+
 const prettyConsole = loadPrettyConsole();
 
 export async function swapCustom(
@@ -318,6 +323,21 @@ export async function rebalancePortfolio(
 
   //let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
   let totalPortfolioValue = BigNumber.from(0);
+
+  const yearnContract = new ethers.Contract(
+    YEARN_AAVE_V3_USDC,
+    erc20Abi,
+    dexWallet.wallet
+  );
+
+  const balanceYearn = await yearnContract?.balanceOf(dexWallet.walletAddress);
+
+  prettyConsole.log("YEARN BALANCE", balanceYearn.toString());
+
+  if (balanceYearn.gt(0)) {
+    totalPortfolioValue = totalPortfolioValue.add(balanceYearn.mul(1e12));
+  }
+
   prettyConsole.info(
     "Total Portfolio Value (in USDT) at Start: ",
     formatEther(totalPortfolioValue)
@@ -431,13 +451,18 @@ export async function rebalancePortfolio(
 
   for (let { token, amount } of tokensToSell) {
     if (token === usdcAddress) {
-      prettyConsole.log("SKIPPING USDC");
+      //prettyConsole.log("SKIPPING USDC");
+      if (!YEARN_ENABLED) break;
+      await depositToYearn(amount, dexWallet);
       break;
     }
+
     prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
+
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
+
     if (
       stochasticRSIResult.stochRSI > STOCKRSI_OVERBOUGHT &&
       rsiResult.rsiVal > RSI_OVERBOUGHT &&
@@ -459,6 +484,16 @@ export async function rebalancePortfolio(
   for (let { token, amount } of tokensToBuy) {
     if (token === usdcAddress) {
       prettyConsole.log("SKIPPING USDC");
+      const balanceYearn = await getTokenBalance(
+        dexWallet,
+        dexWallet.walletAddress,
+        YEARN_AAVE_V3_USDC
+      );
+      if (balanceYearn.balance.gt(amount) && YEARN_ENABLED) {
+        await withdtrawFromYearn(amount, dexWallet);
+      } else {
+        prettyConsole.warn("Not enough balance in yearn");
+      }
       break;
     }
     prettyConsole.assert(
