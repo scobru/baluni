@@ -30,7 +30,11 @@ import { approveToken } from "../utils/approveToken";
 import { getTokenValue } from "../utils/getTokenValue";
 import { getRSI } from "../utils/getRSI";
 import { loadPrettyConsole } from "../utils/prettyConsole";
-import { depositToYearn, redeemFromYearn } from "../yearn/interact";
+import {
+  depositToYearn,
+  redeemFromYearn,
+  accuredYearnInterest,
+} from "../yearn/interact";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -327,12 +331,26 @@ export async function rebalancePortfolio(
     dexWallet.wallet
   );
 
-  const balanceYearn = await yearnContract?.balanceOf(dexWallet.walletAddress);
+  //const balanceYearn = await yearnContract?.balanceOf(dexWallet.walletAddress);
+  const balanceYearn = await getTokenBalance(
+    dexWallet,
+    dexWallet.walletAddress,
+    YEARN_AAVE_V3_USDC
+  );
 
   prettyConsole.log("YEARN BALANCE", balanceYearn.toString());
 
-  if (balanceYearn.gt(0)) {
-    totalPortfolioValue = totalPortfolioValue.add(balanceYearn.mul(1e12));
+  const interestAccrued = await accuredYearnInterest(dexWallet);
+
+  if (interestAccrued.gt(BigNumber.from(1).mul(1e6))) {
+    // withdraw from yearn
+    await redeemFromYearn(interestAccrued, dexWallet);
+  }
+
+  if (balanceYearn.balance.gt(0)) {
+    totalPortfolioValue = totalPortfolioValue.add(
+      balanceYearn.balance.mul(1e12)
+    );
   }
 
   prettyConsole.info(

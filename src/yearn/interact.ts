@@ -69,3 +69,19 @@ export async function redeemFromYearn(amount: BigNumber, dexWallet: DexWallet) {
   await waitForTx(provider, tx.hash);
   prettyConsole.success("Withdrawn from yearn", amount, "USDC");
 }
+
+export async function accuredYearnInterest(dexWallet: DexWallet) {
+  const signer = dexWallet.wallet;
+  const vault = new ethers.Contract(
+    YEARN_AAVE_V3_USDC,
+    YEARN_VAULT_ABI,
+    signer
+  );
+  const balanceVault = await vault.balanceOf(dexWallet.wallet.address);
+  const balanceUSDT = await vault.maxWithdraw(dexWallet.wallet.address);
+
+  const interest = balanceUSDT.sub(balanceVault);
+  prettyConsole.log("Accured interest", interest.mul(1e12).toString(), "USDC");
+
+  return interest;
+}
