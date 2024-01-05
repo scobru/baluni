@@ -13,9 +13,9 @@ export async function fetchPriceData(
     prettyConsole.log("Getting price data from: " + url);
     const response = await fetch(url);
     const data = await response.json();
-    prettyConsole.info(`Got ${data.prices.length} data points`);
 
     if (data && data.prices) {
+      prettyConsole.info(`Got ${data.prices.length} data points`);
       const lastElement = data.prices.pop();
       const pricesButLast = data.prices.slice(0, data.prices.length - 1);
       return {
