@@ -7,7 +7,7 @@ import {
   INVESTMENT_INTERVAL,
 } from "./config";
 import { invest } from "./uniswap/invest";
-import { POLYGON } from "./networks";
+import { POLYGON } from "./utils/networks";
 import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
 

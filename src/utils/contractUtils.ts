@@ -1,6 +1,6 @@
 import { BigNumber, Contract, providers } from "ethers";
 import fs from "fs";
-import { POLYGON } from "./networks";
+import { POLYGON } from "./utils/networks";
 import { DexWallet } from "./dexWallet";
 import { loadPrettyConsole } from "./prettyConsole";
 

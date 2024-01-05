@@ -8,7 +8,7 @@ import {
   INTERVAL,
   LINEAR_REGRESSION,
 } from "./config";
-import { POLYGON } from "./networks";
+import { POLYGON } from "./utils/networks";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
 
