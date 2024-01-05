@@ -37,6 +37,7 @@ import {
 } from "../yearn/interact";
 
 const prettyConsole = loadPrettyConsole();
+let lastInterest = BigNumber.from(0);
 
 export async function swapCustom(
   dexWallet: DexWallet,
@@ -335,16 +336,22 @@ export async function rebalancePortfolio(
   prettyConsole.log("YEARN BALANCE", balanceYearn.mul(1e12).toString());
 
   const interestAccrued = await accuredYearnInterest(dexWallet);
+  const differenceInterest = interestAccrued.sub(lastInterest);
 
-  if (interestAccrued.gt(BigNumber.from(1).mul(1e6))) {
+  prettyConsole.log(
+    "Difference Interest from last cycle",
+    formatEther(differenceInterest.mul(1e12))
+  );
+
+  lastInterest = interestAccrued;
+
+  if (interestAccrued.gt(1e6)) {
     // withdraw from yearn
     await redeemFromYearn(interestAccrued, dexWallet);
   }
 
-  if (balanceYearn.balance.gt(0)) {
-    totalPortfolioValue = totalPortfolioValue.add(
-      balanceYearn.balance.mul(1e12)
-    );
+  if (balanceYearn.gt(0)) {
+    totalPortfolioValue = totalPortfolioValue.add(balanceYearn.mul(1e12));
   }
 
   prettyConsole.info(

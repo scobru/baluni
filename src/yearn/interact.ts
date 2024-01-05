@@ -7,6 +7,7 @@ import { approveToken } from "../utils/approveToken";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { callContractMethod } from "../utils/contractUtils";
 import { waitForTx } from "../utils/networkUtils";
+import { formatEther } from "ethers/lib/utils";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -77,11 +78,18 @@ export async function accuredYearnInterest(dexWallet: DexWallet) {
     YEARN_VAULT_ABI,
     signer
   );
-  const balanceVault = await vault.balanceOf(dexWallet.wallet.address);
-  const balanceUSDT = await vault.maxWithdraw(dexWallet.wallet.address);
 
-  const interest = balanceUSDT.sub(balanceVault);
-  prettyConsole.log("Accured interest", interest.mul(1e12).toString(), "USDC");
+  console.log(vault);
+  const balanceVault = await vault.balanceOf(dexWallet.walletAddress);
+  console.log("Balance in vault", balanceVault.toString());
+  const balanceUSDT = await vault.maxWithdraw(dexWallet.walletAddress);
+  console.log("Balance in USDT", balanceUSDT.toString());
+  const interest = BigNumber.from(balanceUSDT - balanceVault);
+  prettyConsole.log(
+    "Accured interest",
+    formatEther(interest.mul(1e12)),
+    "USDC"
+  );
 
   return interest;
 }
