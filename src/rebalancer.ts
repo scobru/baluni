@@ -76,6 +76,8 @@ function welcomeMessage() {
       "                                /   / |\n" +
       "                               /    > /\n" +
       "                              j    < _\\\n" +
+      "                          _.-' :      ``.\n" +
+      "                          \\ r=._\\        `.\n"
   );
 
   console.log("\n", "Please wait...");
