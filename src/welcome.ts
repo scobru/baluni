@@ -2,7 +2,7 @@ const chalk = require("chalk");
 
 export function welcomeMessage() {
   console.log(
-    chalk.blueBright(
+    chalk.yellow(
       "\n" +
         " __                  __                      __ \n" +
         "/  |                /  |                    /  |\n" +
@@ -49,7 +49,7 @@ export function welcomeMessage() {
 
   console.log(chalk.yellow("\nPlease wait..."));
   console.log(
-    chalk.green(
+    chalk.red(
       "This is an experimental project. Use at your own risk. No financial advice is given."
     )
   );
