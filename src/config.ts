@@ -48,7 +48,7 @@ export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // UNIV3 ROU
 export const QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"; // UNIV3 QUOTER
 
 export const YEARN_ENABLED = true;
-export const YEARN_AAVE_V3_USDC = "0xdB92B89Ca415c0dab40Dc96E99Fc411C08F20780"; // Yearn v3 USDC.e-A
+export const YEARN_AAVE_V3_USDC = "0xA013Fbd4b711f9ded6fB09C1c0d358E2FbC2EAA0"; // Yearn v3 USDC.e-A
 
 export const LIMIT = 50; // 1%
 export const SLIPPAGE = 50; // 1%

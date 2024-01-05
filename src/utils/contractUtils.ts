@@ -64,7 +64,7 @@ export async function callContractMethod(
   contract: Contract,
   method: string,
   inputs: any[],
-  gasPrice: BigNumber,
+  gasPrice?: BigNumber,
   value?: BigNumber
 ) {
   // Leggi le transazioni esistenti
@@ -87,6 +87,8 @@ export async function callContractMethod(
 
   let gasLimit = BigNumber.from(500000);
 
+  let txResponse: any;
+
   try {
     const gasEstimate: BigNumber = await contract.estimateGas[method](
       ...inputs
@@ -98,12 +100,22 @@ export async function callContractMethod(
     console.log("Default gas limit:", gasLimit.toBigInt());
   }
 
-  const txResponse = await contract[method](...inputs, {
-    value: value,
+  txResponse = await contract[method](...inputs, {
     gasPrice: gasPrice,
     gasLimit: gasLimit,
+    value: value,
   });
   prettyConsole.success("Done! Tx Hash:", txResponse.hash);
+
+  if (txResponse.status === 0) {
+    prettyConsole.error("Transaction failed!");
+    transactions.push({
+      hash: txResponse.hash,
+      status: "dropped",
+    });
+    writeTransactions(transactions);
+    return txResponse;
+  }
 
   // Salva la transazione nel file JSON
   transactions.push({
@@ -111,7 +123,6 @@ export async function callContractMethod(
     status: "pending",
   });
   writeTransactions(transactions);
-
   return txResponse;
 }
 

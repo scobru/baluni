@@ -19,7 +19,11 @@ export async function approveToken(
   );
 
   if (allowance.lt(swapAmount)) {
-    prettyConsole.log("Approving spending of token A for swap");
+    prettyConsole.log(
+      "Approving spending of",
+      swapAmount.toString(),
+      "tokens" + " to " + to + "... "
+    );
     const approvalResult = await callContractMethod(
       tokenContract,
       "approve",

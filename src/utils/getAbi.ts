@@ -8,7 +8,7 @@ dotenv.config();
 
 async function getABI(contractAddress: string, fileName: string) {
   const response = await axios.get(
-    `https://api.etherscan.io/api?module=contract&action=getabi&address=${contractAddress}&apikey=${process.env.ETHERSCAN_API_KEY}`
+    `https://api.polygonscan.com/api?module=contract&action=getabi&address=${contractAddress}&apikey=${process.env.ETHERSCAN_API_KEY}`
   );
 
   console.log("response", response.data);

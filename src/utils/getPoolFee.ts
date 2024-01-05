@@ -42,10 +42,10 @@ export async function getPoolFee(
   swapAmount: BigNumber,
   quoterContract: Contract
 ): Promise<number> {
-  const poolFees = [500, 3000, 10000];
+  const poolFees = [100, 500, 3000];
   let poolFee = 0;
   for (const _poolFee of poolFees) {
-    let poolExist = await getAmountOut(
+    let minimumAmountB = await getAmountOut(
       tokenAAddress,
       tokenBAddress,
       _poolFee,
@@ -53,7 +53,7 @@ export async function getPoolFee(
       quoterContract
     );
 
-    if (poolExist) {
+    if (minimumAmountB) {
       poolFee = _poolFee;
     }
   }
