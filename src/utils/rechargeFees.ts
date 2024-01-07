@@ -9,6 +9,7 @@ import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 
 import { loadPrettyConsole } from "./prettyConsole";
+import { waitForTx } from "./networkUtils";
 const prettyConsole = loadPrettyConsole();
 
 export async function rechargeFees() {
@@ -36,12 +37,13 @@ export async function rechargeFees() {
 
     if (Number(formatEther(balanceNATIVEB4.toString())) < 2) {
       if (balanceUSDCB4.gt(BigNumber.from(2).mul(10).pow(6))) {
-        await swapCustom(
+        const tx = await swapCustom(
           dexWallet,
           [WNATIVE, USDC],
           true,
           BigNumber.from(2).mul(10).pow(6)
         );
+        await waitForTx(dexWallet.wallet.provider, tx.hash);
       }
 
       prettyConsole.log("Withdrawing WNATIVE");

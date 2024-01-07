@@ -59,10 +59,10 @@ export const INVESTMENT_AMOUNT = 100;
 
 export const TECNICAL_ANALYSIS = true;
 export const LINEAR_REGRESSION = true;
-export const LINEAR_REGRESSION_PERIOD = 30;
-export const LINEAR_REGRESSION_EPOCHS = 100;
+export const LINEAR_REGRESSION_PERIOD = 60;
+export const LINEAR_REGRESSION_EPOCHS = 200;
 
-export const RSI_PERIOD = 8;
+export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;
 export const STOCKRSI_PERIOD = 14;

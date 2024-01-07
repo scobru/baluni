@@ -24,6 +24,8 @@
   "dependencies": {
     "@tensorflow/tfjs": "^4.15.0",
     "@types/node": "^20.10.5",
+    "@uniswap/sdk-core": "^4.0.10",
+    "chakl": "^0.0.1-security",
     "dotenv": "^16.3.1",
     "ethers": "^5.7.2",
     "trading-indicator": "^2.0.4"

@@ -55,7 +55,6 @@ async function executeRebalance() {
   // kstCross(input, roc1, roc2, roc3, roc4, sma1, sma2, sma3, sma4, signalPeriod)
   // Calculate KST
   const kstResult = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
-
   prettyConsole.debug("KST:", kstResult);
 
   // Calculate AI signal
@@ -90,15 +89,15 @@ async function executeRebalance() {
 
   // Calculate final signal
   if (
-    kstResult.direction == "up" &&
-    kstResult.cross == true &&
-    signalAI == "up" &&
+    kstResult.direction === "up" &&
+    kstResult.cross === true &&
+    signalAI === "up" &&
     LINEAR_REGRESSION
   ) {
     selectedWeights = WEIGHTS_UP;
     await writeLog();
   } else if (
-    kstResult.direction == "up" &&
+    kstResult.direction === "up" &&
     kstResult.cross == true &&
     !LINEAR_REGRESSION
   ) {
@@ -107,15 +106,16 @@ async function executeRebalance() {
   }
 
   if (
-    kstResult.direction == "down" &&
-    kstResult.cross == "true" &&
-    signalAI == "down"
+    kstResult.direction === "down" &&
+    kstResult.cross === true &&
+    signalAI === "down" &&
+    LINEAR_REGRESSION
   ) {
     selectedWeights = WEIGHTS_DOWN;
     await writeLog();
   } else if (
-    kstResult.direction == "down" &&
-    kstResult.cross == "true" &&
+    kstResult.direction === "down" &&
+    kstResult.cross === true &&
     !LINEAR_REGRESSION
   ) {
     selectedWeights = WEIGHTS_DOWN;

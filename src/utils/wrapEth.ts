@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import { WNATIVE } from "../config";
 
 import { loadPrettyConsole } from "./prettyConsole";
+import { waitForTx } from "./networkUtils";
 
 const prettyConsole = loadPrettyConsole();
 const WETH_ABI = [
@@ -24,7 +25,7 @@ export async function wrapETH(dexWallet: DexWallet, amount: string) {
     value: ethers.utils.parseEther(amount),
   });
   prettyConsole.success("Done! Tx Hash:", depositTx.hash);
-  await depositTx.wait();
+  await waitForTx(dexWallet.wallet.provider, depositTx.hash);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
   console.log(
@@ -46,7 +47,7 @@ export async function unwrapETH(dexWallet: DexWallet, amount: string) {
     ethers.utils.parseEther(amount)
   );
   prettyConsole.success("Done! Tx Hash:", withdrawTx.hash);
-  await withdrawTx.wait();
+  await waitForTx(dexWallet.wallet.provider, withdrawTx.hash);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
   console.log(

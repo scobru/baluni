@@ -37,6 +37,7 @@ import {
 } from "../yearn/interact";
 
 const prettyConsole = loadPrettyConsole();
+
 let lastInterest = BigNumber.from(0);
 
 export async function swapCustom(
@@ -52,21 +53,18 @@ export async function swapCustom(
   const { wallet, walletAddress, providerGasPrice } = dexWallet;
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
-
   const tokenAContract = new Contract(tokenAAddress, erc20Abi, wallet);
   const tokenBContract = new Contract(tokenBAddress, erc20Abi, wallet);
-
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
-
   const swapRouterAddress = ROUTER;
   const swapRouterContract = new Contract(
     swapRouterAddress,
     swapRouterAbi,
     wallet
   );
-
   console.log("Finding Pool...");
+
   let poolFee: Number = 0;
 
   const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
@@ -84,7 +82,6 @@ export async function swapCustom(
     prettyConsole.log("Using WMATIC route");
 
     const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
-
     prettyConsole.log(
       `Actual gas price: ${gasPrice.toBigInt()}`,
       `Provider gas price: ${providerGasPrice.toBigInt()}`
@@ -142,7 +139,6 @@ export async function swapCustom(
     prettyConsole.log("Using WMATIC route");
 
     const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
-
     prettyConsole.log(
       `Actual gas price: ${gasPrice.toBigInt()}`,
       `Provider gas price: ${providerGasPrice.toBigInt()}`
@@ -198,7 +194,6 @@ export async function swapCustom(
   }
 
   prettyConsole.log("Pool Found!");
-
   const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
 
   prettyConsole.log(
@@ -215,7 +210,6 @@ export async function swapCustom(
   );
 
   prettyConsole.log(`Swap ${tokenAName} for ${tokenBName}`);
-
   const [swapTxResponse, minimumAmountB] = await executeSwap(
     tokenAAddress,
     tokenBAddress,
@@ -527,6 +521,7 @@ async function executeSwap(
   gasPrice: BigNumber
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
+
   let minimumAmountB = await getAmountOut(
     tokenA,
     tokenB,
@@ -542,7 +537,7 @@ async function executeSwap(
     walletAddress,
     BigNumber.from(swapDeadline),
     swapAmount,
-    minimumAmountB, // BigNumber.from(0),
+    minimumAmountB,
     BigNumber.from(0),
   ];
 
