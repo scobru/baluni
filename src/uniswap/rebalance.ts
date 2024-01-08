@@ -416,6 +416,7 @@ export async function rebalancePortfolio(
     }
 
     prettyConsole.info(`Buying ${Number(amount) / 1e6} USDC worth of ${token}`);
+    buyFlag = true;
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
@@ -493,8 +494,6 @@ export async function rebalancePortfolio(
     } else {
       prettyConsole.warn("Waiting for StochRSI OverSold");
     }
-
-    buyFlag = true;
   }
 
   if (usdBalance.gt(0) && !buyFlag) {
