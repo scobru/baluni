@@ -402,20 +402,16 @@ export async function rebalancePortfolio(
     }
   }
 
-  let _usdBalance: { balance: BigNumber; formatted: string } = {
-    balance: BigNumber.from(0),
-    formatted: "",
-  };
+  let _usdBalance = await getTokenBalance(
+    dexWallet,
+    dexWallet.walletAddress,
+    usdcAddress
+  );
 
   // Execute purchases next
   for (let { token, amount } of tokensToBuy) {
     if (token === usdcAddress) {
       prettyConsole.log("SKIP USDC BUY");
-      _usdBalance = await getTokenBalance(
-        dexWallet,
-        dexWallet.walletAddress,
-        usdcAddress
-      );
       break;
     }
 
