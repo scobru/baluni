@@ -430,7 +430,7 @@ export async function rebalancePortfolio(
 
     if (
       (usdBalance.lt(amount) && balanceYearn.gt(amount)) ||
-      balanceYearn.equivalent(amount)
+      balanceYearn == amount
     ) {
       await redeemFromYearn(amount, dexWallet);
     } else {
