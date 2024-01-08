@@ -41,16 +41,11 @@ const prettyConsole = loadPrettyConsole();
 
 let lastInterest = BigNumber.from(0);
 
-export async function swapCustom(
+async function initializeSwap(
   dexWallet: DexWallet,
   pair: [string, string],
-  reverse?: boolean,
-  swapAmount?: BigNumber
+  reverse?: boolean
 ) {
-  if (!swapAmount || swapAmount.isZero()) {
-    prettyConsole.error("Swap amount must be a positive number.");
-    return;
-  }
   const { wallet, walletAddress, providerGasPrice } = dexWallet;
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
@@ -64,12 +59,29 @@ export async function swapCustom(
     swapRouterAbi,
     wallet
   );
+  return {
+    tokenAAddress,
+    tokenBAddress,
+    tokenAContract,
+    tokenBContract,
+    tokenAName,
+    tokenBName,
+    swapRouterAddress,
+    swapRouterContract,
+    providerGasPrice,
+    walletAddress,
+  };
+}
+
+async function findPoolAndFee(
+  quoterContract: Contract,
+  tokenAAddress: string,
+  tokenBAddress: string,
+  swapAmount: BigNumber
+) {
   console.log("Finding Pool...");
 
   let poolFee: Number = 0;
-
-  const quoterContract = new Contract(QUOTER, quoterAbi, wallet);
-  const quote = await quotePair(tokenAAddress, tokenBAddress);
 
   poolFee = await getPoolFee(
     tokenAAddress,
@@ -77,131 +89,88 @@ export async function swapCustom(
     swapAmount,
     quoterContract
   );
+  return poolFee;
+}
 
-  if (!quote && !reverse) {
-    prettyConsole.error("USDC Pool Not Found");
-    prettyConsole.log("Using WMATIC route");
-
-    const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
-    prettyConsole.log(
-      `Actual gas price: ${gasPrice.toBigInt()}`,
-      `Provider gas price: ${providerGasPrice.toBigInt()}`
-    );
-
-    await approveToken(
-      tokenAContract,
-      swapAmount,
-      swapRouterAddress,
-      gasPrice,
-      dexWallet
-    );
-
-    poolFee = await getPoolFee(
-      tokenAAddress,
-      WNATIVE,
-      swapAmount,
-      quoterContract
-    );
-
-    const poolFee2 = await getPoolFee(
-      WNATIVE,
-      USDC,
-      swapAmount,
-      quoterContract
-    );
-
-    let [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
-      tokenAAddress,
-      WNATIVE,
-      tokenBAddress,
-      poolFee,
-      poolFee2,
-      swapAmount,
-      walletAddress,
-      swapRouterContract,
-      quoterContract,
-      gasPrice
-    );
-
-    let broadcasted = await waitForTx(
-      dexWallet.wallet.provider,
-      swapTxResponse.hash
-    );
-
-    if (!broadcasted) {
-      throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
-    } else {
-      prettyConsole.success(`Transaction Complete!`);
-    }
-
-    return swapTxResponse;
-  } else if (!quote && reverse) {
-    prettyConsole.error("USDC Pool Not Found");
-    prettyConsole.log("Using WMATIC route");
-
-    const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
-    prettyConsole.log(
-      `Actual gas price: ${gasPrice.toBigInt()}`,
-      `Provider gas price: ${providerGasPrice.toBigInt()}`
-    );
-
-    await approveToken(
-      tokenAContract,
-      swapAmount,
-      swapRouterAddress,
-      gasPrice,
-      dexWallet
-    );
-
-    poolFee = await getPoolFee(
-      WNATIVE,
-      tokenAAddress,
-      swapAmount,
-      quoterContract
-    );
-
-    const poolFee2 = await getPoolFee(
-      WNATIVE,
-      tokenBAddress,
-      swapAmount,
-      quoterContract
-    );
-
-    let [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
-      tokenAAddress,
-      WNATIVE,
-      tokenBAddress,
-      poolFee,
-      poolFee2,
-      swapAmount,
-      walletAddress,
-      swapRouterContract,
-      quoterContract,
-      gasPrice
-    );
-
-    let broadcasted = await waitForTx(
-      dexWallet.wallet.provider,
-      swapTxResponse.hash
-    );
-
-    if (!broadcasted) {
-      throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
-    } else {
-      prettyConsole.success(`Transaction Complete!`);
-    }
-
-    return swapTxResponse;
+export async function swapCustom(
+  dexWallet: DexWallet,
+  pair: [string, string],
+  reverse?: boolean,
+  swapAmount?: BigNumber
+) {
+  if (!swapAmount || swapAmount.isZero()) {
+    prettyConsole.error("Swap amount must be a positive number.");
+    return;
   }
+  const {
+    tokenAAddress,
+    tokenBAddress,
+    tokenAContract,
+    tokenBContract,
+    swapRouterAddress,
+    swapRouterContract,
+    providerGasPrice,
+    walletAddress,
+  } = await initializeSwap(dexWallet, pair, reverse);
 
-  prettyConsole.log("Pool Found!");
-  const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
-
+  const gasPrice = providerGasPrice.mul(12).div(10);
   prettyConsole.log(
     `Actual gas price: ${gasPrice.toBigInt()}`,
     `Provider gas price: ${providerGasPrice.toBigInt()}`
   );
 
+  const quoterContract = new Contract(QUOTER, quoterAbi, dexWallet.wallet);
+  const quote = await quotePair(tokenAAddress, tokenBAddress);
+
+  if (!quote) {
+    prettyConsole.error("USDC Pool Not Found");
+    prettyConsole.log("Using WMATIC route");
+    await approveToken(
+      tokenAContract,
+      swapAmount,
+      swapRouterAddress,
+      gasPrice,
+      dexWallet
+    );
+
+    const poolFee = await findPoolAndFee(
+      quoterContract,
+      tokenAAddress,
+      WNATIVE,
+      swapAmount
+    );
+
+    const poolFee2 = await findPoolAndFee(
+      quoterContract,
+      WNATIVE,
+      USDC,
+      swapAmount
+    );
+
+    const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
+      tokenAAddress,
+      WNATIVE,
+      tokenBAddress,
+      poolFee,
+      poolFee2,
+      swapAmount,
+      walletAddress,
+      swapRouterContract,
+      quoterContract,
+      gasPrice
+    );
+    let broadcasted = await waitForTx(
+      dexWallet.wallet.provider,
+      swapTxResponse.hash
+    );
+
+    if (!broadcasted)
+      throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+    prettyConsole.success(`Transaction Complete!`);
+    return swapTxResponse;
+  }
+
+  prettyConsole.log("Pool Found!");
   await approveToken(
     tokenAContract,
     swapAmount,
@@ -209,8 +178,17 @@ export async function swapCustom(
     gasPrice,
     dexWallet
   );
+  prettyConsole.log(
+    `Swap ${tokenAContract.symbol()} for ${tokenBContract.symbol()}`
+  );
 
-  prettyConsole.log(`Swap ${tokenAName} for ${tokenBName}`);
+  const poolFee = await findPoolAndFee(
+    quoterContract,
+    tokenAAddress,
+    tokenBAddress,
+    swapAmount
+  );
+
   const [swapTxResponse, minimumAmountB] = await executeSwap(
     tokenAAddress,
     tokenBAddress,
@@ -226,12 +204,9 @@ export async function swapCustom(
     dexWallet.wallet.provider,
     swapTxResponse.hash
   );
-
-  if (!broadcasted) {
+  if (!broadcasted)
     throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
-  } else {
-    prettyConsole.success(`Transaction Complete!`);
-  }
+  prettyConsole.success(`Transaction Complete!`);
 
   return swapTxResponse;
 }
@@ -248,6 +223,8 @@ export async function rebalancePortfolio(
   prettyConsole.log("Rebalance Portfolio\n", "Check Gas and Recharge\n");
   await rechargeFees();
 
+  let buyFlag = false;
+
   const { balance: usdBalance, formatted: usdBalanceFormatted } =
     await getTokenBalance(dexWallet, dexWallet.walletAddress, usdcAddress);
 
@@ -261,10 +238,14 @@ export async function rebalancePortfolio(
   );
 
   const balanceYearn = await yearnContract?.balanceOf(dexWallet.walletAddress);
-  prettyConsole.log("YEARN BALANCE", balanceYearn.mul(1e12).toString());
+  prettyConsole.log(
+    "Balance Yearn",
+    balanceYearn.div(1e6).toString(),
+    await yearnContract.symbol()
+  );
 
   const interestAccrued = await accuredYearnInterest(dexWallet);
-  const balanceYearnUSD = await previewWithdraw(dexWallet)
+  const balanceYearnUSD = await previewWithdraw(dexWallet);
   const differenceInterest = interestAccrued.sub(lastInterest);
 
   prettyConsole.log(
@@ -285,11 +266,7 @@ export async function rebalancePortfolio(
     );
   }
 
-  if (usdBalance.gt(0)) {
-    await depositToYearn(usdBalance, dexWallet);
-  }
-
-  prettyConsole.info(
+  prettyConsole.log(
     "Total Portfolio Value (in USDT) at Start: ",
     formatEther(totalPortfolioValue)
   );
@@ -329,7 +306,7 @@ export async function rebalancePortfolio(
     tokenValues[token] = tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
   }
-  prettyConsole.info(
+  prettyConsole.log(
     "Total Portfolio Value (in USDT): ",
     formatEther(totalPortfolioValue)
   );
@@ -360,7 +337,7 @@ export async function rebalancePortfolio(
       .mul(BigNumber.from(Math.abs(difference)))
       .div(10000); // USDT value to rebalance
 
-    prettyConsole.info(
+    prettyConsole.log(
       `Token: ${token}`,
       `Current Allocation: ${currentAllocation}%`,
       `Difference: ${difference}%`,
@@ -402,7 +379,7 @@ export async function rebalancePortfolio(
       break;
     }
 
-    prettyConsole.assert(`Selling ${formatEther(amount)} worth of ${token}`);
+    prettyConsole.info(`Selling ${formatEther(amount)} worth of ${token}`);
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
@@ -438,9 +415,7 @@ export async function rebalancePortfolio(
       break;
     }
 
-    prettyConsole.assert(
-      `Buying ${Number(amount) / 1e6} USDC worth of ${token}`
-    );
+    prettyConsole.info(`Buying ${Number(amount) / 1e6} USDC worth of ${token}`);
 
     if (_usdBalance.balance.lt(amount))
       await redeemFromYearn(amount, dexWallet);
@@ -456,7 +431,7 @@ export async function rebalancePortfolio(
     const { balance: usdBalance, formatted: usdBalanceFormatted } =
       await getTokenBalance(dexWallet, dexWallet.walletAddress, usdcAddress);
 
-    prettyConsole.info(
+    prettyConsole.log(
       `Amount to Swap ${Number(amount)}`,
       `Usd Balance ${Number(usdBalance)}`
     );
@@ -467,9 +442,7 @@ export async function rebalancePortfolio(
       TECNICAL_ANALYSIS
     ) {
       if (Number(usdBalance) > Number(amount)) {
-        prettyConsole.assert(
-          `Buying ${Number(amount) / 1e6} worth of ${token}`
-        );
+        prettyConsole.info(`Buying ${Number(amount) / 1e6} worth of ${token}`);
 
         await swapCustom(dexWallet, [token, usdcAddress], true, amount); // false for reverse because we're buying
         // wait 5 seconds before moving on to the next token
@@ -487,9 +460,7 @@ export async function rebalancePortfolio(
       }
     } else if (!TECNICAL_ANALYSIS) {
       if (Number(usdBalance) > Number(amount)) {
-        prettyConsole.assert(
-          `Buying ${Number(amount) / 1e6} worth of ${token}`
-        );
+        prettyConsole.info(`Buying ${Number(amount) / 1e6} worth of ${token}`);
 
         await swapCustom(dexWallet, [token, usdcAddress], true, amount); // false for reverse because we're buying
         // wait 5 seconds before moving on to the next token
@@ -508,7 +479,14 @@ export async function rebalancePortfolio(
     } else {
       prettyConsole.warn("Waiting for StochRSI OverSold");
     }
+
+    buyFlag = true;
   }
+
+  if (usdBalance.gt(0) && !buyFlag) {
+    await depositToYearn(usdBalance, dexWallet);
+  }
+
   prettyConsole.success("Rebalance completed.");
 }
 

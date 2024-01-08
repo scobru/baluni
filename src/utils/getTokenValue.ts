@@ -41,7 +41,7 @@ export async function getTokenValue(
         ? formatEther(String(Number(balance) * 1e10))
         : formatEther(balance.toString());
 
-    prettyConsole.info(
+    prettyConsole.log(
       `Token Symbol: ${tokenSymbol}`,
       `Token: ${token}`,
       `Balance:${_balance}`,

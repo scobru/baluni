@@ -44,7 +44,7 @@ export async function getRSI(symbol: string) {
     input
   );
 
-  prettyConsole.debug(
+  prettyConsole.info(
     `Getting RSI for:${symbol}`,
     `RSI:${rsiResult.rsiVal}`,
     `StochasticRSI:${

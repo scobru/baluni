@@ -30,14 +30,12 @@ export async function predict() {
     );
     const results = await trainAndPredict(timePrices, predictTime);
 
-    console.group("*** Prediction ***");
     console.log("\n");
     prettyConsole.info(`Prediction for ${new Date(predictTime)}: ${results}`);
-    prettyConsole.log("🌐 Actual price:");
-    prettyConsole.print("black", "yellow", `${actualPrice}`);
-    prettyConsole.log("📈 Predicted price:");
-    prettyConsole.print("black", "yellow", `${results}`);
-    console.groupEnd();
+    prettyConsole.log(" 🌐 Actual price:");
+    prettyConsole.success(`${actualPrice}`);
+    prettyConsole.log(" 📈 Predicted price:");
+    prettyConsole.success(`${results}`);
 
     return { actual: actualPrice, predicted: results };
   } catch (error) {

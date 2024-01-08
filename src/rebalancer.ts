@@ -7,6 +7,7 @@ import {
   USDC,
   INTERVAL,
   LINEAR_REGRESSION,
+  TREND_FOLLOWING,
 } from "./config";
 import { POLYGON } from "./utils/networks";
 import { predict } from "./predict/predict";
@@ -14,7 +15,6 @@ import { PrettyConsole } from "./utils/prettyConsole";
 import { welcomeMessage } from "./welcome";
 
 const prettyConsole = new PrettyConsole();
-
 prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
@@ -25,105 +25,138 @@ async function rebalancer() {
   await executeRebalance();
 
   try {
-    // Initialize your DexWallet here
     setInterval(async () => {
       try {
         await executeRebalance();
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }
-    }, INTERVAL * 1000); // 1 minute = 60000 ms
+    }, INTERVAL * 1000);
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
   }
 }
 
 async function executeRebalance() {
+  // Log the initiation of portfolio checking
   prettyConsole.log("Checking portfolio");
+
+  // Initialize the wallet with the first Polygon network node
   const dexWallet = await initializeWallet(POLYGON[0]);
+
+  // Set the default weight
   let selectedWeights = WEIGHTS_UP;
 
+  // Import required modules and functions
   const { kstCross, getDetachSourceFromOHLCV } = require("trading-indicator");
 
+  // Get input data from Binance for BTC/USDT pair with 1h interval
   const { input } = await getDetachSourceFromOHLCV(
     "binance",
     "BTC/USDT",
     "1h",
     false
-  ); // true if you want to get future market
+  );
 
-  // kstCross(input, roc1, roc2, roc3, roc4, sma1, sma2, sma3, sma4, signalPeriod)
-  // Calculate KST
+  // Calculate KST indicator results
   const kstResult = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
   prettyConsole.debug("KST:", kstResult);
 
-  // Calculate AI signal
+  // Initialize the signal for AI
   let signalAI = "none";
 
+  // Assume a function predict() exists for linear regression predictions
   const linearRegression: any = await predict();
 
+  // Determine the direction of the signal based on prediction results
   if (linearRegression.predicted > linearRegression.actual) {
     signalAI = "up";
   } else if (linearRegression.predicted < linearRegression.actual) {
     signalAI = "down";
   }
 
+  // Log the AI signal and KST trend results
   console.group();
-  prettyConsole.debug("Signal AI:", signalAI);
-  prettyConsole.print("black", "yellow", signalAI);
-  prettyConsole.debug("KST trend:");
-  prettyConsole.print("black", "yellow", kstResult.direction);
+  prettyConsole.debug(
+    "Signal AI:",
+    signalAI,
+    "KST trend:",
+    kstResult.direction,
+    "KST cross:",
+    kstResult.cross
+  );
   console.groupEnd();
 
-  const writeLog = async function writeLog() {
-    const fs = require("fs");
+  // Define an asynchronous function to write logs
+  const writeLog = async () => {
+    const fs = require("fs").promises;
     const time = new Date().toISOString();
-    const data = `${time}, ${kstResult.direction}, ${kstResult.cross}, ${String(
-      signalAI
-    )}\n`;
-    fs.appendFile("log.txt", data, function (err: any) {
-      if (err) throw err;
+    const data = `${time}, ${kstResult.direction}, ${kstResult.cross}, ${signalAI}\n`;
+
+    try {
+      await fs.appendFile("log.txt", data);
       console.log("Saved!");
-    });
+    } catch (err) {
+      throw new Error("Error writing log: " + err);
+    }
   };
 
-  // Calculate final signal
-  if (
-    kstResult.direction === "up" &&
-    kstResult.cross === true &&
-    signalAI === "up" &&
-    LINEAR_REGRESSION
-  ) {
-    selectedWeights = WEIGHTS_UP;
-    await writeLog();
-  } else if (
-    kstResult.direction === "up" &&
-    kstResult.cross == true &&
-    !LINEAR_REGRESSION
-  ) {
-    selectedWeights = WEIGHTS_UP;
-    await writeLog();
+  let TREND: Boolean = true;
+
+  if (TREND_FOLLOWING && LINEAR_REGRESSION) {
+    if (kstResult.direction === "up" && signalAI === "up" && kstResult.cross) {
+      TREND = true;
+    } else if (
+      kstResult.direction === "down" &&
+      signalAI === "down" &&
+      kstResult.cross
+    ) {
+      TREND = false;
+    }
+  } else if (TREND_FOLLOWING && !LINEAR_REGRESSION) {
+    if (kstResult.direction === "up" && kstResult.cross) {
+      TREND = true;
+    } else if (kstResult.direction === "down" && kstResult.cross) {
+      TREND = false;
+    }
+  } else if (TREND_FOLLOWING && LINEAR_REGRESSION) {
+    if (
+      signalAI === "up" &&
+      kstResult.cross === true &&
+      kstResult.direction === "up"
+    ) {
+      TREND = true;
+    } else if (
+      signalAI === "down" &&
+      kstResult.cross === true &&
+      kstResult.direction === "down"
+    ) {
+      TREND = false;
+    }
+  } else if (!TREND_FOLLOWING && !LINEAR_REGRESSION) {
+    TREND = true;
+  } else if (TREND_FOLLOWING) {
+    if (kstResult.direction === "none" && !kstResult.cross) {
+      TREND = true;
+    }
   }
 
-  if (
-    kstResult.direction === "down" &&
-    kstResult.cross === true &&
-    signalAI === "down" &&
-    LINEAR_REGRESSION
-  ) {
-    selectedWeights = WEIGHTS_DOWN;
+  prettyConsole.debug("Trend:", TREND);
+
+  // Logic to determine the new weights based on various conditions
+  // It logs and changes weights based on KST and AI signals
+  // The conditions for weight change are much more clearly laid out
+  if (TREND) {
+    selectedWeights = WEIGHTS_UP;
+    prettyConsole.log("Selected weights:", selectedWeights);
+    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
     await writeLog();
-  } else if (
-    kstResult.direction === "down" &&
-    kstResult.cross === true &&
-    !LINEAR_REGRESSION
-  ) {
+  } else if (!TREND) {
     selectedWeights = WEIGHTS_DOWN;
+    prettyConsole.log("Selected weights:", selectedWeights);
+    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
     await writeLog();
   }
-
-  prettyConsole.info("Selected weights:", selectedWeights);
-  await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
 }
 
 async function main() {

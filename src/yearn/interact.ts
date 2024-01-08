@@ -31,7 +31,7 @@ export async function depositToYearn(amount: BigNumber, dexWallet: DexWallet) {
     const gasPrice = await provider.getGasPrice();
 
     await approveToken(token, amount, YEARN_AAVE_V3_USDC, gasPrice, dexWallet);
-    prettyConsole.log("Deposit to yearn", amount, "USDC");
+    prettyConsole.log("Deposit to yearn", amount.div(1e6), "USDC");
 
     const tx = await callContractMethod(
       vault,
@@ -70,7 +70,7 @@ export async function redeemFromYearn(amount: BigNumber, dexWallet: DexWallet) {
 
     prettyConsole.log(
       "Withdraw from yearn",
-      formatEther(amount.mul(1e12)),
+      amount.div(1e6).toString(),
       "USDC"
     );
 
@@ -128,7 +128,6 @@ export async function previewWithdraw(dexWallet: DexWallet) {
   );
 
   const balanceVault = await vault.balanceOf(dexWallet.walletAddress);
-  prettyConsole.log("Balance in vault", balanceVault.toString());
 
   const balanceUSDT = await vault.previewWithdraw(balanceVault);
 

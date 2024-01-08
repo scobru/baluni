@@ -57,6 +57,8 @@ export const INTERVAL = 300; // 1 minute
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
 export const INVESTMENT_AMOUNT = 100;
 
+export const TREND_FOLLOWING = true;
+
 export const LINEAR_REGRESSION = true;
 export const LINEAR_REGRESSION_PERIOD = 90;
 export const LINEAR_REGRESSION_EPOCHS = 100;
