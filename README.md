@@ -121,7 +121,7 @@ We welcome contributions! Please submit pull requests with your proposed changes
 
 ## License
 
-BALUNI is released under [[LICENSE|GNU AGPLv3]], which details how it can be used and distributed.
+BALUNI is released under [GNU AGPLv3](LICENSE.md), which details how it can be used and distributed.
 
 ## Contact and Support
 
