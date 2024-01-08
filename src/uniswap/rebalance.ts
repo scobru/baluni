@@ -417,9 +417,6 @@ export async function rebalancePortfolio(
 
     prettyConsole.info(`Buying ${Number(amount) / 1e6} USDC worth of ${token}`);
 
-    if (_usdBalance.balance.lt(amount))
-      await redeemFromYearn(amount, dexWallet);
-
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
 
@@ -430,6 +427,8 @@ export async function rebalancePortfolio(
 
     const { balance: usdBalance, formatted: usdBalanceFormatted } =
       await getTokenBalance(dexWallet, dexWallet.walletAddress, usdcAddress);
+
+    if (usdBalance.lt(amount)) await redeemFromYearn(amount, dexWallet);
 
     prettyConsole.log(
       `Amount to Swap ${Number(amount)}`,
