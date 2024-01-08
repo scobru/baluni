@@ -428,7 +428,17 @@ export async function rebalancePortfolio(
     const { balance: usdBalance, formatted: usdBalanceFormatted } =
       await getTokenBalance(dexWallet, dexWallet.walletAddress, usdcAddress);
 
-    if (usdBalance.lt(amount)) await redeemFromYearn(amount, dexWallet);
+    if (
+      (usdBalance.lt(amount) && balanceYearn.gt(amount)) ||
+      balanceYearn.equivalent(amount)
+    ) {
+      await redeemFromYearn(amount, dexWallet);
+    } else {
+      prettyConsole.log(
+        "Not enough USDT to buy, balance under 60% of required USD"
+      );
+      break;
+    }
 
     prettyConsole.log(
       `Amount to Swap ${Number(amount)}`,
