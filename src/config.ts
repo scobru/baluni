@@ -57,11 +57,11 @@ export const INTERVAL = 300; // 1 minute
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
 export const INVESTMENT_AMOUNT = 100;
 
-export const TECNICAL_ANALYSIS = true;
 export const LINEAR_REGRESSION = true;
-export const LINEAR_REGRESSION_PERIOD = 60;
-export const LINEAR_REGRESSION_EPOCHS = 200;
+export const LINEAR_REGRESSION_PERIOD = 90;
+export const LINEAR_REGRESSION_EPOCHS = 100;
 
+export const TECNICAL_ANALYSIS = true;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;

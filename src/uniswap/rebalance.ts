@@ -34,6 +34,7 @@ import {
   depositToYearn,
   redeemFromYearn,
   accuredYearnInterest,
+  previewWithdraw,
 } from "../yearn/interact";
 
 const prettyConsole = loadPrettyConsole();
@@ -263,6 +264,7 @@ export async function rebalancePortfolio(
   prettyConsole.log("YEARN BALANCE", balanceYearn.mul(1e12).toString());
 
   const interestAccrued = await accuredYearnInterest(dexWallet);
+  const balanceYearnUSD = await previewWithdraw(dexWallet)
   const differenceInterest = interestAccrued.sub(lastInterest);
 
   prettyConsole.log(
@@ -279,7 +281,7 @@ export async function rebalancePortfolio(
 
   if (balanceYearn.gt(0)) {
     totalPortfolioValue = totalPortfolioValue.add(
-      balanceYearn.add(usdBalance).mul(1e12)
+      balanceYearnUSD.add(usdBalance).mul(1e12)
     );
   }
 

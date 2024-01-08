@@ -117,3 +117,20 @@ export async function accuredYearnInterest(dexWallet: DexWallet) {
 
   return interest;
 }
+
+export async function previewWithdraw(dexWallet: DexWallet) {
+  const signer = dexWallet.wallet;
+
+  const vault = new ethers.Contract(
+    YEARN_AAVE_V3_USDC,
+    YEARN_VAULT_ABI,
+    signer
+  );
+
+  const balanceVault = await vault.balanceOf(dexWallet.walletAddress);
+  prettyConsole.log("Balance in vault", balanceVault.toString());
+
+  const balanceUSDT = await vault.previewWithdraw(balanceVault);
+
+  return balanceUSDT;
+}
