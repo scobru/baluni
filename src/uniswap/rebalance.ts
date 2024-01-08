@@ -438,7 +438,12 @@ export async function rebalancePortfolio(
       Number(usdBalance) < Number(amount) &&
       Number(usdBalance) > (Number(amount) * 6000) / 10000
     ) {
-      amount = usdBalance;
+      amount = amount.mul(6000).div(10000);
+    } else if (
+      Number(balanceYearn) < Number(amount) &&
+      Number(balanceYearn) > (Number(amount) * 6000) / 10000
+    ) {
+      await redeemFromYearn(amount.mul(6000).div(10000), dexWallet);
     } else {
       prettyConsole.log(
         "Not enough USDT to buy, balance under 60% of required USD"
