@@ -107,6 +107,8 @@ export async function swapCustom(
     tokenBAddress,
     tokenAContract,
     tokenBContract,
+    tokenAName,
+    tokenBName,
     swapRouterAddress,
     swapRouterContract,
     providerGasPrice,
@@ -178,9 +180,7 @@ export async function swapCustom(
     gasPrice,
     dexWallet
   );
-  prettyConsole.log(
-    `Swap ${tokenAContract.symbol()} for ${tokenBContract.symbol()}`
-  );
+  prettyConsole.log(`Swap ${tokenAName} for ${tokenBName})}`);
 
   const poolFee = await findPoolAndFee(
     quoterContract,
@@ -434,22 +434,11 @@ export async function rebalancePortfolio(
       (balanceYearn.gt(amount) || balanceYearn == amount)
     ) {
       await redeemFromYearn(amount, dexWallet);
-    } else if (
-      Number(usdBalance) < Number(amount) &&
-      Number(usdBalance) > (Number(amount) * 6000) / 10000
-    ) {
+    } else if (Number(usdBalance) > (Number(amount) * 6000) / 10000) {
       amount = amount.mul(6000).div(10000);
-    } else if (
-      Number(balanceYearn) < Number(amount) &&
-      Number(balanceYearn) > (Number(amount) * 6000) / 10000
-    ) {
+    } else if (Number(balanceYearn) > (Number(amount) * 6000) / 10000) {
       await redeemFromYearn(amount.mul(6000).div(10000), dexWallet);
       amount = amount.mul(6000).div(10000);
-    } else {
-      prettyConsole.log(
-        "Not enough USDT to buy, balance under 60% of required USD"
-      );
-      break;
     }
 
     prettyConsole.log(
