@@ -429,8 +429,8 @@ export async function rebalancePortfolio(
       await getTokenBalance(dexWallet, dexWallet.walletAddress, usdcAddress);
 
     if (
-      (usdBalance.lt(amount) && balanceYearn.gt(amount)) ||
-      balanceYearn == amount
+      usdBalance.lt(amount) &&
+      (balanceYearn.gt(amount) || balanceYearn == amount)
     ) {
       await redeemFromYearn(amount, dexWallet);
     } else {
