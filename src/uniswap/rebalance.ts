@@ -411,7 +411,11 @@ export async function rebalancePortfolio(
   for (let { token, amount } of tokensToBuy) {
     if (token === usdcAddress) {
       prettyConsole.log("SKIP USDC BUY");
-
+      _usdBalance = await getTokenBalance(
+        dexWallet,
+        dexWallet.walletAddress,
+        usdcAddress
+      );
       break;
     }
 
