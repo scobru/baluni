@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "ts-node": "ts-node",
-    "start": "ts-node src/index.ts"
+    "build": "npx tsc",
+    "start": "npx ts-node src/rebalancer.ts",
+    "invest": "npx ts-node src/investor.ts",
+    "dca": "npx ts-node src/dca.ts",
+    "predict": "npx ts-node src/predict.ts",
+    "pumpOrDump": "npx ts-node src/pumpOrDump.ts"
   },
   "keywords": [
     "defi",
