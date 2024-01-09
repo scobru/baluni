@@ -87,20 +87,6 @@ async function executeRebalance() {
   );
   console.groupEnd();
 
-  // Define an asynchronous function to write logs
-  const writeLog = async () => {
-    const fs = require("fs").promises;
-    const time = new Date().toISOString();
-    const data = `${time}, ${kstResult.direction}, ${kstResult.cross}, ${signalAI}\n`;
-
-    try {
-      await fs.appendFile("signals.txt", data);
-      console.log("Log Saved!");
-    } catch (err) {
-      throw new Error("Error writing log: " + err);
-    }
-  };
-
   let TREND: Boolean = true;
 
   if (TREND_FOLLOWING && LINEAR_REGRESSION) {
@@ -150,12 +136,10 @@ async function executeRebalance() {
     selectedWeights = WEIGHTS_UP;
     prettyConsole.log("Selected weights:", selectedWeights);
     await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
-    await writeLog();
   } else if (!TREND) {
     selectedWeights = WEIGHTS_DOWN;
     prettyConsole.log("Selected weights:", selectedWeights);
     await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
-    await writeLog();
   }
 }
 
