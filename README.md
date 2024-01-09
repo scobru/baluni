@@ -238,6 +238,10 @@ In this release we use this Yearn Vault: [USDC.e-A AAVE on Polygon](https://year
 
 We welcome contributions! Please submit pull requests with your proposed changes. Adhere to our coding standards and guidelines for a smooth collaboration process.
 
+## Inspired
+
+This project was ispired by following project: <https://github.com/vhalme/dex-bot>
+
 ## License
 
 BALUNI is released under [GNU AGPLv3](LICENSE.md), which details how it can be used and distributed.
