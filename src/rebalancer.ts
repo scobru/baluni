@@ -94,8 +94,8 @@ async function executeRebalance() {
     const data = `${time}, ${kstResult.direction}, ${kstResult.cross}, ${signalAI}\n`;
 
     try {
-      await fs.appendFile("log.txt", data);
-      console.log("Saved!");
+      await fs.appendFile("signals.txt", data);
+      console.log("Log Saved!");
     } catch (err) {
       throw new Error("Error writing log: " + err);
     }

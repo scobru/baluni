@@ -47,22 +47,29 @@ export const ORACLE = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8"; // CHAINLINK
 export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // UNIV3 ROUTER
 export const QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"; // UNIV3 QUOTER
 
-export const YEARN_ENABLED = true;
-export const YEARN_AAVE_V3_USDC = "0xA013Fbd4b711f9ded6fB09C1c0d358E2FbC2EAA0"; // Yearn v3 USDC.e-A
-
 export const LIMIT = 50; // 1%
 export const SLIPPAGE = 50; // 1%
 export const INTERVAL = 300; // 1 minute
 
+export const MAX_APPROVAL = true;
+
+// YEARN
+export const YEARN_ENABLED = true;
+export const YEARN_AAVE_V3_USDC = "0xA013Fbd4b711f9ded6fB09C1c0d358E2FbC2EAA0"; // Yearn v3 USDC.e-A
+
+// DCA
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
 export const INVESTMENT_AMOUNT = 100;
 
+// KST
 export const TREND_FOLLOWING = true;
 
+// LINEAR REGRESSION
 export const LINEAR_REGRESSION = true;
 export const LINEAR_REGRESSION_PERIOD = 90;
 export const LINEAR_REGRESSION_EPOCHS = 100;
 
+// TECHNICAL ANALYSIS
 export const TECNICAL_ANALYSIS = true;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;

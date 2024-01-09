@@ -1,8 +1,9 @@
-import { Contract, BigNumber } from "ethers";
+import { Contract, BigNumber, ethers } from "ethers";
 import { callContractMethod } from "./contractUtils";
 import { DexWallet } from "./dexWallet";
 import { waitForTx } from "./networkUtils";
 import { loadPrettyConsole } from "./prettyConsole";
+import { MAX_APPROVAL } from "../config";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -24,10 +25,15 @@ export async function approveToken(
       swapAmount.toString(),
       "tokens" + " to " + to + "... "
     );
+
+    const approveAmount = MAX_APPROVAL
+      ? ethers.constants.MaxUint256
+      : swapAmount;
+
     const approvalResult = await callContractMethod(
       tokenContract,
       "approve",
-      [to, swapAmount],
+      [to, approveAmount],
       gasPrice
     );
 

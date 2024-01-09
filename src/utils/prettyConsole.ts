@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 export class PrettyConsole {
   public closeByNewLine: boolean;
   public useIcons: boolean;
@@ -8,6 +10,8 @@ export class PrettyConsole {
   public successesTitle: string;
   public debugsTitle: string;
   public assertsTitle: string;
+
+  private logFilePath = "pretty-console.log";
 
   constructor() {
     this.closeByNewLine = true;
@@ -95,6 +99,11 @@ export class PrettyConsole {
     // turns objects into printable strings
     strings = strings.map((item: string) => {
       if (typeof item === "object") item = JSON.stringify(item);
+      fs.appendFileSync(
+        this.logFilePath,
+        item + (this.closeByNewLine ? "\n" : "")
+      );
+
       return item;
     });
     console.log(c, strings.join(""), this.getColorReset());
