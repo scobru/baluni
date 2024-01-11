@@ -6,7 +6,7 @@ BALUNI is an innovative application designed for trading on decentralized exchan
 
 ## Prerequisites
 
-Before installing BALUNI, ensure you have Node.js and npm installed on your system.
+Before installing BALUNI, ensure you have Node.js and npm installed on your system. You have to hold USDC into your wallet and MATIC to pay txt fees.
 
 ## Installation
 
