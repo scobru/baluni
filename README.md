@@ -1,6 +1,6 @@
 # BALUNI 🎈
 
-## Project Description
+![Alt text](./assets/baluni3.png)
 
 BALUNI is an innovative application designed for trading on decentralized exchanges. It offers a range of tools to facilitate trading activities on platforms like Uniswap. BALUNI is tailored to assist both new and experienced traders in managing their cryptocurrency portfolios with ease.
 
@@ -13,7 +13,7 @@ Before installing BALUNI, ensure you have Node.js and npm installed on your syst
 To install BALUNI, follow these simple steps:
 
 ```shell
-npm install
+yarn install
 ```
 
 ## Usage
@@ -23,7 +23,7 @@ npm install
 Start BALUNI using the following command:
 
 ```shell
-npm start
+yarn start
 ```
 
 ### Modular Features of BALUNI
@@ -107,6 +107,7 @@ npx ts-node src/getTxReceipt.ts 0xf90efa044b4a5c5a0da0ba1c9dc3c7a5e53962818c6a7a
 ## Configuration Details
 
 In `src/config.ts`, you can set various parameters for trading strategies. This includes token selections, weights, and whether to sell all tokens before reinvesting.
+Modify .env file with your PRIVATE_KEY.
 
 ### Tokens and Weights
 
