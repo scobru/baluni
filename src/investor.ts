@@ -1,7 +1,7 @@
 import { initializeWallet } from "./utils/dexWallet"; // Import the initializeWallet function
 import { TOKENS, WEIGHTS_UP, USDC } from "./config";
 import { invest } from "./uniswap/invest";
-import { POLYGON } from "./utils/networks";
+import { POLYGON } from "./config";
 import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
 

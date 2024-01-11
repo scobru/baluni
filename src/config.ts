@@ -77,3 +77,9 @@ export const RSI_OVERSOLD = 30;
 export const STOCKRSI_PERIOD = 14;
 export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
+
+// NETWORK
+export const POLYGON = [
+  "https://polygon-mainnet.g.alchemy.com/v2/u1t0bPCxL7FksVGLrMLW950RqujroHhP",
+  "https://polygon-mainnet.g.alchemy.com/v2/u1t0bPCxL7FksVGLrMLW950RqujroHhP",
+];

@@ -1,64 +1,12 @@
 import { BigNumber, Contract, providers } from "ethers";
 import fs from "fs";
-import { POLYGON } from "./networks";
+import { POLYGON } from "../config";
 import { DexWallet } from "./dexWallet";
 import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 const TX_FILE = "./transactions.json";
 const provider = new providers.JsonRpcProvider(POLYGON[0]); // Sostituisci con il tuo provider
-
-export async function callContract(
-  data: string,
-  value: string,
-  to: string,
-  dexWallet: DexWallet
-) {
-  const { maxFeePerGas, maxPriorityFeePerGas } =
-    await dexWallet.wallet.provider.getFeeData();
-
-  if (!maxFeePerGas || !maxPriorityFeePerGas) {
-    throw new Error("Failed to fetch gas fee data");
-  }
-
-  // Leggi le transazioni esistenti
-  let transactions = readTransactions();
-
-  // Controlla il numero di transazioni in attesa
-  while (
-    transactions.filter(
-      (tx: { status: string }) =>
-        tx.status === "pending" || tx.status === "dropped"
-    ).length > 2
-  ) {
-    await updateTransactionStatus();
-    prettyConsole.log("Waiting for some transactions to complete...");
-
-    await new Promise((resolve) => setTimeout(resolve, 10000)); // attendi 10 secondi
-    transactions = readTransactions(); // Aggiorna le transazioni
-  }
-
-  const txResponse = await dexWallet.wallet.sendTransaction({
-    data: data,
-    to: to,
-    value: value,
-    from: dexWallet.walletAddress,
-    maxFeePerGas: maxFeePerGas,
-    maxPriorityFeePerGas: maxPriorityFeePerGas,
-  });
-
-  prettyConsole.success("Done! Tx Hash:", txResponse.hash);
-
-  // Salva la transazione nel file JSON
-  transactions.push({
-    hash: txResponse.hash,
-    status: "pending",
-  });
-
-  writeTransactions(transactions);
-
-  return txResponse;
-}
 
 export async function callContractMethod(
   contract: Contract,
@@ -98,6 +46,20 @@ export async function callContractMethod(
     prettyConsole.log("Gas limit:", gasLimit.toBigInt());
   } catch (error) {
     console.log("Default gas limit:", gasLimit.toBigInt());
+  }
+
+  // Simulate the transaction
+  let simulationResult;
+  try {
+    simulationResult = await contract.callStatic[method](...inputs, {
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+      value: value,
+    });
+    prettyConsole.log("Simulation successful:", simulationResult);
+  } catch (error) {
+    prettyConsole.error("Simulation failed:", error);
+    return; // Abort if simulation fails
   }
 
   txResponse = await contract[method](...inputs, {

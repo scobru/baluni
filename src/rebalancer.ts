@@ -9,7 +9,7 @@ import {
   LINEAR_REGRESSION,
   TREND_FOLLOWING,
 } from "./config";
-import { POLYGON } from "./utils/networks";
+import { POLYGON } from "./config";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
 import { welcomeMessage } from "./welcome";

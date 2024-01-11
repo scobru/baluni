@@ -4,7 +4,7 @@ import { WNATIVE, USDC, NATIVE } from "../config";
 import { swapCustom } from "../uniswap/rebalance";
 import { BigNumber } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-import { POLYGON } from "./networks";
+import { POLYGON } from "../config";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 

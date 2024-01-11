@@ -1,6 +1,6 @@
 import { swap } from "./uniswap/swap";
 import { initializeWallet } from "./utils/dexWallet";
-import { POLYGON } from "./utils/networks";
+import { POLYGON } from "./config";
 
 import { loadPrettyConsole } from "./utils/prettyConsole";
 const prettyConsole = loadPrettyConsole();

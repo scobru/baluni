@@ -1,6 +1,6 @@
 import { swap } from "./uniswap/swap";
 import { initializeWallet } from "./utils/dexWallet";
-import { POLYGON } from "./utils/networks";
+import { POLYGON } from "./config";
 
 async function main() {
   const dexWallet = await initializeWallet(POLYGON[0]);
