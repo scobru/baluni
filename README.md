@@ -241,7 +241,10 @@ We welcome contributions! Please submit pull requests with your proposed changes
 
 ## Inspired
 
-This project was ispired by following project: <https://github.com/vhalme/dex-bot>
+This project was ispired by following project:
+
+- <https://github.com/vhalme/dex-bot>
+- <https://github.com/MattPereira/etherscript>
 
 ## License
 
