@@ -452,7 +452,7 @@ export async function rebalancePortfolio(
       `💰 Difference: ${difference}%`,
       `💲 Value (USD): ${formatEther(tokenValues[token])}`,
       `⚖️  Value to Rebalance (USD): ${formatEther(valueToRebalance)}`,
-      `👛 Balance: ${_tokenBalance.formatted} ${tokenSymbol}`
+      `👛 Balance: ${formatEther(tokenBalance)} ${tokenSymbol}`
     );
 
     if (difference < 0 && Math.abs(difference) > LIMIT) {
