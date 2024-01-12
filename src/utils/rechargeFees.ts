@@ -1,16 +1,14 @@
 // feeRecharge.ts
 import { initializeWallet } from "./dexWallet";
-import { WNATIVE, USDC, NATIVE } from "../config";
-import { swapCustom } from "../uniswap/rebalance";
-import { BigNumber } from "ethers";
-import { formatEther } from "ethers/lib/utils";
+import { WNATIVE, NATIVE, YEARN_AAVE_V3_WMATIC } from "../config";
+import { formatEther, parseEther } from "ethers/lib/utils";
 import { POLYGON } from "../config";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
-
 import { loadPrettyConsole } from "./prettyConsole";
-import { waitForTx } from "./networkUtils";
-const prettyConsole = loadPrettyConsole();
+import { redeemFromYearn } from "../yearn/interact";
+
+const pc = loadPrettyConsole();
 
 export async function rechargeFees() {
   try {
@@ -22,39 +20,37 @@ export async function rechargeFees() {
     const { balance: balanceWNATIVEB4, formatted: balanceWNATIVEB4Formatted } =
       await getTokenBalance(dexWallet, dexWallet.walletAddress, WNATIVE);
 
-    const { balance: balanceUSDCB4, formatted: balanceUSDCB4Formatted } =
-      await getTokenBalance(dexWallet, dexWallet.walletAddress, USDC);
-
-    prettyConsole.info(
-      "BALANCE WNATIVE",
-      formatEther(balanceWNATIVEB4.toString())
+    const balanceWMATIC_YEARN = await getTokenBalance(
+      dexWallet,
+      dexWallet.walletAddress,
+      YEARN_AAVE_V3_WMATIC
     );
 
-    prettyConsole.info(
-      "BALANCE NATIVE",
-      formatEther(balanceNATIVEB4.toString())
-    );
+    pc.info("BALANCE WNATIVE", formatEther(balanceWNATIVEB4.toString()));
+
+    pc.info("BALANCE NATIVE", formatEther(balanceNATIVEB4.toString()));
 
     if (Number(formatEther(balanceNATIVEB4.toString())) < 2) {
-      if (balanceUSDCB4.gt(BigNumber.from(2).mul(10).pow(6))) {
-        const tx = await swapCustom(
-          dexWallet,
-          [WNATIVE, USDC],
-          true,
-          BigNumber.from(2).mul(10).pow(6)
-        );
-        await waitForTx(dexWallet.wallet.provider, tx.hash);
+      if (
+        Number(formatEther(balanceWNATIVEB4.toString())) < 2 &&
+        2 < balanceWMATIC_YEARN.balance
+      ) {
+        await redeemFromYearn(YEARN_AAVE_V3_WMATIC, parseEther("2"), dexWallet);
       }
 
-      prettyConsole.log("Withdrawing WNATIVE");
+      pc.log("Withdrawing WNATIVE");
       await unwrapETH(dexWallet, "2");
 
-      const { balance: balanceNATIVE, formatted: balanceNATIVEB4Formatted } =
-        await getTokenBalance(dexWallet, dexWallet.walletAddress, NATIVE);
+      const balanceNative = await getTokenBalance(
+        dexWallet,
+        dexWallet.walletAddress,
+        NATIVE
+      );
 
-      prettyConsole.log("Balance:", balanceNATIVEB4Formatted);
+      pc.log("Balance:", balanceNative.formatted);
     }
-    prettyConsole.log("Fee recharge operation completed");
+
+    pc.log("Fee recharge operation completed");
   } catch (error) {
     console.error("Error during fee recharge:", error);
   }

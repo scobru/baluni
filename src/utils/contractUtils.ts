@@ -1,10 +1,9 @@
-import { BigNumber, Contract, providers } from "ethers";
+import { BigNumber, Contract, errors, providers } from "ethers";
 import fs from "fs";
 import { POLYGON } from "../config";
-import { DexWallet } from "./dexWallet";
 import { loadPrettyConsole } from "./prettyConsole";
 
-const prettyConsole = loadPrettyConsole();
+const pc = loadPrettyConsole();
 const TX_FILE = "./transactions.json";
 const provider = new providers.JsonRpcProvider(POLYGON[0]); // Sostituisci con il tuo provider
 
@@ -16,7 +15,6 @@ export async function callContractMethod(
   value?: BigNumber
 ) {
   // Leggi le transazioni esistenti
-
   let transactions = readTransactions();
 
   // Controlla il numero di transazioni in attesa
@@ -25,13 +23,12 @@ export async function callContractMethod(
       .length > 2
   ) {
     await updateTransactionStatus();
-
-    prettyConsole.log("Waiting for some transactions to complete...");
+    pc.log("Waiting for some transactions to complete...");
     await new Promise((resolve) => setTimeout(resolve, 10000)); // attendi 10 secondi
     transactions = readTransactions(); // Aggiorna le transazioni
   }
 
-  prettyConsole.info(`${method}(${inputs})`);
+  pc.info(`${method}(${inputs})`);
 
   let gasLimit = BigNumber.from(500000);
 
@@ -42,23 +39,24 @@ export async function callContractMethod(
       ...inputs
     );
     gasLimit = gasEstimate.mul(2);
-    prettyConsole.log("Gas estimate:", gasEstimate.toBigInt());
-    prettyConsole.log("Gas limit:", gasLimit.toBigInt());
+    pc.log("Gas estimate:", gasEstimate.toBigInt());
+    pc.log("Gas limit:", gasLimit.toBigInt());
   } catch (error) {
     console.log("Default gas limit:", gasLimit.toBigInt());
   }
 
   // Simulate the transaction
   let simulationResult;
+
   try {
     simulationResult = await contract.callStatic[method](...inputs, {
       gasPrice: gasPrice,
       gasLimit: gasLimit,
       value: value,
     });
-    prettyConsole.log("Simulation successful:", simulationResult);
+    pc.log("Simulation successful:", simulationResult);
   } catch (error) {
-    prettyConsole.error("Simulation failed:", error);
+    pc.error("Simulation failed:", error);
     return; // Abort if simulation fails
   }
 
@@ -67,10 +65,10 @@ export async function callContractMethod(
     gasLimit: gasLimit,
     value: value,
   });
-  prettyConsole.success("Done! Tx Hash:", txResponse.hash);
+  pc.success("🎉 Done! Tx Hash:", txResponse.hash);
 
   if (txResponse.status === 0) {
-    prettyConsole.error("Transaction failed!");
+    pc.error("Transaction failed!");
     transactions.push({
       hash: txResponse.hash,
       status: "dropped",
@@ -94,7 +92,7 @@ function readTransactions() {
     const txData = fs.readFileSync(TX_FILE);
     return JSON.parse(txData as any);
   } catch (e) {
-    prettyConsole.error("Unable to read transactions file:", e);
+    pc.error("Unable to read transactions file:", e);
     return []; // restituisce un array vuoto se non riesce a leggere
   }
 }
@@ -104,7 +102,7 @@ function writeTransactions(transactions: any) {
   try {
     fs.writeFileSync(TX_FILE, JSON.stringify(transactions, null, 2));
   } catch (e) {
-    prettyConsole.error("Unable to write transactions file:", e);
+    pc.error("Unable to write transactions file:", e);
   }
 }
 
@@ -120,9 +118,7 @@ async function updateTransactionStatus() {
         );
         if (receipt && receipt.confirmations > 0) {
           // Transazione confermata, la segna per la rimozione
-          prettyConsole.success(
-            `Transaction confirmed! Hash: ${transactions[i].hash}`
-          );
+          pc.success(`Transaction confirmed! Hash: ${transactions[i].hash}`);
           continue; // Salta l'aggiunta di questa transazione agli aggiornamenti perché è confermata
         }
       } catch (error) {
@@ -137,9 +133,7 @@ async function updateTransactionStatus() {
         );
         if (receipt && receipt.confirmations > 0) {
           // Transazione confermata, la segna per la rimozione
-          prettyConsole.success(
-            `Transaction dropped! Hash: ${transactions[i].hash}`
-          );
+          pc.success(`Transaction dropped! Hash: ${transactions[i].hash}`);
           continue; // Salta l'aggiunta di questa transazione agli aggiornamenti perché è confermata
         }
       } catch (error) {

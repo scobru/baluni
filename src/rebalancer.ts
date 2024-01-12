@@ -39,7 +39,7 @@ async function rebalancer() {
 
 async function executeRebalance() {
   // Log the initiation of portfolio checking
-  prettyConsole.log("Checking portfolio");
+  prettyConsole.log("👽 Checking portfolio");
 
   // Initialize the wallet with the first Polygon network node
   const dexWallet = await initializeWallet(POLYGON[0]);
@@ -78,11 +78,11 @@ async function executeRebalance() {
   // Log the AI signal and KST trend results
   console.group();
   prettyConsole.debug(
-    "Signal AI:",
+    "🤖 Signal AI:",
     signalAI,
-    "KST trend:",
+    "📈 KST trend:",
     kstResult.direction,
-    "KST cross:",
+    "❎ KST cross:",
     kstResult.cross
   );
   console.groupEnd();
@@ -127,18 +127,18 @@ async function executeRebalance() {
     }
   }
 
-  prettyConsole.debug("Trend:", TREND);
+  prettyConsole.debug("🔭 Trend:", TREND);
 
   // Logic to determine the new weights based on various conditions
   // It logs and changes weights based on KST and AI signals
   // The conditions for weight change are much more clearly laid out
   if (TREND) {
     selectedWeights = WEIGHTS_UP;
-    prettyConsole.log("Selected weights:", selectedWeights);
+    prettyConsole.log("🦄 Selected weights:", selectedWeights);
     await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
   } else if (!TREND) {
     selectedWeights = WEIGHTS_DOWN;
-    prettyConsole.log("Selected weights:", selectedWeights);
+    prettyConsole.log("🦄 Selected weights:", selectedWeights);
     await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
   }
 }

@@ -5,8 +5,8 @@ import {
   STOCKRSI_PERIOD,
 } from "../config";
 import { loadPrettyConsole } from "./prettyConsole";
+const pc = loadPrettyConsole();
 
-const prettyConsole = loadPrettyConsole();
 export async function getRSI(symbol: string) {
   const {
     rsiCheck,
@@ -44,8 +44,8 @@ export async function getRSI(symbol: string) {
     input
   );
 
-  prettyConsole.info(
-    `Getting RSI for:${symbol}`,
+  pc.info(
+    `⚙️ Getting RSI for:${symbol}`,
     `RSI:${rsiResult.rsiVal}`,
     `StochasticRSI:${
       stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI

@@ -47,5 +47,7 @@ export async function approveToken(
     } else {
       prettyConsole.success(`Spending of ${swapAmount.toString()} approved.`);
     }
+  } else {
+    prettyConsole.success("No need to approve");
   }
 }
