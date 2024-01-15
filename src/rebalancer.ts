@@ -1,5 +1,5 @@
 import { initializeWallet } from "./utils/dexWallet";
-import { rebalancePortfolio } from "./uniswap/rebalance";
+import { rebalancePortfolio } from "./uniswap/rebalanceYearn";
 import {
   TOKENS,
   WEIGHTS_UP,

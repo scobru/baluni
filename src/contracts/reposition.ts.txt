@@ -1,0 +1,108 @@
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+import { getEvent, getNewPositionId, getOneInchCalldata, getRepositionSwapAmount, getTicksFromPrices, gnnd } from '../scripts/helpers';
+import { ERC20, IERC20, UniswapPositionManager } from '../typechain';
+import { usdcUsdtFixture } from './fixture';
+
+/**
+ * Reposition tests for Uniswap Position Manager
+ * Tests must be run under mainnet fork
+ */
+describe('Contract: UniswapPositionManager', async () => {
+    let positionManager: UniswapPositionManager, nftId, nftManager, token0: ERC20, token1: ERC20;
+    let admin, user1
+  beforeEach(async () => {
+      ({ positionManager, nftId, nftManager, token0, token1 } = await usdcUsdtFixture());
+      [admin, user1] = await ethers.getSigners();
+      // approve nft to positionManager
+      await nftManager.approve(positionManager.address, nftId)
+  })
+
+  describe('Reposition', async () => {
+    it('should be able to reposition without swapping', async () => {
+        let newTickLower = -487200
+        let newTickUpper = 487200
+        let repositionParams =  {
+            positionId: nftId,
+            newTickLower: newTickLower,
+            newTickUpper: newTickUpper,
+            minAmount0Staked: 0,
+            minAmount1Staked: 0,
+            oneInchData: '0x'
+        }
+        let tx = await positionManager.reposition(repositionParams);
+        let newNftId = await getNewPositionId(tx);
+        expect(newNftId).not.to.eq(nftId);
+    }),
+
+    it('should be able to reposition to 0.97 - 1.03 with swapping', async() => {
+        let newPriceLower = '0.97';
+        let newPriceUpper = '1.03';
+        let t0Decimals = await token0.decimals();
+        let t1Decimals = await token1.decimals();
+
+        // Get new ticks
+        let newTicks = getTicksFromPrices(newPriceLower, newPriceUpper, token0.address, token1.address, t0Decimals, t1Decimals, 3000);
+        let newTickLower = newTicks.tickLower;
+        let newTickUpper = newTicks.tickUpper;
+        let deposited = await positionManager.getStakedTokenBalance(nftId);
+        let [swapAmt, side] = await getRepositionSwapAmount(positionManager, nftId, 
+          deposited.amount0, deposited.amount1, t0Decimals, t1Decimals, newTickLower, newTickUpper, true);
+        let oneInchData = await getOneInchCalldata(positionManager.address, 'mainnet', swapAmt, token0.address, token1.address, side);
+        let params: UniswapPositionManager.RepositionParamsStruct = {
+            positionId: nftId,
+            newTickLower: newTickLower,
+            newTickUpper: newTickUpper,
+            minAmount0Staked: 0,
+            minAmount1Staked: 0,
+            oneInchData: oneInchData
+        }
+        let bb0 = await token0.balanceOf(admin.address)
+        let bb1 = await token1.balanceOf(admin.address)
+        await positionManager.reposition(params);
+        let ba0 = await token0.balanceOf(admin.address);
+        let ba1 = await token1.balanceOf(admin.address);
+        let t0Gain = ba0.sub(bb0);
+        let t1Gain = ba1.sub(bb1);
+
+        // we use t0 / t1 returned to gauge how well we've deposited the amounts in the position
+        expect(t0Gain).not.to.be.gt(deposited.amount0.div(50)); // expect t0 returned to be < 2%
+        expect(t1Gain).not.to.be.gt(deposited.amount1.div(50)); // expect t1 returned to be < 2%
+    })
+
+    it('should be able to reposition to 0.92 - 1.01 with swapping', async() => {
+        let newPriceLower = '0.92';
+        let newPriceUpper = '1.01';
+        let t0Decimals = await token0.decimals();
+        let t1Decimals = await token1.decimals();
+
+        // Get new ticks
+        let newTicks = getTicksFromPrices(newPriceLower, newPriceUpper, token0.address, token1.address, t0Decimals, t1Decimals, 3000);
+        let newTickLower = newTicks.tickLower;
+        let newTickUpper = newTicks.tickUpper;
+        let deposited = await positionManager.getStakedTokenBalance(nftId);
+        let [swapAmt, side] = await getRepositionSwapAmount(positionManager, nftId, 
+          deposited.amount0, deposited.amount1, t0Decimals, t1Decimals, newTickLower, newTickUpper, true);
+        let oneInchData = await getOneInchCalldata(positionManager.address, 'mainnet', swapAmt, token0.address, token1.address, side);
+        let params: UniswapPositionManager.RepositionParamsStruct = {
+            positionId: nftId,
+            newTickLower: newTickLower,
+            newTickUpper: newTickUpper,
+            minAmount0Staked: 0,
+            minAmount1Staked: 0,
+            oneInchData: oneInchData
+        }
+        let bb0 = await token0.balanceOf(admin.address)
+        let bb1 = await token1.balanceOf(admin.address)
+        await positionManager.reposition(params);
+        let ba0 = await token0.balanceOf(admin.address);
+        let ba1 = await token1.balanceOf(admin.address);
+        let t0Gain = ba0.sub(bb0);
+        let t1Gain = ba1.sub(bb1);
+
+        // we use t0 / t1 returned to gauge how well we've deposited the amounts in the position
+        expect(t0Gain).not.to.be.gt(deposited.amount0.div(50)); // expect t0 returned to be < 2%
+        expect(t1Gain).not.to.be.gt(deposited.amount1.div(50)); // expect t1 returned to be < 2%
+    })
+  })
+})

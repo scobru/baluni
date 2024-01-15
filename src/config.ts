@@ -61,6 +61,17 @@ export const YEARN_AAVE_V3_WETH = "0x305F25377d0a39091e99B975558b1bdfC3975654";
 export const YEARN_AAVE_V3_WMATIC =
   "0x28F53bA70E5c8ce8D03b1FaD41E9dF11Bb646c36";
 
+export const YEARN_VAULTS: { [key: string]: any } = {
+  USDC: {
+    vaultAddress: YEARN_AAVE_V3_USDC,
+  },
+  WETH: {
+    vaultAddress: YEARN_AAVE_V3_WETH,
+  },
+  WMATIC: {
+    vaultAddress: YEARN_AAVE_V3_WMATIC,
+  },
+};
 // DCA
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
 export const INVESTMENT_AMOUNT = 100;

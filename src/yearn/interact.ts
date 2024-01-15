@@ -109,3 +109,11 @@ export async function previewWithdraw(pool: string, dexWallet: DexWallet) {
 
   return balance;
 }
+
+export async function getVaultAsset(pool: string, dexWallet: DexWallet) {
+  const signer = dexWallet.wallet;
+  const vault = new ethers.Contract(pool, YEARN_VAULT_ABI, signer);
+  const asset = await vault.token();
+
+  return asset;
+}
