@@ -533,15 +533,12 @@ export async function rebalancePortfolio(
 
   for (const vault of Object.values(YEARN_VAULTS)) {
     const vaultAsset = await getVaultAsset(vault.vaultAddress, dexWallet);
-    console.log(vaultAsset);
     const assetContract = new ethers.Contract(
       vaultAsset,
       erc20Abi,
       dexWallet.wallet
     );
-
     const balance = await assetContract.balanceOf(dexWallet.walletAddress);
-    console.log(Number(balance));
     if (balance.gt(0)) {
       if (tokensToBuy.length == 0 && tokensToSell.length == 0) {
         await depositToYearn(

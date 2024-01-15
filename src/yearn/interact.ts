@@ -113,7 +113,7 @@ export async function previewWithdraw(pool: string, dexWallet: DexWallet) {
 export async function getVaultAsset(pool: string, dexWallet: DexWallet) {
   const signer = dexWallet.wallet;
   const vault = new ethers.Contract(pool, YEARN_VAULT_ABI, signer);
-  const asset = await vault.token();
+  const asset = await vault.asset();
 
   return asset;
 }
