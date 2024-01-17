@@ -11,8 +11,6 @@ export class PrettyConsole {
   public debugsTitle: string;
   public assertsTitle: string;
 
-  private logFilePath = "pretty-console.log";
-
   constructor() {
     this.closeByNewLine = true;
     this.useIcons = true;
@@ -97,15 +95,6 @@ export class PrettyConsole {
   ) {
     const c = this.getColor(foregroundColor, backgroundColor);
     // turns objects into printable strings
-    strings = strings.map((item: string) => {
-      if (typeof item === "object") item = JSON.stringify(item);
-      fs.appendFileSync(
-        this.logFilePath,
-        item + (this.closeByNewLine ? "\n" : "")
-      );
-
-      return item;
-    });
     console.log(c, strings.join(""), this.getColorReset());
     if (this.closeByNewLine) {
       console.log("");

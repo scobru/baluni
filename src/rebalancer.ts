@@ -22,8 +22,6 @@ prettyConsole.useIcons = true;
 async function rebalancer() {
   welcomeMessage();
 
-  await executeRebalance();
-
   try {
     setInterval(async () => {
       try {
@@ -76,7 +74,6 @@ async function executeRebalance() {
   }
 
   // Log the AI signal and KST trend results
-  console.group();
   prettyConsole.debug(
     "🤖 Signal AI:",
     signalAI,
@@ -85,7 +82,6 @@ async function executeRebalance() {
     "❎ KST cross:",
     kstResult.cross
   );
-  console.groupEnd();
 
   let TREND: Boolean = true;
 
