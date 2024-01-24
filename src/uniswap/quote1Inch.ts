@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { USDC, WNATIVE, ORACLE } from "../config";
 import { POLYGON } from "../config";
-import OffChainOracleAbi from "./contracts/OffChainOracle.json";
+import OffChainOracleAbi from "../abis/OffChainOracle.json";
 
 interface Token {
   address: string;

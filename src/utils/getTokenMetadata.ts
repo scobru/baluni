@@ -1,4 +1,4 @@
-import ERC20_ABI from "../uniswap/contracts/ERC20.json";
+import ERC20_ABI from "../abis/ERC20.json";
 import { Token } from "@uniswap/sdk-core";
 import { DexWallet } from "./dexWallet";
 import { ethers } from "ethers";

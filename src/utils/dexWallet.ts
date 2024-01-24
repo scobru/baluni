@@ -7,6 +7,7 @@ export interface DexWallet {
   walletAddress: string;
   walletBalance: BigNumber;
   providerGasPrice: BigNumber;
+  walletProvider?: any;
 }
 
 export const initializeWallet = async (

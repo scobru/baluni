@@ -2,7 +2,6 @@ import chalk from "chalk";
 import { DexWallet } from "./dexWallet";
 import { ethers } from "ethers";
 import { WNATIVE } from "../config";
-
 import { loadPrettyConsole } from "./prettyConsole";
 import { waitForTx } from "./networkUtils";
 

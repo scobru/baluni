@@ -2,9 +2,9 @@ import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../utils/dexWallet";
 import { callContractMethod } from "../utils/contractUtils";
 import { waitForTx } from "../utils/networkUtils";
-import erc20Abi from "./contracts/ERC20.json";
-import quoterAbi from "./contracts/Quoter.json";
-import swapRouterAbi from "./contracts/SwapRouter.json";
+import erc20Abi from "../abis/ERC20.json";
+import quoterAbi from "../abis/Quoter.json";
+import swapRouterAbi from "../abis/SwapRouter.json";
 import { formatEther } from "ethers/lib/utils";
 import {
   LIMIT,

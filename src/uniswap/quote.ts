@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import uniswapV3FactoryAbi from "./contracts/UniswapV3Factory.json";
-import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json";
-import erc20Abi from "./contracts/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
+import uniswapV3FactoryAbi from "../abis/UniswapV3Factory.json";
+import uniswapV3PoolAbi from "../abis/UniswapV3Pool.json";
+import erc20Abi from "../abis/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
