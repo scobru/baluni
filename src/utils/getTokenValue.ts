@@ -9,7 +9,8 @@ export async function getTokenValue(
   token: string,
   balance: BigNumber,
   decimals: number,
-  usdcAddress: string
+  usdcAddress: string,
+  chainId: number
 ): Promise<BigNumber> {
   if (token === usdcAddress) {
     return balance; // USDT value is the balance itself
@@ -19,7 +20,7 @@ export async function getTokenValue(
       address: token,
       decimals: decimals,
     };
-    const price: any = await fetchPrices(_token);
+    const price: any = await fetchPrices(_token, chainId);
 
     if (!price) throw new Error("Price is undefined");
     // Here, ensure that the price is parsed with respect to the token's decimals

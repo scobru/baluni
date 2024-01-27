@@ -1,5 +1,15 @@
 // set TOKENS and WEIGHTS
 
+type ConfigType = {
+  [key: number]: string;
+};
+
+type ConfigTypeYearn = {
+  [key: number]: { [key: string]: any };
+};
+
+export const SELECTED_CHAINID = 137;
+
 export const TOKENS = [
   "0x53E0bca35eC356BD5ddDFebbD1Fc0fD03FaBad39", // LINK
   "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619", // WETH
@@ -39,39 +49,46 @@ export const WEIGHTS_DOWN = {
   "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174": 7000,
 };
 
-export const USDC = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"; // USDC
-export const WNATIVE = "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270"; // WMATIC
-export const NATIVE = "0x0000000000000000000000000000000000001010"; // MATIC
-export const WETH = "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619";
-
-export const ORACLE = "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8"; // 1INCH OFFHCAIN ORACLE
-export const ROUTER = "0xE592427A0AEce92De3Edee1F18E0157C05861564"; // UNIV3 ROUTER
-export const QUOTER = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6"; // UNIV3 QUOTER
-
-export const LIMIT = 50; // 1%
-export const SLIPPAGE = 50; // 1%
-export const INTERVAL = 300; // 1 minute
-
-export const MAX_APPROVAL = true;
+export const USDC: ConfigType = {
+  137: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+}; // USDC
+export const WNATIVE: ConfigType = {
+  137: "0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270",
+}; // WMATIC
+export const NATIVE: ConfigType = {
+  137: "0x0000000000000000000000000000000000001010",
+}; // MATIC
+export const WETH: ConfigType = {
+  137: "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619",
+};
+export const ORACLE: ConfigType = {
+  137: "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8",
+}; // 1INCH OFFHCAIN ORACLE
+export const ROUTER: ConfigType = {
+  137: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
+}; // UNIV3 ROUTER
+export const QUOTER: ConfigType = {
+  137: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
+}; // UNIV3 QUOTER
+export const NETWORKS: ConfigType = {
+  137: "https://polygon-mainnet.g.alchemy.com/v2/u1t0bPCxL7FksVGLrMLW950RqujroHhP",
+};
 
 // YEARN
 export const YEARN_ENABLED = true;
-export const YEARN_AAVE_V3_USDC = "0xA013Fbd4b711f9ded6fB09C1c0d358E2FbC2EAA0"; // Yearn v3 USDC.e-A
-export const YEARN_AAVE_V3_WETH = "0x305F25377d0a39091e99B975558b1bdfC3975654";
-export const YEARN_AAVE_V3_WMATIC =
-  "0x28F53bA70E5c8ce8D03b1FaD41E9dF11Bb646c36";
-
-export const YEARN_VAULTS: { [key: string]: any } = {
-  USDC: {
-    vaultAddress: YEARN_AAVE_V3_USDC,
-  },
-  WETH: {
-    vaultAddress: YEARN_AAVE_V3_WETH,
-  },
-  WMATIC: {
-    vaultAddress: YEARN_AAVE_V3_WMATIC,
+export const YEARN_VAULTS: ConfigTypeYearn = {
+  137: {
+    USDC: "0xA013Fbd4b711f9ded6fB09C1c0d358E2FbC2EAA0",
+    WETH: "0x305F25377d0a39091e99B975558b1bdfC3975654",
+    WMATIC: "0x28F53bA70E5c8ce8D03b1FaD41E9dF11Bb646c36",
   },
 };
+
+// REBALANCE SETTINGS
+export const LIMIT = 50; // 1%
+export const SLIPPAGE = 50; // 1%
+export const INTERVAL = 300; // 1 minute
+export const MAX_APPROVAL = true;
 
 // DCA
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -93,9 +110,3 @@ export const RSI_OVERSOLD = 30;
 export const STOCKRSI_PERIOD = 14;
 export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
-
-// NETWORK
-export const POLYGON = [
-  "https://polygon-mainnet.g.alchemy.com/v2/u1t0bPCxL7FksVGLrMLW950RqujroHhP",
-  "https://polygon-mainnet.g.alchemy.com/v2/u1t0bPCxL7FksVGLrMLW950RqujroHhP",
-];

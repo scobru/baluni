@@ -34,6 +34,7 @@ export async function depositToYearn(
       vault,
       "deposit",
       [amount, dexWallet.walletAddress],
+      dexWallet.walletProvider,
       gasPrice
     );
 
@@ -77,6 +78,7 @@ export async function redeemFromYearn(
         dexWallet.walletAddress,
         BigNumber.from(200),
       ],
+      dexWallet.walletProvider,
       gasPrice
     );
 

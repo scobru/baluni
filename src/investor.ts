@@ -1,7 +1,7 @@
 import { initializeWallet } from "./utils/dexWallet"; // Import the initializeWallet function
-import { TOKENS, WEIGHTS_UP, USDC } from "./config";
+import { TOKENS, WEIGHTS_UP, USDC, SELECTED_CHAINID } from "./config";
 import { invest } from "./uniswap/invest";
-import { POLYGON } from "./config";
+import { NETWORKS } from "./config";
 import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
 
@@ -9,13 +9,13 @@ const prettyConsole = loadPrettyConsole();
 
 const sellAll = Boolean(process.argv[3]);
 
-async function investor() {
+async function investor(chainId: number) {
   prettyConsole.log("Sell All?", sellAll);
   try {
-    await rechargeFees();
+    const dexWallet = await initializeWallet(NETWORKS[chainId]);
+    await rechargeFees(dexWallet);
     // Initialize your DexWallet here
-    const dexWallet = await initializeWallet(POLYGON[1]);
-    await invest(dexWallet, WEIGHTS_UP, USDC, TOKENS, sellAll);
+    await invest(dexWallet, WEIGHTS_UP, USDC[chainId], TOKENS, sellAll);
     prettyConsole.log("Investing operation completed");
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
@@ -23,7 +23,7 @@ async function investor() {
 }
 
 async function main() {
-  await investor();
+  await investor(SELECTED_CHAINID);
   prettyConsole.log("Rebalancer operation started");
 }
 

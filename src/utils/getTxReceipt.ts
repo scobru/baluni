@@ -1,16 +1,16 @@
 import { initializeWallet } from "./dexWallet";
 import { promisify } from "util";
-import { POLYGON } from "../config";
+import { NETWORKS } from "../config";
 
 const txHash = process.argv[2];
 
-const main = promisify(async () => {
-  const dexWallet = await initializeWallet(POLYGON[0]);
+const main = promisify(async (chainId: number) => {
+  const dexWallet = await initializeWallet(NETWORKS[chainId]);
   const { wallet } = dexWallet;
   const txReceipt = await wallet.provider.getTransactionReceipt(txHash);
   console.log("TX RECEIPT", txReceipt);
 });
 
-main().then(() => {
+main(137).then(() => {
   console.log("Async operation completed");
 });

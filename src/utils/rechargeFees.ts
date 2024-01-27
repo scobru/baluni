@@ -1,33 +1,37 @@
 // feeRecharge.ts
-import { initializeWallet } from "./dexWallet";
-import { WNATIVE, NATIVE, YEARN_AAVE_V3_WMATIC } from "../config";
+import { WNATIVE, NATIVE, YEARN_VAULTS } from "../config";
 import { formatEther, parseEther } from "ethers/lib/utils";
-import { POLYGON } from "../config";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 import { loadPrettyConsole } from "./prettyConsole";
 import { redeemFromYearn } from "../yearn/interact";
+import { DexWallet } from "./dexWallet";
 
 const pc = loadPrettyConsole();
 
-export async function rechargeFees() {
+export async function rechargeFees(dexWallet: DexWallet) {
   try {
-    const dexWallet = await initializeWallet(POLYGON[1]);
-
     const { balance: balanceNATIVEB4, formatted: balanceNATIVEB4Formatted } =
-      await getTokenBalance(dexWallet, dexWallet.walletAddress, NATIVE);
+      await getTokenBalance(
+        dexWallet.walletProvider,
+        dexWallet.walletAddress,
+        NATIVE[dexWallet.walletProvider.network.chainId]
+      );
 
     const { balance: balanceWNATIVEB4, formatted: balanceWNATIVEB4Formatted } =
-      await getTokenBalance(dexWallet, dexWallet.walletAddress, WNATIVE);
+      await getTokenBalance(
+        dexWallet.walletProvider,
+        dexWallet.walletAddress,
+        WNATIVE[dexWallet.walletProvider.network.chainId]
+      );
 
     const balanceWMATIC_YEARN = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
-      YEARN_AAVE_V3_WMATIC
+      YEARN_VAULTS[dexWallet.walletProvider.network.chainId].WMATIC
     );
 
     pc.info("BALANCE WNATIVE", formatEther(balanceWNATIVEB4.toString()));
-
     pc.info("BALANCE NATIVE", formatEther(balanceNATIVEB4.toString()));
 
     if (Number(formatEther(balanceNATIVEB4.toString())) < 2) {
@@ -35,16 +39,20 @@ export async function rechargeFees() {
         Number(formatEther(balanceWNATIVEB4.toString())) < 2 &&
         2 < balanceWMATIC_YEARN.balance
       ) {
-        await redeemFromYearn(YEARN_AAVE_V3_WMATIC, parseEther("2"), dexWallet);
+        await redeemFromYearn(
+          YEARN_VAULTS[dexWallet.walletProvider.network.chainId].WMATIC,
+          parseEther("2"),
+          dexWallet
+        );
       }
 
       pc.log("Withdrawing WNATIVE");
       await unwrapETH(dexWallet, "2");
 
       const balanceNative = await getTokenBalance(
-        dexWallet,
+        dexWallet.walletProvider,
         dexWallet.walletAddress,
-        NATIVE
+        NATIVE[dexWallet.walletProvider.network.chainId]
       );
 
       pc.log("Balance:", balanceNative.formatted);

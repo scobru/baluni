@@ -5,9 +5,10 @@ import {
   USDC,
   WEIGHTS_UP,
   INVESTMENT_INTERVAL,
+  NETWORKS,
+  SELECTED_CHAINID,
 } from "./config";
 import { invest } from "./uniswap/invest";
-import { POLYGON } from "./config";
 import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
 
@@ -16,11 +17,11 @@ const prettyConsole = loadPrettyConsole();
 // DCA configuration
 // the amount in USDC for each investment
 
-async function dca() {
+async function dca(chainId: number) {
   try {
-    await rechargeFees();
+    const dexWallet = await initializeWallet(NETWORKS[chainId]);
+    await rechargeFees(dexWallet);
     // Initialize your DexWallet here
-    const dexWallet = await initializeWallet(POLYGON[1]);
 
     // DCA Mechanism - periodically invest
     const investDCA = async () => {
@@ -28,7 +29,7 @@ async function dca() {
         await invest(
           dexWallet,
           WEIGHTS_UP,
-          USDC,
+          USDC[chainId],
           TOKENS,
           false,
           INVESTMENT_AMOUNT
@@ -52,7 +53,7 @@ async function dca() {
 }
 
 async function main() {
-  await dca();
+  await dca(SELECTED_CHAINID);
   prettyConsole.log("DCA Rebalancer operation started");
 }
 

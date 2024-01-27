@@ -1,5 +1,6 @@
 import { ethers, BigNumber } from "ethers";
 import dotenv from "dotenv";
+import { NETWORKS } from "../config";
 dotenv.config();
 
 export interface DexWallet {
@@ -7,36 +8,29 @@ export interface DexWallet {
   walletAddress: string;
   walletBalance: BigNumber;
   providerGasPrice: BigNumber;
-  walletProvider?: any;
+  walletProvider: ethers.providers.JsonRpcProvider;
 }
 
-export const initializeWallet = async (
-  network?: string
-): Promise<DexWallet> => {
+export const initializeWallet = async (rpcUrl: string): Promise<DexWallet> => {
   const PRIVATE_KEY = String(process.env.PRIVATE_KEY);
 
   if (!PRIVATE_KEY) {
     throw new Error("Private key missing from env variables");
   }
 
-  const provider = network
-    ? // Connect to the user pprovided network
-      new ethers.providers.JsonRpcProvider(network)
-    : // Connect to Ethereum mainnet
-      ethers.getDefaultProvider();
+  const walletProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
   // Sign the transaction with the contract owner's private key
-  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
-
+  const wallet = new ethers.Wallet(PRIVATE_KEY, walletProvider);
   const walletAddress = await wallet.getAddress();
   const walletBalance = await wallet.getBalance();
-
-  const providerGasPrice = await provider.getGasPrice();
+  const providerGasPrice = await walletProvider.getGasPrice();
 
   return {
     wallet,
     walletAddress,
     walletBalance,
     providerGasPrice,
+    walletProvider,
   };
 };

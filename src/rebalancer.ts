@@ -8,8 +8,9 @@ import {
   INTERVAL,
   LINEAR_REGRESSION,
   TREND_FOLLOWING,
+  SELECTED_CHAINID,
 } from "./config";
-import { POLYGON } from "./config";
+import { NETWORKS } from "./config";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
 import { welcomeMessage } from "./welcome";
@@ -19,13 +20,13 @@ prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
-async function rebalancer() {
+async function rebalancer(chainId: number) {
   welcomeMessage();
-
+  await executeRebalance(chainId);
   try {
     setInterval(async () => {
       try {
-        await executeRebalance();
+        await executeRebalance(chainId);
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }
@@ -35,12 +36,12 @@ async function rebalancer() {
   }
 }
 
-async function executeRebalance() {
+async function executeRebalance(chainId: number) {
   // Log the initiation of portfolio checking
-  prettyConsole.log("👽 Checking portfolio");
+  prettyConsole.log("Checking portfolio");
 
   // Initialize the wallet with the first Polygon network node
-  const dexWallet = await initializeWallet(POLYGON[0]);
+  const dexWallet = await initializeWallet(NETWORKS[chainId]);
 
   // Set the default weight
   let selectedWeights = WEIGHTS_UP;
@@ -58,7 +59,7 @@ async function executeRebalance() {
 
   // Calculate KST indicator results
   const kstResult = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
-  prettyConsole.debug("KST:", kstResult);
+  prettyConsole.debug("KST:", await kstResult.direction, await kstResult.cross);
 
   // Initialize the signal for AI
   let signalAI = "none";
@@ -130,17 +131,17 @@ async function executeRebalance() {
   // The conditions for weight change are much more clearly laid out
   if (TREND) {
     selectedWeights = WEIGHTS_UP;
-    prettyConsole.log("🦄 Selected weights:", selectedWeights);
-    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
+    prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
+    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC[chainId]);
   } else if (!TREND) {
     selectedWeights = WEIGHTS_DOWN;
-    prettyConsole.log("🦄 Selected weights:", selectedWeights);
-    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC);
+    prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
+    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC[chainId]);
   }
 }
 
 async function main() {
-  await rebalancer();
+  await rebalancer(SELECTED_CHAINID); //
 }
 
 main().catch((error) => {

@@ -34,6 +34,7 @@ export async function approveToken(
       tokenContract,
       "approve",
       [to, approveAmount],
+      dexWallet.walletProvider,
       gasPrice
     );
 

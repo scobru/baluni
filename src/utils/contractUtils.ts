@@ -1,16 +1,16 @@
-import { BigNumber, Contract, errors, providers } from "ethers";
+import { BigNumber, Contract, errors, ethers, providers } from "ethers";
 import fs from "fs";
-import { POLYGON } from "../config";
+import { NETWORKS } from "../config";
 import { loadPrettyConsole } from "./prettyConsole";
 
 const pc = loadPrettyConsole();
 const TX_FILE = "./transactions.json";
-const provider = new providers.JsonRpcProvider(POLYGON[0]); // Sostituisci con il tuo provider
 
 export async function callContractMethod(
   contract: Contract,
   method: string,
   inputs: any[],
+  provider: ethers.providers.JsonRpcProvider,
   gasPrice?: BigNumber,
   value?: BigNumber
 ) {
@@ -22,7 +22,7 @@ export async function callContractMethod(
     transactions.filter((tx: { status: string }) => tx.status === "pending")
       .length > 2
   ) {
-    await updateTransactionStatus();
+    await updateTransactionStatus(provider as ethers.providers.JsonRpcProvider);
     pc.log("Waiting for some transactions to complete...");
     await new Promise((resolve) => setTimeout(resolve, 10000)); // attendi 10 secondi
     transactions = readTransactions(); // Aggiorna le transazioni
@@ -106,7 +106,9 @@ function writeTransactions(transactions: any) {
   }
 }
 
-async function updateTransactionStatus() {
+async function updateTransactionStatus(
+  provider: ethers.providers.JsonRpcProvider
+) {
   let transactions = readTransactions();
   let updatedTransactions = [];
 

@@ -1,4 +1,3 @@
-import { LIMIT, QUOTER, ROUTER, USDC, WNATIVE } from "../config";
 import { approveToken } from "../utils/approveToken";
 import { callContractMethod } from "../utils/contractUtils";
 import { DexWallet } from "../utils/dexWallet";
@@ -15,6 +14,7 @@ import { quotePair } from "./quote";
 import { fetchPrices } from "./quote1Inch";
 import { BigNumber, Contract, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
+import { LIMIT, QUOTER, ROUTER, USDC, WNATIVE } from "../config";
 
 const pc = loadPrettyConsole();
 
@@ -23,9 +23,7 @@ async function initializeSwap(
   pair: [string, string],
   reverse?: boolean
 ) {
-  const provider = new ethers.providers.JsonRpcProvider(
-    dexWallet.walletProvider.chain.rpcUrls.default.http[0]
-  );
+  const provider = dexWallet.walletProvider;
   const signer = dexWallet.wallet;
   const { walletAddress, providerGasPrice } = dexWallet;
   const tokenAAddress = reverse ? pair[1] : pair[0];
@@ -34,7 +32,8 @@ async function initializeSwap(
   const tokenBContract = new Contract(tokenBAddress, erc20Abi, provider);
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
-  const swapRouterAddress = ROUTER;
+  const chainId = dexWallet.walletProvider.network.chainId;
+  const swapRouterAddress = ROUTER[chainId] as string;
   const swapRouterContract = new Contract(
     swapRouterAddress,
     swapRouterAbi,
@@ -51,6 +50,7 @@ async function initializeSwap(
     swapRouterContract,
     providerGasPrice,
     walletAddress,
+    chainId,
   };
 }
 
@@ -95,11 +95,16 @@ export async function swapCustom(
     swapRouterContract,
     providerGasPrice,
     walletAddress,
+    chainId,
   } = await initializeSwap(dexWallet, pair, reverse);
   console.log(providerGasPrice);
   //const gasPrice = providerGasPrice.mul(12).div(10);
   const gasPrice = providerGasPrice;
-  const quoterContract = new Contract(QUOTER, quoterAbi, dexWallet.wallet);
+  const quoterContract = new Contract(
+    QUOTER[chainId],
+    quoterAbi,
+    dexWallet.wallet
+  );
   const quote = await quotePair(tokenAAddress, tokenBAddress);
 
   pc.log(
@@ -121,19 +126,19 @@ export async function swapCustom(
     const poolFee = await findPoolAndFee(
       quoterContract,
       tokenAAddress,
-      WNATIVE,
+      WNATIVE[chainId],
       swapAmount
     );
     const poolFee2 = await findPoolAndFee(
       quoterContract,
-      WNATIVE,
-      USDC,
+      WNATIVE[chainId],
+      USDC[chainId],
       swapAmount
     );
 
     const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
       tokenAAddress,
-      WNATIVE,
+      WNATIVE[chainId],
       tokenBAddress,
       poolFee,
       poolFee2,
@@ -198,7 +203,8 @@ export async function rebalancePortfolio(
   dexWallet: DexWallet,
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
-  usdcAddress: string
+  usdcAddress: string,
+  walletProvider: ethers.providers.JsonRpcProvider
 ) {
   pc.log(
     "**************************************************************************"
@@ -209,7 +215,7 @@ export async function rebalancePortfolio(
   // await rechargeFees();
 
   const _usdBalance = await getTokenBalance(
-    dexWallet,
+    dexWallet.walletProvider,
     dexWallet.walletAddress,
     usdcAddress
   );
@@ -224,16 +230,18 @@ export async function rebalancePortfolio(
   );
 
   let tokenValues: { [token: string]: BigNumber } = {};
-  const provider = new ethers.providers.JsonRpcProvider(
-    dexWallet.walletProvider.chain.rpcUrls.default.http[0]
-  );
+
+  const provider = walletProvider;
 
   // First, calculate the current value of each token in the portfolio
   for (const token of desiredTokens) {
     const tokenContract = new ethers.Contract(token, erc20Abi, provider);
-    const tokenMetadata = await getTokenMetadata(token, dexWallet);
+    const tokenMetadata = await getTokenMetadata(
+      token,
+      dexWallet.walletProvider
+    );
     const _tokenbalance = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
       token
     );
@@ -245,7 +253,8 @@ export async function rebalancePortfolio(
       token,
       tokenBalance,
       decimals,
-      usdcAddress
+      usdcAddress,
+      dexWallet.walletProvider.network.chainId
     );
     tokenSymbol == "USDC" ? tokenValue.mul(1e12) : tokenValue;
     tokenValues[token] = tokenValue;
@@ -279,9 +288,12 @@ export async function rebalancePortfolio(
     const currentAllocation = currentAllocations[token]; // current allocation as percentage
     const desiredAllocation = desiredAllocations[token];
     const difference = desiredAllocation - currentAllocation; // Calculate the difference for each token
-    const tokenMetadata = await getTokenMetadata(token, dexWallet);
+    const tokenMetadata = await getTokenMetadata(
+      token,
+      dexWallet.walletProvider
+    );
     const _tokenBalance = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
       token
     );
@@ -309,14 +321,20 @@ export async function rebalancePortfolio(
     if (difference < 0 && Math.abs(difference) > LIMIT) {
       // Calculate token amount to sell
       //const tokenPriceInUSDT = await quotePair(token, usdcAddress);
-      const tokenMetadata = await getTokenMetadata(token, dexWallet);
+      const tokenMetadata = await getTokenMetadata(
+        token,
+        dexWallet.walletProvider
+      );
       const decimals = tokenMetadata.decimals;
       const _token = {
         address: token,
         decimals: decimals,
       };
 
-      const tokenPriceInUSDT: any = await fetchPrices(_token); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(
+        _token,
+        walletProvider.network.chainId
+      ); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(
         tokenPriceInUSDT!.toString(),
         "ether"
@@ -362,7 +380,7 @@ export async function rebalancePortfolio(
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
     const _usdBalance = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
       usdcAddress
     );
@@ -385,7 +403,8 @@ export async function calculateRebalanceStats(
   dexWallet: DexWallet,
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
-  usdcAddress: string
+  usdcAddress: string,
+  walletProvider: ethers.providers.JsonRpcProvider
 ) {
   try {
     pc.log(
@@ -398,9 +417,12 @@ export async function calculateRebalanceStats(
 
     // Calculate the current value of each token in the portfolio
     for (const token of desiredTokens) {
-      const tokenMetadata = await getTokenMetadata(token, dexWallet);
+      const tokenMetadata = await getTokenMetadata(
+        token,
+        dexWallet.walletProvider
+      );
       const _tokenbalance = await getTokenBalance(
-        dexWallet,
+        dexWallet.walletProvider,
         dexWallet.walletAddress,
         token
       );
@@ -410,7 +432,8 @@ export async function calculateRebalanceStats(
         token,
         tokenBalance,
         tokenMetadata.decimals,
-        usdcAddress
+        usdcAddress,
+        walletProvider.network.chainId
       );
       tokenValues[token] = tokenValue;
       totalPortfolioValue = totalPortfolioValue.add(tokenValue);

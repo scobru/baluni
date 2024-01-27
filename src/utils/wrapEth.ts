@@ -17,7 +17,11 @@ const WETH_ABI = [
 
 export async function wrapETH(dexWallet: DexWallet, amount: string) {
   const signer = dexWallet.wallet;
-  const wethContract = new ethers.Contract(WNATIVE, WETH_ABI, signer);
+  const wethContract = new ethers.Contract(
+    WNATIVE[dexWallet.walletProvider.network.chainId],
+    WETH_ABI,
+    signer
+  );
 
   console.log(`Wrapping ${amount} ETH...`);
   const depositTx = await wethContract.deposit({
@@ -39,7 +43,11 @@ export async function wrapETH(dexWallet: DexWallet, amount: string) {
 
 export async function unwrapETH(dexWallet: DexWallet, amount: string) {
   const signer = dexWallet.wallet;
-  const wethContract = new ethers.Contract(WNATIVE, WETH_ABI, signer);
+  const wethContract = new ethers.Contract(
+    WNATIVE[dexWallet.walletProvider.network.chainId],
+    WETH_ABI,
+    signer
+  );
 
   console.log(`Unwrapping ${amount} WNATIVE...`);
   const withdrawTx = await wethContract.withdraw(

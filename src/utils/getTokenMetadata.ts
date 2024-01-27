@@ -1,23 +1,19 @@
 import ERC20_ABI from "../abis/ERC20.json";
 import { Token } from "@uniswap/sdk-core";
-import { DexWallet } from "./dexWallet";
 import { ethers } from "ethers";
-
-/** Creates Token object for use with uniswap sdk
- *
- * @param tokenAddress the token address
- * @returns Token object as defined by uniswap sdk
- */
 
 export async function getTokenMetadata(
   tokenAddress: string,
-  dexWallet: DexWallet
+  walletProvider:
+    | ethers.providers.JsonRpcProvider
+    | ethers.providers.BaseProvider
 ) {
-  const provider = dexWallet.wallet.provider;
-
-  const chainId = await dexWallet.wallet.getChainId();
-
-  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  const chainId = walletProvider.network.chainId;
+  const tokenContract = new ethers.Contract(
+    tokenAddress,
+    ERC20_ABI,
+    walletProvider
+  );
   const decimals = await tokenContract.decimals();
   const symbol = await tokenContract.symbol();
   const name = await tokenContract.name();

@@ -1,18 +1,21 @@
 // import chalk from "chalk";
 import ERC20_ABI from "../abis/ERC20.json";
-import { DexWallet } from "./dexWallet";
 import { ethers } from "ethers";
 import { loadPrettyConsole } from "./prettyConsole";
-
 const prettyConsole = loadPrettyConsole();
 
 export async function getTokenBalance(
-  dexWallet: DexWallet,
+  walletProvider:
+    | ethers.providers.JsonRpcProvider
+    | ethers.providers.BaseProvider,
   accountAddress: string,
   tokenAddress: string
 ) {
-  const provider = dexWallet.wallet.provider;
-  const tokenContract = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
+  const tokenContract = new ethers.Contract(
+    tokenAddress,
+    ERC20_ABI,
+    walletProvider
+  );
   const decimals = await tokenContract.decimals();
   const symbol = await tokenContract.symbol();
   const rawBalance = await tokenContract.balanceOf(accountAddress);

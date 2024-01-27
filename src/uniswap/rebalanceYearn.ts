@@ -17,10 +17,6 @@ import {
   TECNICAL_ANALYSIS,
   WNATIVE,
   USDC,
-  WETH,
-  YEARN_AAVE_V3_USDC,
-  YEARN_AAVE_V3_WETH,
-  YEARN_AAVE_V3_WMATIC,
   YEARN_ENABLED,
   YEARN_VAULTS,
 } from "../config";
@@ -44,23 +40,20 @@ import {
 
 const pc = loadPrettyConsole();
 
-let lastInterestUSDC = BigNumber.from(0);
-let lastInterestWETH = BigNumber.from(0);
-let lastInterestWMATIC = BigNumber.from(0);
-
 async function initializeSwap(
   dexWallet: DexWallet,
   pair: [string, string],
   reverse?: boolean
 ) {
-  const { wallet, walletAddress, providerGasPrice } = dexWallet;
+  const { wallet, walletAddress, providerGasPrice, walletProvider } = dexWallet;
+  const chainId = walletProvider.network.chainId;
   const tokenAAddress = reverse ? pair[1] : pair[0];
   const tokenBAddress = reverse ? pair[0] : pair[1];
   const tokenAContract = new Contract(tokenAAddress, erc20Abi, wallet);
   const tokenBContract = new Contract(tokenBAddress, erc20Abi, wallet);
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
-  const swapRouterAddress = ROUTER;
+  const swapRouterAddress = ROUTER[chainId];
   const swapRouterContract = new Contract(
     swapRouterAddress,
     swapRouterAbi,
@@ -122,8 +115,14 @@ export async function swapCustom(
     providerGasPrice,
     walletAddress,
   } = await initializeSwap(dexWallet, pair, reverse);
+  const provider = dexWallet.walletProvider;
+  const chainId = provider.network.chainId;
   const gasPrice = providerGasPrice.mul(12).div(10);
-  const quoterContract = new Contract(QUOTER, quoterAbi, dexWallet.wallet);
+  const quoterContract = new Contract(
+    QUOTER[chainId],
+    quoterAbi,
+    dexWallet.wallet
+  );
   const quote = await quotePair(tokenAAddress, tokenBAddress);
 
   pc.log(
@@ -145,20 +144,20 @@ export async function swapCustom(
     const poolFee = await findPoolAndFee(
       quoterContract,
       tokenAAddress,
-      WNATIVE,
+      WNATIVE[chainId],
       swapAmount
     );
 
     const poolFee2 = await findPoolAndFee(
       quoterContract,
-      WNATIVE,
-      USDC,
+      WNATIVE[chainId],
+      USDC[chainId],
       swapAmount
     );
 
     const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
       tokenAAddress,
-      WNATIVE,
+      WNATIVE[chainId],
       tokenBAddress,
       poolFee,
       poolFee2,
@@ -166,7 +165,8 @@ export async function swapCustom(
       walletAddress,
       swapRouterContract,
       quoterContract,
-      gasPrice
+      gasPrice,
+      dexWallet.walletProvider as ethers.providers.JsonRpcProvider
     );
     let broadcasted = await waitForTx(
       dexWallet.wallet.provider,
@@ -204,7 +204,8 @@ export async function swapCustom(
     walletAddress,
     swapRouterContract,
     quoterContract,
-    gasPrice
+    gasPrice,
+    dexWallet.walletProvider as ethers.providers.JsonRpcProvider
   );
 
   let broadcasted = await waitForTx(
@@ -230,10 +231,11 @@ export async function rebalancePortfolio(
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
 
   // Recharge Fees
-  await rechargeFees();
+  await rechargeFees(dexWallet);
+  const chainId = dexWallet.walletProvider.network.chainId;
 
   const _usdBalance = await getTokenBalance(
-    dexWallet,
+    dexWallet.walletProvider,
     dexWallet.walletAddress,
     usdcAddress
   );
@@ -257,19 +259,22 @@ export async function rebalancePortfolio(
       erc20Abi,
       dexWallet.wallet
     );
-    const tokenMetadata = await getTokenMetadata(token, dexWallet);
+    const tokenMetadata = await getTokenMetadata(
+      token,
+      dexWallet.walletProvider
+    );
     const _tokenbalance = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
       token
     );
     const tokenBalance = _tokenbalance.balance;
     const decimals = tokenMetadata.decimals;
     const tokenSymbol = await tokenContract.symbol();
-    const yearnVaultDetails = YEARN_VAULTS[tokenSymbol];
+    const yearnVaultDetails = YEARN_VAULTS[chainId][tokenSymbol];
     if (yearnVaultDetails) {
       const yearnContract = new ethers.Contract(
-        yearnVaultDetails.vaultAddress,
+        yearnVaultDetails,
         erc20Abi,
         dexWallet.wallet
       );
@@ -277,7 +282,7 @@ export async function rebalancePortfolio(
         dexWallet.walletAddress
       );
       const interestAccrued = await accuredYearnInterest(
-        yearnVaultDetails.vaultAddress,
+        yearnVaultDetails,
         dexWallet
       );
       tokenValue = await getTokenValueEnhanced(
@@ -287,7 +292,8 @@ export async function rebalancePortfolio(
         decimals,
         usdcAddress,
         yearnBalance,
-        interestAccrued
+        interestAccrued,
+        dexWallet.walletProvider.network.chainId
       );
 
       tokenValues[token] = tokenValue;
@@ -298,7 +304,8 @@ export async function rebalancePortfolio(
         token,
         tokenBalance,
         decimals,
-        usdcAddress
+        USDC[chainId],
+        dexWallet.walletProvider.network.chainId
       );
     }
     tokenValues[token] = tokenValue;
@@ -332,18 +339,21 @@ export async function rebalancePortfolio(
     const currentAllocation = currentAllocations[token]; // current allocation as percentage
     const desiredAllocation = desiredAllocations[token];
     const difference = desiredAllocation - currentAllocation; // Calculate the difference for each token
-    const tokenMetadata = await getTokenMetadata(token, dexWallet);
+    const tokenMetadata = await getTokenMetadata(
+      token,
+      dexWallet.walletProvider
+    );
     const _tokenBalance = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
       token
     );
     let tokenBalance = _tokenBalance.balance;
     const tokenSymbol: string = tokenMetadata.symbol as string;
-    const yearnVaultDetails = YEARN_VAULTS[tokenSymbol];
+    const yearnVaultDetails = YEARN_VAULTS[chainId][tokenSymbol];
     if (yearnVaultDetails) {
       const yearnContract = new ethers.Contract(
-        yearnVaultDetails.vaultAddress,
+        yearnVaultDetails,
         erc20Abi,
         dexWallet.wallet
       );
@@ -369,14 +379,20 @@ export async function rebalancePortfolio(
     if (difference < 0 && Math.abs(difference) > LIMIT) {
       // Calculate token amount to sell
       //const tokenPriceInUSDT = await quotePair(token, usdcAddress);
-      const tokenMetadata = await getTokenMetadata(token, dexWallet);
+      const tokenMetadata = await getTokenMetadata(
+        token,
+        dexWallet.walletProvider
+      );
       const decimals = tokenMetadata.decimals;
       const _token = {
         address: token,
         decimals: decimals,
       };
 
-      const tokenPriceInUSDT: any = await fetchPrices(_token); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(
+        _token,
+        dexWallet.walletProvider.network.chainId
+      ); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(
         tokenPriceInUSDT!.toString(),
         "ether"
@@ -414,6 +430,7 @@ export async function rebalancePortfolio(
       const REDEEM_PERCENTAGE = 6000;
       const TOTAL_PERCENTAGE = 10000;
       const reducedAmount = amount.mul(REDEEM_PERCENTAGE).div(TOTAL_PERCENTAGE);
+      const chainId = dexWallet.walletProvider.network.chainId;
 
       if (tokenBalance.lt(amount) && yearnBalance.gte(amount)) {
         await redeemFromYearn(yearnContract, amount, dexWallet);
@@ -423,16 +440,16 @@ export async function rebalancePortfolio(
       }
       return amount;
     };
-    const yearnVaultDetails = YEARN_VAULTS[tokenSymbol];
+    const yearnVaultDetails = YEARN_VAULTS[chainId][tokenSymbol];
 
     if (yearnVaultDetails) {
       const balance = await getTokenBalance(
-        dexWallet,
+        dexWallet.walletProvider,
         dexWallet.walletAddress,
         token
       );
       const yearnContract = new ethers.Contract(
-        yearnVaultDetails.vaultAddress,
+        yearnVaultDetails,
         erc20Abi,
         dexWallet.wallet
       );
@@ -443,7 +460,7 @@ export async function rebalancePortfolio(
         balance.balance,
         yearnBalance,
         dexWallet,
-        yearnVaultDetails.vaultAddress
+        yearnVaultDetails
       );
     }
 
@@ -484,15 +501,15 @@ export async function rebalancePortfolio(
     const reducedAmount = amount.mul(REDEEM_PERCENTAGE).div(TOTAL_PERCENTAGE);
 
     const _usdBalance = await getTokenBalance(
-      dexWallet,
+      dexWallet.walletProvider,
       dexWallet.walletAddress,
-      usdcAddress
+      USDC[chainId]
     );
     usdBalance = _usdBalance.balance;
 
-    const yearnVaultDetails = YEARN_VAULTS.USDC;
+    const yearnVaultDetails = YEARN_VAULTS[chainId].USDC;
     const yearnContract = new ethers.Contract(
-      yearnVaultDetails.vaultAddress,
+      yearnVaultDetails,
       erc20Abi,
       dexWallet.wallet
     );
@@ -501,11 +518,11 @@ export async function rebalancePortfolio(
     );
 
     if (usdBalance.lt(amount) && balanceYearnUSDC.gte(amount)) {
-      await redeemFromYearn(YEARN_AAVE_V3_USDC, amount, dexWallet);
+      await redeemFromYearn(yearnVaultDetails, amount, dexWallet);
     } else if (usdBalance.gte(reducedAmount)) {
       amount = reducedAmount;
     } else if (balanceYearnUSDC.gte(reducedAmount)) {
-      await redeemFromYearn(YEARN_AAVE_V3_USDC, reducedAmount, dexWallet);
+      await redeemFromYearn(yearnVaultDetails, reducedAmount, dexWallet);
       amount = reducedAmount;
     }
 
@@ -531,8 +548,8 @@ export async function rebalancePortfolio(
     }
   }
 
-  for (const vault of Object.values(YEARN_VAULTS)) {
-    const vaultAsset = await getVaultAsset(vault.vaultAddress, dexWallet);
+  for (const vault of Object.values(YEARN_VAULTS[chainId])) {
+    const vaultAsset = await getVaultAsset(vault, dexWallet);
     const assetContract = new ethers.Contract(
       vaultAsset,
       erc20Abi,
@@ -543,7 +560,7 @@ export async function rebalancePortfolio(
       if (tokensToBuy.length == 0 && tokensToSell.length == 0) {
         await depositToYearn(
           vaultAsset,
-          vault.vaultAddress, // Qui è stato corretto
+          vault, // Qui è stato corretto
           balance,
           dexWallet
         );
@@ -562,7 +579,8 @@ async function executeSwap(
   walletAddress: string,
   swapRouterContract: Contract,
   quoterContract: Contract,
-  gasPrice: BigNumber
+  gasPrice: BigNumber,
+  provider: ethers.providers.JsonRpcProvider
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   let minimumAmountB = await getAmountOut(
@@ -582,11 +600,14 @@ async function executeSwap(
     minimumAmountB,
     BigNumber.from(0),
   ];
+
   let swapTxResponse = await callContractMethod(
     swapRouterContract,
     "exactInputSingle",
     [swapTxInputs],
-    gasPrice
+    provider,
+    gasPrice,
+    BigNumber.from(0)
   );
 
   return [swapTxResponse, minimumAmountB];
@@ -602,7 +623,8 @@ async function executeMultiHopSwap(
   walletAddress: string,
   swapRouterContract: Contract,
   quoterContract: Contract,
-  gasPrice: BigNumber
+  gasPrice: BigNumber,
+  provider: ethers.providers.JsonRpcProvider
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   let minimumAmountB = await getAmountOut(
@@ -634,7 +656,9 @@ async function executeMultiHopSwap(
     swapRouterContract,
     "exactInput",
     [swapTxInputs],
-    gasPrice
+    provider,
+    gasPrice,
+    BigNumber.from(0)
   );
 
   return [swapTxResponse, minimumAmountB2];
@@ -647,7 +671,8 @@ async function getTokenValueEnhanced(
   decimals: number,
   usdcAddress: string,
   yearnBalance?: BigNumber,
-  interestAccrued?: any
+  interestAccrued?: any,
+  chainId?: number
 ) {
   let effectiveBalance = tokenBalance;
   if (YEARN_ENABLED && yearnBalance) {
@@ -660,6 +685,7 @@ async function getTokenValueEnhanced(
         token,
         effectiveBalance,
         decimals,
-        usdcAddress
+        usdcAddress,
+        chainId as number
       );
 }
