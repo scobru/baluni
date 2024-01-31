@@ -26,29 +26,50 @@ export async function trainAndPredict(
   );
 
   // Create tensors
-  const X = tf.tensor2d(normalizedTimestamps, [normalizedTimestamps.length, 1]);
-  const y = tf.tensor2d(normalizedPrices, [normalizedPrices.length, 1]);
+
+  const X = tf
+    .tensor2d(normalizedTimestamps, [normalizedTimestamps.length, 1])
+    .reshape([-1, 1, 1]);
+  const y = tf.tensor2d(normalizedPrices, [normalizedPrices.length, 1]); // No need to reshape for 1D output
 
   // Create model
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); // Single layer for linear regression
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); // Single layer for linear regression
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); // Single layer for linear regression
 
+  /* model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+  model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
+  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); */
+
+  // Final LSTM layer before Dense layers
+  model.add(
+    tf.layers.lstm({ inputShape: [1, 1], units: 20, returnSequences: false })
+  );
+
+  // Optional dropout for regularization
+  model.add(tf.layers.dropout({ rate: 0.2 }));
+
+  // Dense layer for regression output
+  model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+
+  // Compile model with a regression-appropriate loss function
   model.compile({
-    optimizer: "sgd",
+    optimizer: tf.train.adam(0.001),
     loss: "meanSquaredError",
-    metrics: ["accuracy"],
+    metrics: ["mae"], // Mean Absolute Error as a metric for regression
   });
 
+  // Ensure y_reshaped is corrected for regression (2D shape: [samples, outputSize])
+  const y_reshaped_corrected = y.reshape([y.shape[0], 1]);
+
   // Train model
-  await model.fit(X, y, { epochs: LINEAR_REGRESSION_EPOCHS });
+  await model.fit(X, y_reshaped_corrected, {
+    epochs: LINEAR_REGRESSION_EPOCHS,
+  });
 
   // Predict
   const normalizedNewTimestamp =
     (newTimestamp - minTimestamp) / (maxTimestamp - minTimestamp);
   const normalizedPredictedPrice = model.predict(
-    tf.tensor2d([normalizedNewTimestamp], [1, 1])
+    tf.tensor2d([normalizedNewTimestamp], [1, 1]).reshape([1, 1, 1])
   ) as tf.Tensor;
 
   // Scale back prediction
@@ -87,14 +108,16 @@ export async function evaluateModel(testData: any[], model: any) {
     1,
   ]);
 
+  const X_reshaped = X_test.reshape([X_test.shape[0], 1, X_test.shape[1]]);
+  const y_reshaped = y_test.reshape([y_test.shape[0], 1, y_test.shape[1]]);
+
   // Predict
-  const predictions = model.predict(X_test) as tf.Tensor;
+  const predictions = model.predict(X_reshaped) as tf.Tensor;
 
   // Calculate metrics
-  const mae = tf.metrics.meanAbsoluteError(y_test, predictions);
-  const mse = tf.metrics.MSE(y_test, predictions);
-
-  const mape = tf.metrics.MAPE(y_test, predictions);
+  const mae = tf.metrics.meanAbsoluteError(y_reshaped, predictions);
+  const mse = tf.metrics.MSE(y_reshaped, predictions);
+  const mape = tf.metrics.MAPE(y_reshaped, predictions);
 
   // mean/median value of mae
   const meanMAE = mae.mean();
