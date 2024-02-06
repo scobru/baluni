@@ -1,4 +1,6 @@
 import { loadPrettyConsole } from "../utils/prettyConsole";
+import fetch from "node-fetch";
+
 const prettyConsole = loadPrettyConsole();
 
 export async function fetchPriceData(
