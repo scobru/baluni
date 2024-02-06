@@ -9,7 +9,6 @@ export async function fetchPriceData(
   toTimestamp: number
 ) {
   try {
-    // https://api.coingecko.com/api/v3/coins/bitcoin/market_chart/range?vs_currency=usd&from=1689105076412&to=1691697076412
     const url = `https://api.coingecko.com/api/v3/coins/${tokenSymbol}/market_chart/range?vs_currency=usd&from=${fromTimestamp}&to=${toTimestamp}`;
 
     console.log(url);
@@ -28,10 +27,11 @@ export async function fetchPriceData(
       };
     } else {
       prettyConsole.log("No price data available.");
-      return { pricesButLast: [], lastElement: null };
     }
   } catch (error) {
     console.error("Error fetching data:", error);
-    return { pricesButLast: [], lastElement: null };
   }
+
+  // Return default values if execution reaches this point
+  return { timePrices: [], predictTime: null, actualPrice: null };
 }
