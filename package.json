@@ -6,11 +6,11 @@
   "scripts": {
     "ts-node": "ts-node",
     "build": "npx tsc",
-    "start": "npx ts-node src/rebalancer.ts",
-    "invest": "npx ts-node src/investor.ts",
-    "dca": "npx ts-node src/dca.ts",
-    "predict": "npx ts-node src/predict.ts",
-    "pumpOrDump": "npx ts-node src/pumpOrDump.ts"
+    "start": "npx ts-node baluni/rebalancer.ts",
+    "invest": "npx ts-node baluni/investor.ts",
+    "dca": "npx ts-node baluni/dca.ts",
+    "predict": "npx ts-node baluni/predict.ts",
+    "pumpOrDump": "npx ts-node baluni/pumpOrDump.ts"
   },
   "keywords": [
     "defi",
