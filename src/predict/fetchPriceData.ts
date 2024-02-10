@@ -10,8 +10,8 @@ export async function fetchPriceData(
 ) {
   try {
     const url = `https://api.coingecko.com/api/v3/coins/${tokenSymbol}/market_chart/range?vs_currency=usd&from=${fromTimestamp}&to=${toTimestamp}`;
-
     console.log(url);
+
     prettyConsole.log("Getting price data from: " + url);
     const response = await fetch(url);
     const data = await response.json();
