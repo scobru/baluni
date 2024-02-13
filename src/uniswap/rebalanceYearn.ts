@@ -402,9 +402,18 @@ export async function rebalancePortfolio(
         .mul(BigNumber.from(10).pow(decimals))
         .div(pricePerToken);
 
+      if (_token.address === usdcAddress) {
+        pc.log("SKIP USDC SELL");
+        break;
+      }
+
       tokensToSell.push({ token, amount: tokenAmountToSell });
     } else if (difference > 0 && Math.abs(difference) > LIMIT) {
       // For buying, we can use valueToRebalance directly as we will be spending USDT
+      if (_token.address === usdcAddress) {
+        pc.log("SKIP USDC SELL");
+        break;
+      }
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) });
     }
   }
