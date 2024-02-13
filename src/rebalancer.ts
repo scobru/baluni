@@ -20,6 +20,8 @@ prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
+let LAST_TREND: Boolean = true;
+
 async function rebalancer(chainId: number) {
   welcomeMessage();
   await executeRebalance(chainId);
@@ -89,46 +91,33 @@ async function executeRebalance(chainId: number) {
   if (TREND_FOLLOWING && LINEAR_REGRESSION) {
     if (kstResult.direction === "up" && signalAI === "up" && kstResult.cross) {
       TREND = true;
+      LAST_TREND = TREND;
     } else if (
       kstResult.direction === "down" &&
       signalAI === "down" &&
       kstResult.cross
     ) {
       TREND = false;
+      LAST_TREND = TREND;
+    } else if (kstResult.direction === "none") {
+      TREND = LAST_TREND;
     }
   } else if (TREND_FOLLOWING && !LINEAR_REGRESSION) {
     if (kstResult.direction === "up" && kstResult.cross) {
       TREND = true;
+      LAST_TREND = TREND;
     } else if (kstResult.direction === "down" && kstResult.cross) {
       TREND = false;
-    }
-  } else if (TREND_FOLLOWING && LINEAR_REGRESSION) {
-    if (
-      signalAI === "up" &&
-      kstResult.cross === true &&
-      kstResult.direction === "up"
-    ) {
-      TREND = true;
-    } else if (
-      signalAI === "down" &&
-      kstResult.cross === true &&
-      kstResult.direction === "down"
-    ) {
-      TREND = false;
+      LAST_TREND = TREND;
+    } else if (kstResult.direction === "none") {
+      TREND = LAST_TREND;
     }
   } else if (!TREND_FOLLOWING && !LINEAR_REGRESSION) {
     TREND = true;
-  } else if (TREND_FOLLOWING) {
-    if (kstResult.direction === "none" && !kstResult.cross) {
-      TREND = true;
-    }
   }
 
   prettyConsole.debug("🔭 Trend:", TREND);
 
-  // Logic to determine the new weights based on various conditions
-  // It logs and changes weights based on KST and AI signals
-  // The conditions for weight change are much more clearly laid out
   if (TREND) {
     selectedWeights = WEIGHTS_UP;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
