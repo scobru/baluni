@@ -410,21 +410,18 @@ export async function rebalancePortfolio(
       tokensToSell.push({ token, amount: tokenAmountToSell });
     } else if (difference > 0 && Math.abs(difference) > LIMIT) {
       // For buying, we can use valueToRebalance directly as we will be spending USDT
+
       if (token === usdcAddress) {
         pc.log("SKIP USDC SELL");
         break;
       }
+
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) });
     }
   }
 
   // Sell Tokens
   for (let { token, amount } of tokensToSell) {
-    if (token === usdcAddress) {
-      pc.log("SKIP USDC SELL");
-      break;
-    }
-
     pc.info(`🔴 Selling ${formatEther(amount)} worth of ${token}`);
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
@@ -432,23 +429,16 @@ export async function rebalancePortfolio(
 
     const handleTokenRedemption = async (
       tokenBalance: { lt: (arg0: BigNumber) => any },
-      yearnBalance: { gte: (arg0: BigNumber) => any },
+      yearnBalance: BigNumber,
       dexWallet: DexWallet,
       yearnContract: string
     ) => {
-      const REDEEM_PERCENTAGE = 6000;
-      const TOTAL_PERCENTAGE = 10000;
-      const reducedAmount = amount.mul(REDEEM_PERCENTAGE).div(TOTAL_PERCENTAGE);
-      const chainId = dexWallet.walletProvider.network.chainId;
-
-      if (tokenBalance.lt(amount) && yearnBalance.gte(amount)) {
-        await redeemFromYearn(yearnContract, amount, dexWallet);
-      } else if (yearnBalance.gte(reducedAmount)) {
-        await redeemFromYearn(yearnContract, reducedAmount, dexWallet);
-        amount = reducedAmount;
+      if (tokenBalance.lt(amount)) {
+        await redeemFromYearn(yearnContract, yearnBalance, dexWallet);
       }
       return amount;
     };
+
     const yearnVaultDetails = YEARN_VAULTS[chainId][tokenSymbol];
 
     if (yearnVaultDetails) {
