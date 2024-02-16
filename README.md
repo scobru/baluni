@@ -4,6 +4,10 @@
 
 BALUNI is an innovative application designed for trading on decentralized exchanges. It offers a range of tools to facilitate trading activities on platforms like Uniswap. BALUNI is tailored to assist both new and experienced traders in managing their cryptocurrency portfolios with ease.
 
+Take a look to the new [UI](https://github.com/scobru/baluni-ui) repository.
+
+<https://baluni.vercel.app>
+
 ## Prerequisites
 
 Before installing BALUNI, ensure you have Node.js and npm installed on your system. You have to hold USDC into your wallet and MATIC to pay txt fees.
@@ -11,6 +15,11 @@ Before installing BALUNI, ensure you have Node.js and npm installed on your syst
 ## Installation
 
 To install BALUNI, follow these simple steps:
+
+```shell
+yarn add baluni 
+npm install baluni
+```
 
 ```shell
 yarn install
