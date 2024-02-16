@@ -13,7 +13,7 @@ interface PredictionResult {
   predicted: number;
 }
 
-export async function predict(algo: string, tokenSymbol: string = "bitcoin", period: number): Promise<PredictionResult | void> {
+export async function predict(algo: string, tokenSymbol: string = "bitcoin", period: number ,epochs: number): Promise<PredictionResult | void> {
   if (period <= 0) {
     console.error("Period must be a positive number.");
     return;
@@ -34,7 +34,7 @@ export async function predict(algo: string, tokenSymbol: string = "bitcoin", per
     };
 
     const predictFunction = predictionAlgorithms[algo] || trainAndPredict;
-    const results = await predictFunction(timePrices, predictTime);
+    const results = await predictFunction(timePrices, predictTime,epochs);
 
     prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
     prettyConsole.log(" 🌐 Actual price:", actualPrice);

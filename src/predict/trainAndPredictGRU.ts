@@ -1,12 +1,12 @@
 import * as tf from "@tensorflow/tfjs";
-import { PREDICTION_EPOCHS } from "../config"; // ensure this is correctly imported
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
 export async function trainAndPredictGRU(
   timeAndPriceData: any[],
-  newTimestamp: number
+  newTimestamp: number,
+  epochs: number
 ) {
   // Extract and normalize training data
   const timestamps = timeAndPriceData.map((d) => d[0]);
@@ -61,7 +61,7 @@ export async function trainAndPredictGRU(
 
   // Train model
   await model.fit(X, y_reshaped_corrected, {
-    epochs: PREDICTION_EPOCHS,
+    epochs: epochs,
     batchSize: 32, // Adjust based on your data size
     validationSplit: 0.2, // Optional: Use a portion of your data for validation
   });

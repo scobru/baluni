@@ -91,7 +91,7 @@ Token Selection: Users have the freedom to choose from different tokens for thei
 Available ALGO: REGR, 1CONV, GRU, RNN, LSTM
 
 ```shell
-yarn prediction bitcoin 60 REGR
+yarn prediction bitcoin 60 REGR 2000
 ```
 
 

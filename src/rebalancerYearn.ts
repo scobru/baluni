@@ -10,6 +10,7 @@ import {
   PREDICTION_PERIOD,
   PREDICTION_SYMBOL,
   PREDICTION_ALGO,
+  PREDICTION_EPOCHS,
   TREND_FOLLOWING,
   SELECTED_CHAINID,
 } from "./config";
@@ -69,7 +70,7 @@ async function executeRebalance(chainId: number) {
   let signalAI = "none";
 
   // Assume a function predict() exists for linear regression predictions
-  const linearRegression: any = await predict(PREDICTION_ALGO,PREDICTION_SYMBOL,PREDICTION_PERIOD);
+  const linearRegression: any = await predict(PREDICTION_ALGO,PREDICTION_SYMBOL,PREDICTION_PERIOD,PREDICTION_EPOCHS);
 
   // Determine the direction of the signal based on prediction results
   if (linearRegression.predicted > linearRegression.actual) {

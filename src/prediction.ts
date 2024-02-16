@@ -8,8 +8,8 @@ import { trainAndPredictRNN } from "./predict/trainAndPredictRNN";
 
 const [tokenSymbol] = process.argv.slice(2);
 const [period] = process.argv.slice(3);
-const [algo] = process.argv.slice(3);
-
+const [algo] = process.argv.slice(4);
+const [epochs] = process.argv.slice(5);
 
 const prettyConsole = loadPrettyConsole();
 
@@ -39,7 +39,7 @@ export async function predict(): Promise<PredictionResult | void> {
     };
 
     const predictFunction = predictionAlgorithms[algo] || trainAndPredict;
-    const results = await predictFunction(timePrices, predictTime);
+    const results = await predictFunction(timePrices, predictTime,epochs);
 
     prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
     prettyConsole.log(" 🌐 Actual price:", actualPrice);

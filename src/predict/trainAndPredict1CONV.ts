@@ -1,12 +1,12 @@
 import * as tf from "@tensorflow/tfjs";
-import { PREDICTION_EPOCHS } from "../config"; // ensure this is correctly imported
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
 export async function trainAndPredict1CONV(
   timeAndPriceData: any[],
-  newTimestamp: number
+  newTimestamp: number,
+  epochs: number
 ) {
   // Extract and normalize training data
   const timestamps = timeAndPriceData.map((d) => d[0]);
@@ -69,7 +69,7 @@ export async function trainAndPredict1CONV(
 
   // Train model
   await model.fit(X, y_reshaped_corrected, {
-    epochs: PREDICTION_EPOCHS,
+    epochs: epochs,
   });
 
   // Predict

@@ -1,12 +1,12 @@
 import * as tf from "@tensorflow/tfjs";
-import { PREDICTION_EPOCHS } from "../config"; // ensure this is correctly imported
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
 export async function trainAndPredict(
   timeAndPriceData: any[],
-  newTimestamp: number
+  newTimestamp: number,
+  epochs: number
 ) {
   // Extract and normalize training data
   const timestamps = timeAndPriceData.map((d) => d[0]);
@@ -31,18 +31,18 @@ export async function trainAndPredict(
 
   // Create model
   const model = tf.sequential();
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); // Single layer for linear regression
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); // Single layer for linear regression
-  model.add(tf.layers.dense({ units: 1, inputShape: [1] })); // Single layer for linear regression
+  model.add(tf.layers.dense({ units: 1, inputShape: [1]  ,activation: "linear"})); // Single layer for linear regression
+  // model.add(tf.layers.dense({ units: 1, inputShape: [1] ,activation: "linear" })); // Single layer for linear regression
+  // model.add(tf.layers.dense({ units: 1, inputShape: [1] ,activation: "linear"})); // Single layer for linear regression
 
   model.compile({
-    optimizer: "sgd",
+    optimizer: "adam",
     loss: "meanSquaredError",
-    metrics: ["accuracy"],
+    metrics: ["mae"], // Mean Absolute Error
   });
 
   // Train model
-  await model.fit(X, y, { epochs: PREDICTION_EPOCHS });
+  await model.fit(X, y, { epochs: epochs });
 
   // Predict
   const normalizedNewTimestamp =

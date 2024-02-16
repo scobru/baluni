@@ -1,12 +1,12 @@
 import * as tf from "@tensorflow/tfjs";
-import { PREDICTION_EPOCHS } from "../config"; // ensure this is correctly imported
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
 export async function trainAndPredictRNN(
   timeAndPriceData: any[],
-  newTimestamp: number
+  newTimestamp: number,
+  epochs: number
 ) {
   // Extract and normalize training data
   const timestamps = timeAndPriceData.map((d) => d[0]);
@@ -53,7 +53,7 @@ export async function trainAndPredictRNN(
 
   // Compile model with a regression-appropriate loss function
   model.compile({
-    optimizer: tf.train.adam(0.001),
+    optimizer: "adam",
     loss: "meanSquaredError",
     metrics: ["mae"], // Mean Absolute Error as a metric for regression
   });
@@ -63,7 +63,8 @@ export async function trainAndPredictRNN(
 
   // Train model
   await model.fit(X, y_reshaped_corrected, {
-    epochs: PREDICTION_EPOCHS,
+    epochs: epochs,
+
   });
 
   // Predict
