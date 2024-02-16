@@ -5,6 +5,7 @@ import { loadPrettyConsole } from "../utils/prettyConsole";
 import { trainAndPredictGRU } from "./trainAndPredictGRU";
 import { trainAndPredictLSTM } from "./trainAndPredictLSTM";
 import { trainAndPredictRNN } from "./trainAndPredictRNN";
+
 const prettyConsole = loadPrettyConsole();
 
 interface PredictionResult {
