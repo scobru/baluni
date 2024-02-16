@@ -23,17 +23,23 @@ yarn install
 Start BALUNI using the following command:
 
 ```shell
-yarn start
+yarn rebalance
+```
+
+for yearn module:
+
+```shell
+yarn rebalance-yearn
 ```
 
 ### Modular Features of BALUNI
 
 BALUNI offers a versatile trading strategy that allows for customization by activating or deactivating the following modules:
 
-1. **Linear Prediction on 1H BTC Timeframe:** This module employs linear regression to forecast the price movement of Bitcoin on a 1-hour timeframe, empowering informed trading decisions.
+1. **Market Prediction with AI Module:** The market prediction module in BALUNI has been enhanced to offer advanced customization, allowing users to select specific timeframes, prediction model types, and tokens for their predictive analysis. This feature leverages the latest machine learning technology to provide accurate forecasts on token price movements.
 2. **RSI and StochRSI Technical Analysis on Buy and Sell:** By utilizing the Relative Strength Index (RSI) and Stochastic RSI indicators, this module determines overbought or oversold conditions, guiding optimal buy and sell actions.
 3. **Using KST Indicator to Capture Bitcoin Trends:** By leveraging the Know Sure Thing (KST) indicator, this module identifies major price trends in Bitcoin, providing valuable insights into bullish or bearish tendencies.
-4. **Using USDC with Yearn to Generate Interest on USDC:** This module optimizes the value of idle assets between trades by utilizing Yearn Finance to earn interest on USDC holdings.
+4. **Leveraging Yearn for Interest Generation on Supported Pools:** This module enhances the value of dormant assets between trades by leveraging Yearn Finance to accrue interest on USDC holdings and any other tokens in your portfolio that are supported by Yearn pools. This ensures that, provided you hold tokens that have an associated pool within the Yearn protocol, BALUNI can actively generate interest on those assets, optimizing your investment even when not actively trading.
 
 These modular features elevate the trading experience on BALUNI, offering flexibility and empowering traders with advanced tools for success.
 
@@ -65,15 +71,20 @@ To use the DCA module, edit the investment configuration in src/config.ts with y
 yarn dca 
 ```
 
-### Market Prediction (DCA)
+### Market Prediction
 
-This module uses historical price data to predict future price movements of tokens, employing techniques like linear regression. It aims to inform trading decisions by anticipating market trends.
+Timeframe Selection: Users can now specify the timeframe for their analysis, choosing from options such as 1 hour, 24 hours, 7 days, etc., to suit their short or long-term trading strategies.
 
-Ensure the prediction settings are correctly configured in src/config.ts. To run the prediction module, use the following command:
+Prediction Model Choice: BALUNI supports a variety of artificial intelligence models, including Linear Regression, Convolutional Neural Networks (CNN), Recurrent Neural Networks (RNN), LSTM (Long Short-Term Memory), and GRU (Gated Recurrent Units). Users can select their preferred model based on data nature and prediction objectives.
+
+Token Selection: Users have the freedom to choose from different tokens for their predictions, customizing the analysis based on the tokens they are interested in the cryptocurrency market.
+
+Available ALGO: REGR, 1CONV, GRU, RNN, LSTM
 
 ```shell
-yarn predict bitcoin 
+yarn prediction bitcoin 60 REGR
 ```
+
 
 ### Pump-and-dump tool for Uniswap
 
@@ -147,22 +158,37 @@ Modify .env file with your PRIVATE_KEY.
 
 #### 6. **Yearn Finance Integration**
 
-- `YEARN_ENABLED` and `YEARN_AAVE_V3_USDC` allow integration with Yearn Finance, specifically for USDC in this example.
-- **To Modify**: Change to `false` to disable or update the Yearn vault address.
+BALUNI has expanded its integration with Yearn Finance beyond the initial USDC offering. Now, the platform supports generating interest on a wider range of tokens, provided they have corresponding pools on Yearn Finance and are included within your weighted portfolio configuration. This enhancement allows for a more diversified earning strategy, optimizing the value of idle assets across different cryptocurrencies.
 
-In this release we use this Yearn Vault: [USDC.e-A AAVE on Polygon](https://yearn.fi/v3/137/0xA013Fbd4b711f9ded6fB09C1c0d358E2FbC2EAA0)
+- **Comprehensive Support:** While the initial setup focused on the USDC.e-A AAVE on Polygon vault, BALUNI's latest version broadens this scope. Users can now potentially earn interest on any token supported by Yearn Finance, as long as these tokens are part of the user's portfolio and have designated weights in the configuration settings.
+- **Configuration Flexibility:** To take advantage of this extended functionality, ensure that YEARN_ENABLED is set to true in your src/config.ts. Then, specify the Yearn vault addresses for the tokens you wish to earn interest on, similar to how the USDC vault is specified. This setup allows BALUNI to dynamically interact with Yearn Finance, automatically depositing and managing your assets in the appropriate Yearn vaults based on your portfolio's configuration.
+- **Dynamic Earning Strategy:** With this update, BALUNI not only trades efficiently on decentralized exchanges but also ensures your assets are continuously working for you, earning interest through Yearn Finance even when market conditions are not favorable for trading. This dual approach maximizes potential returns and provides a more robust investment strategy.
+Ensure your portfolio includes the tokens with corresponding Yearn pools you wish to earn interest on, and update your src/config.ts to reflect these preferences. By doing so, you can enhance your investment strategy with BALUNI, leveraging both active trading and passive earning mechanisms for optimal asset growth.
 
-### Strategy Parameters
+```shell
+export const YEARN_VAULTS = {
+  "TOKEN_ADDRESS": "YEARN_VAULT_ADDRESS",
+  // Add more tokens and their corresponding Yearn vault addresses here
+};
+```
 
 #### 7. **Dollar-Cost Averaging (DCA)**
 
 - `INVESTMENT_INTERVAL` and `INVESTMENT_AMOUNT` define the frequency and amount for DCA.
 - **To Modify**: Adjust these to align with your DCA strategy.
 
-#### 8. **Trend Following and Linear Regression**
+#### 8. **Trend Following and Prediction Module**
 
-- Enables trend following and linear regression analysis.
-- Adjust `LINEAR_REGRESSION_PERIOD` and `LINEAR_REGRESSION_EPOCHS` for your analysis period and epochs.
+**Example PREDICTION_ALGO:** REGR, 1CONV, GRU, RNN, LSTM.
+
+**Example PREDICTION_SYMBOL:** bitcoin, ethereum, litecoin.
+
+**Example PREDICTION_EPOCHS:** 200, 2000.
+
+**Example PREDICTION_PERIOD:** 60.
+
+- Enables trend following and ML analysis.
+- Adjust `PREDICTION_PERIOD` and `PREDICTION_EPOCHS` for your analysis period and epochs. Select `PREDICTION_ALGO` and  `PREDICTION_SYMBOL`
 - **To Modify**: Toggle `true`/`false` to enable/disable and adjust parameters for your analysis needs.
 
 #### 9. **Technical Analysis**
@@ -171,13 +197,13 @@ In this release we use this Yearn Vault: [USDC.e-A AAVE on Polygon](https://year
 - Includes periods and thresholds for overbought/oversold conditions.
 - **To Modify**: Adjust these to suit your technical analysis criteria.
 
-## Workflow Overview
+## Workflow Overview with Enhanced Yearn Finance Integration
 
 1. **Bot Start**
    - Initialize the trading bot.
 
-2. **Check Linear Regression**
-   - Perform linear regression analysis to understand market trends.
+2. **Check Prediction Module**
+   - Perform forecast with ML analysis to understand market trends.
 
 3. **Check KST Trend**
    - Assess the Know Sure Thing (KST) trend signal to predict the market momentum.
@@ -191,11 +217,20 @@ In this release we use this Yearn Vault: [USDC.e-A AAVE on Polygon](https://year
 6. **Technical Analysis Upon Rebalance**
    - When a rebalance occurs, conduct technical analysis using signals like RSI (Relative Strength Index) and Stochastic RSI.
 
-7. **Deposit into Yearn Vault**
-   - If rebalancing is not trigger, deposit USDC into the Yearn vault to accrue interest.
+7. **Deposit into Yearn Vaults**
+   - Evaluate portfolio for assets eligible for Yearn Finance interest generation. If rebalancing is not triggered or if there are idle assets, deposit them into the corresponding Yearn vaults based on the asset's type and the user's configured Yearn vault addresses. This action is not limited to USDC but extends to all supported tokens in the user's portfolio that have corresponding Yearn pools.
 
-8. **Withdraw from Vault for Trade upon Rebalance**
-   - When rebalancing takes place, withdraw USDC from the vault to use for trading.
+8. **Interest Accumulation**
+   - While assets are in Yearn vaults, they accrue interest according to the performance of the selected Yearn pools. This step enhances the value of idle assets, providing an additional revenue stream aside from trading gains.
+
+9. **Withdraw from Vaults for Trading or Rebalancing**
+   - Monitor market conditions and portfolio performance. When a trading opportunity arises or rebalancing is necessary, withdraw the appropriate amount of assets from Yearn vaults. This includes converting earned interest back into the portfolio's primary trading assets if desired.
+
+10. **Execute Trades and Rebalance Portfolio**
+    - Use the withdrawn assets to execute trades according to the latest market analysis and rebalance the portfolio to maintain the desired asset allocation, optimizing for both trading performance and interest earnings.
+
+This enhanced workflow integrates the dynamic use of Yearn Finance for interest generation, making BALUNI not just a trading bot but a comprehensive DeFi portfolio management tool. It ensures assets are not lying idle but are continually working to generate returns, either through trading or earning interest, thereby maximizing the overall efficiency and profitability of the user's cryptocurrency portfolio.
+
 
 ## Workflow Diagram
 
@@ -203,7 +238,7 @@ In this release we use this Yearn Vault: [USDC.e-A AAVE on Polygon](https://year
 1. START
    |
    |─> Trend Selection
-   |    ├─> Linear Regression
+   |    ├─> Prediction Module
    |    └─> KST
    |        └─> UP/DOWN
    |            ├─> Weight UP
@@ -217,14 +252,24 @@ In this release we use this Yearn Vault: [USDC.e-A AAVE on Polygon](https://year
    |                 ├─> false
    |                 └─> true
    |                         └─> TRADE
-3. Earn
+3. Earn Interest & Manage Portfolio
    │
-   └─> Rebalance?
-            ├─> false
-            |     └─> Have USDC Balance?
-            |              └─> Deposit to Yearn
-            |
-            └─> true ─────> Withdraw from Yearn
+   |─> Evaluate Assets for Yearn Vaults
+   |    ├─> Eligible Assets Identified
+   |    │      └─> Deposit to Corresponding Yearn Vaults
+   |    └─> No Eligible Assets or Rebalance Required
+   |           └─> Proceed to Rebalance or Trade Execution
+   │
+   └─> Interest Accumulation
+        │
+        └─> Rebalance?
+                 ├─> false
+                 |     └─> Continue Earning Interest
+                 |
+                 └─> true
+                       ├─> Withdraw from Yearn Vaults
+                       └─> Execute Trades & Rebalance Portfolio
+
 ```
 
 ## Tips for Configuration

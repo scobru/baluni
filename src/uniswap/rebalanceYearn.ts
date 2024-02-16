@@ -423,7 +423,6 @@ export async function rebalancePortfolio(
   // Sell Tokens
   for (let { token, amount } of tokensToSell) {
     pc.info(`🔴 Selling ${formatEther(amount)} worth of ${token}`);
-
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
 

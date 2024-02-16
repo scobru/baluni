@@ -1,10 +1,16 @@
-import { fetchPriceData } from "./fetchPriceData";
-import { trainAndPredict } from "./trainAndPredict";
-import { trainAndPredict1CONV } from "./trainAndPredict1CONV";
-import { loadPrettyConsole } from "../utils/prettyConsole";
-import { trainAndPredictGRU } from "./trainAndPredictGRU";
-import { trainAndPredictLSTM } from "./trainAndPredictLSTM";
-import { trainAndPredictRNN } from "./trainAndPredictRNN";
+import { fetchPriceData } from "./predict/fetchPriceData";
+import { trainAndPredict } from "./predict/trainAndPredict";
+import { trainAndPredict1CONV } from "./predict/trainAndPredict1CONV";
+import { loadPrettyConsole } from "./utils/prettyConsole";
+import { trainAndPredictGRU } from "./predict/trainAndPredictGRU";
+import { trainAndPredictLSTM } from "./predict/trainAndPredictLSTM";
+import { trainAndPredictRNN } from "./predict/trainAndPredictRNN";
+
+const [tokenSymbol] = process.argv.slice(2);
+const [period] = process.argv.slice(3);
+const [algo] = process.argv.slice(3);
+
+
 const prettyConsole = loadPrettyConsole();
 
 interface PredictionResult {
@@ -12,14 +18,14 @@ interface PredictionResult {
   predicted: number;
 }
 
-export async function predict(algo: string, tokenSymbol: string = "bitcoin", period: number): Promise<PredictionResult | void> {
-  if (period <= 0) {
+export async function predict(): Promise<PredictionResult | void> {
+  if (Number(period) <= 0) {
     console.error("Period must be a positive number.");
     return;
   }
 
   const endDate: number = Math.floor(new Date().getTime() / 1000);
-  const startDate: number = endDate - period * 24 * 60 * 60;
+  const startDate: number = endDate - Number(period) * 24 * 60 * 60;
 
   try {
     const { timePrices, predictTime, actualPrice } = await fetchPriceData(tokenSymbol, startDate, endDate);
@@ -44,3 +50,6 @@ export async function predict(algo: string, tokenSymbol: string = "bitcoin", per
     console.error("Error:", error);
   }
 }
+
+
+predict();

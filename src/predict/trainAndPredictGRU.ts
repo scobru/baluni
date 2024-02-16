@@ -1,10 +1,10 @@
 import * as tf from "@tensorflow/tfjs";
-import { LINEAR_REGRESSION_EPOCHS } from "../config"; // ensure this is correctly imported
+import { PREDICTION_EPOCHS } from "../config"; // ensure this is correctly imported
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
-export async function trainAndPredict(
+export async function trainAndPredictGRU(
   timeAndPriceData: any[],
   newTimestamp: number
 ) {
@@ -61,7 +61,7 @@ export async function trainAndPredict(
 
   // Train model
   await model.fit(X, y_reshaped_corrected, {
-    epochs: LINEAR_REGRESSION_EPOCHS,
+    epochs: PREDICTION_EPOCHS,
     batchSize: 32, // Adjust based on your data size
     validationSplit: 0.2, // Optional: Use a portion of your data for validation
   });

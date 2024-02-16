@@ -1,5 +1,5 @@
 import * as tf from "@tensorflow/tfjs";
-import { LINEAR_REGRESSION_EPOCHS } from "../config"; // ensure this is correctly imported
+import { PREDICTION_EPOCHS } from "../config"; // ensure this is correctly imported
 import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
@@ -42,7 +42,7 @@ export async function trainAndPredict(
   });
 
   // Train model
-  await model.fit(X, y, { epochs: LINEAR_REGRESSION_EPOCHS });
+  await model.fit(X, y, { epochs: PREDICTION_EPOCHS });
 
   // Predict
   const normalizedNewTimestamp =

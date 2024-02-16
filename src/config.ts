@@ -98,9 +98,12 @@ export const INVESTMENT_AMOUNT = 100;
 export const TREND_FOLLOWING = true;
 
 // LINEAR REGRESSION
-export const LINEAR_REGRESSION = true;
-export const LINEAR_REGRESSION_PERIOD = 90;
-export const LINEAR_REGRESSION_EPOCHS = 100;
+export const PREDICTION = true;
+export const PREDICTION_PERIOD = 90;
+export const PREDICTION_EPOCHS = 100;
+export const PREDICTION_SYMBOL = "bitcoin";
+export const PREDICTION_ALGO = "REGR";
+
 
 // TECHNICAL ANALYSIS
 export const TECNICAL_ANALYSIS = false;

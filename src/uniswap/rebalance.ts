@@ -157,7 +157,8 @@ export async function swapCustom(
       walletAddress,
       swapRouterContract,
       quoterContract,
-      gasPrice
+      gasPrice,
+      dexWallet.wallet.provider
     );
     let broadcasted = await waitForTx(
       dexWallet.wallet.provider,
@@ -195,7 +196,8 @@ export async function swapCustom(
     walletAddress,
     swapRouterContract,
     quoterContract,
-    gasPrice
+    gasPrice,
+    dexWallet.wallet.provider
   );
 
   let broadcasted = await waitForTx(
@@ -441,7 +443,8 @@ async function executeSwap(
   walletAddress: string,
   swapRouterContract: Contract,
   quoterContract: Contract,
-  gasPrice: BigNumber
+  gasPrice: BigNumber,
+  provider: any
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   let minimumAmountB = await getAmountOut(
@@ -465,6 +468,7 @@ async function executeSwap(
     swapRouterContract,
     "exactInputSingle",
     [swapTxInputs],
+    provider,
     gasPrice
   );
 
@@ -481,7 +485,8 @@ async function executeMultiHopSwap(
   walletAddress: string,
   swapRouterContract: Contract,
   quoterContract: Contract,
-  gasPrice: BigNumber
+  gasPrice: BigNumber,
+  provider: any
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   let minimumAmountB = await getAmountOut(
@@ -513,6 +518,7 @@ async function executeMultiHopSwap(
     swapRouterContract,
     "exactInput",
     [swapTxInputs],
+    provider,
     gasPrice
   );
 

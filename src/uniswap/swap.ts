@@ -73,7 +73,8 @@ export async function swap(
       tokenAContract,
       "approve",
       [swapRouterAddress, tokenABalance],
-      gasPrice
+      walletProvider,
+      gasPrice,
     );
     const broadcasted = await waitForTx(wallet.provider, approvalResult.hash);
     if (!broadcasted) {
@@ -124,6 +125,7 @@ export async function swap(
     swapRouterContract,
     "exactInputSingle",
     [swapTxInputs],
+    walletProvider,
     gasPrice
   );
 

@@ -11,8 +11,8 @@ import { getTokenMetadata } from "../utils/getTokenMetadata";
 import { getTokenValue } from "../utils/getTokenValue";
 import { waitForTx } from "../utils/networkUtils";
 import { loadPrettyConsole } from "../utils/prettyConsole";
-import { quotePair } from "./quote";
-import { fetchPrices } from "./quote1Inch";
+import { quotePair } from "../uniswap/quote";
+import { fetchPrices } from "../uniswap/quote1Inch";
 import { BigNumber, Contract, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
 
@@ -66,6 +66,7 @@ export async function swapCustom(
   pair: [string, string],
   reverse?: boolean,
   swapAmount?: BigNumber,
+  provider?: ethers.providers.JsonRpcProvider,
 ) {
   if (!swapAmount || swapAmount.isZero()) {
     pc.error("Swap amount must be a positive number.");
@@ -111,6 +112,7 @@ export async function swapCustom(
       swapRouterContract,
       quoterContract,
       gasPrice,
+      provider as ethers.providers.JsonRpcProvider,
     );
 
     const broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash);
@@ -135,6 +137,7 @@ export async function swapCustom(
     swapRouterContract,
     quoterContract,
     gasPrice,
+    provider as ethers.providers.JsonRpcProvider,
   );
 
   let broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash);
@@ -265,7 +268,7 @@ export async function rebalancePortfolio(
 
     const tokenContract = new Contract(token, erc20Abi, provider);
 
-    await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
+    await swapCustom(dexWallet, [token, usdcAddress], false, amount, walletProvider); // true for reverse because we're selling
     await new Promise(resolve => setTimeout(resolve, 10000));
   }
 
@@ -375,6 +378,7 @@ async function executeSwap(
   swapRouterContract: Contract,
   quoterContract: Contract,
   gasPrice: BigNumber,
+  provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
@@ -388,7 +392,7 @@ async function executeSwap(
     minimumAmountB,
     BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInputSingle", [swapTxInputs], gasPrice);
+  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInputSingle", [swapTxInputs],provider, gasPrice);
 
   return [swapTxResponse, minimumAmountB];
 }
@@ -404,6 +408,7 @@ async function executeMultiHopSwap(
   swapRouterContract: Contract,
   quoterContract: Contract,
   gasPrice: BigNumber,
+  provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
   let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
@@ -419,7 +424,7 @@ async function executeMultiHopSwap(
     swapAmount,
     0, // BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInput", [swapTxInputs], gasPrice);
+  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInput", [swapTxInputs],provider, gasPrice);
 
   return [swapTxResponse, minimumAmountB2];
 }
