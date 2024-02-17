@@ -32,8 +32,8 @@ export async function trainAndPredict(
   // Create model
   const model = tf.sequential();
   model.add(tf.layers.dense({ units: 1, inputShape: [1]  ,activation: "linear"})); // Single layer for linear regression
-  // model.add(tf.layers.dense({ units: 1, inputShape: [1] ,activation: "linear" })); // Single layer for linear regression
-  // model.add(tf.layers.dense({ units: 1, inputShape: [1] ,activation: "linear"})); // Single layer for linear regression
+  model.add(tf.layers.dense({ units: 1, inputShape: [1] ,activation: "linear" })); // Single layer for linear regression
+  model.add(tf.layers.dense({ units: 1, inputShape: [1] ,activation: "linear"})); // Single layer for linear regression
 
   model.compile({
     optimizer: "adam",
@@ -58,6 +58,8 @@ export async function trainAndPredict(
 
   // Evaluate model if you have separate test data
   await evaluateModel(timeAndPriceData, model);
+
+  console.log(predictedPrice.dataSync())
 
   return predictedPrice.dataSync()[0];
 }

@@ -48,11 +48,11 @@ export async function trainAndPredictLSTM(
   model.add(tf.layers.dropout({ rate: 0.2 }));
 
   // Dense layer for regression output
-  model.add(tf.layers.dense({ units: 1, activation: "sigmoid" }));
+  model.add(tf.layers.dense({ units: 1, activation: "linear" }));
 
   // Compile model with a regression-appropriate loss function
   model.compile({
-    optimizer: tf.train.adam(0.001),
+    optimizer: "adam",
     loss: "meanSquaredError",
     metrics: ["mae"], // Mean Absolute Error as a metric for regression
   });
