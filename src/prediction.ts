@@ -39,7 +39,7 @@ export async function predict(): Promise<PredictionResult | void> {
     };
 
     const predictFunction = predictionAlgorithms[algo] || trainAndPredict;
-    const results = await predictFunction(timePrices, predictTime,epochs);
+    const results = await predictFunction(timePrices, predictTime, epochs);
 
     prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
     prettyConsole.log(" 🌐 Actual price:", actualPrice);

@@ -33,13 +33,14 @@ export async function predict(algo: string, tokenSymbol: string = "bitcoin", per
       REGR: trainAndPredict,
     };
 
-    prettyConsole.log("Algo:", predictionAlgorithms);
-    prettyConsole.log("Epochs:", epochs);
+    const selectedEpochs = epochs;
+    const selectedAlgo = algo;
 
+    const predictFunction = predictionAlgorithms[selectedAlgo] || trainAndPredict;
+    const results = await predictFunction(timePrices, predictTime, selectedEpochs);
 
-    const predictFunction = predictionAlgorithms[algo] || trainAndPredict;
-    const results = await predictFunction(timePrices, predictTime, epochs);
-
+    prettyConsole.log("Algo:", selectedAlgo);
+    prettyConsole.log("Epochs:", selectedEpochs)
     prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
     prettyConsole.log(" 🌐 Actual price:", actualPrice);
     prettyConsole.log(" 📈 Predicted price:", results);
