@@ -3,11 +3,7 @@ import fetch from "node-fetch";
 
 const prettyConsole = loadPrettyConsole();
 
-export async function fetchPriceData(
-  tokenSymbol: string,
-  fromTimestamp: number,
-  toTimestamp: number
-) {
+export async function fetchPriceData(tokenSymbol: string, fromTimestamp: number, toTimestamp: number) {
   try {
     const url = `https://api.coingecko.com/api/v3/coins/${tokenSymbol}/market_chart/range?vs_currency=usd&from=${fromTimestamp}&to=${toTimestamp}`;
     console.log(url);

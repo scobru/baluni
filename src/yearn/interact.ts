@@ -9,12 +9,7 @@ import { waitForTx } from "../utils/networkUtils";
 
 const pc = loadPrettyConsole();
 
-export async function depositToYearn(
-  tokenAddr: string,
-  pool: string,
-  amount: BigNumber,
-  dexWallet: DexWallet
-) {
+export async function depositToYearn(tokenAddr: string, pool: string, amount: BigNumber, dexWallet: DexWallet) {
   try {
     const provider = dexWallet.wallet.provider;
     const signer = dexWallet.wallet;
@@ -35,7 +30,7 @@ export async function depositToYearn(
       "deposit",
       [amount, dexWallet.walletAddress],
       dexWallet.walletProvider,
-      gasPrice
+      gasPrice,
     );
 
     await waitForTx(provider, tx.hash);
@@ -46,19 +41,11 @@ export async function depositToYearn(
   }
 }
 
-export async function redeemFromYearn(
-  pool: string,
-  amount: BigNumber,
-  dexWallet: DexWallet
-) {
+export async function redeemFromYearn(pool: string, amount: BigNumber, dexWallet: DexWallet) {
   try {
     const provider = dexWallet.wallet.provider;
     const signer = dexWallet.wallet;
-    const vault = new ethers.Contract(
-      pool,
-      YEARN_VAULT_ABI as ContractInterface,
-      signer
-    );
+    const vault = new ethers.Contract(pool, YEARN_VAULT_ABI as ContractInterface, signer);
     const gasPrice = await provider.getGasPrice();
     const vaultBalance = await vault.balanceOf(dexWallet.wallet.address);
 
@@ -72,14 +59,9 @@ export async function redeemFromYearn(
     const tx = await callContractMethod(
       vault,
       "redeem(uint256,address,address,uint256)",
-      [
-        amount,
-        dexWallet.walletAddress,
-        dexWallet.walletAddress,
-        BigNumber.from(200),
-      ],
+      [amount, dexWallet.walletAddress, dexWallet.walletAddress, BigNumber.from(200)],
       dexWallet.walletProvider,
-      gasPrice
+      gasPrice,
     );
 
     await waitForTx(provider, tx.hash);

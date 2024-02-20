@@ -13,13 +13,18 @@ interface PredictionResult {
   predicted: number;
 }
 
-export async function predict(algo: string, tokenSymbol: string = "bitcoin", period: number , epochs: number): Promise<PredictionResult | void> {
+export async function predict(
+  algo: string,
+  tokenSymbol: string = "bitcoin",
+  period: number,
+  epochsNum: number,
+): Promise<PredictionResult | void> {
   if (period <= 0) {
     console.error("Period must be a positive number.");
     return;
   }
 
-  const endDate: number = Math.floor(new Date().getTime()  / 1000) ;
+  const endDate: number = Math.floor(new Date().getTime() / 1000);
   const startDate: number = endDate - period * 24 * 60 * 60;
 
   try {
@@ -33,14 +38,14 @@ export async function predict(algo: string, tokenSymbol: string = "bitcoin", per
       REGR: trainAndPredict,
     };
 
-    const selectedEpochs = epochs;
+    const selectedEpochs = epochsNum;
     const selectedAlgo = algo;
 
     const predictFunction = predictionAlgorithms[selectedAlgo] || trainAndPredict;
     const results = await predictFunction(timePrices, predictTime, selectedEpochs);
 
     prettyConsole.log("Algo:", selectedAlgo);
-    prettyConsole.log("Epochs:", selectedEpochs)
+    prettyConsole.log("Epochs:", selectedEpochs);
     prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
     prettyConsole.log(" 🌐 Actual price:", actualPrice);
     prettyConsole.log(" 📈 Predicted price:", results);

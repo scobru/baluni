@@ -14,12 +14,10 @@ export async function invest(
   usdtAddress: string,
   desiredTokens: string[],
   sellAll: boolean,
-  buyAmount?: Number
+  buyAmount?: Number,
 ) {
   const tokenContract = new Contract(usdtAddress, erc20Abi, dexWallet.wallet);
-  let usdBalance: BigNumber = await tokenContract.balanceOf(
-    dexWallet.wallet.address
-  );
+  let usdBalance: BigNumber = await tokenContract.balanceOf(dexWallet.wallet.address);
 
   let totalAllocation = 0;
   for (const token of desiredTokens) {
@@ -34,14 +32,12 @@ export async function invest(
   if (sellAll) {
     for (const token of desiredTokens) {
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
-      const tokenBalance: BigNumber = await tokenContract.balanceOf(
-        dexWallet.wallet.address
-      );
+      const tokenBalance: BigNumber = await tokenContract.balanceOf(dexWallet.wallet.address);
       prettyConsole.log("Balance for", token, "is", formatEther(tokenBalance));
       if (tokenBalance > BigNumber.from(0)) {
         prettyConsole.log("Selling", token);
         await swap(dexWallet, [token, usdtAddress], false);
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise(resolve => setTimeout(resolve, 10000));
       } else {
         prettyConsole.log("No Balance for", token);
       }
@@ -59,7 +55,7 @@ export async function invest(
     // Swap USDT for the current token based on its allocation
     if (!tokenAmount.isZero()) {
       await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
-      await new Promise((resolve) => setTimeout(resolve, 10000));
+      await new Promise(resolve => setTimeout(resolve, 10000));
     }
   }
 

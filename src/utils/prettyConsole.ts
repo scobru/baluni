@@ -23,10 +23,7 @@ export class PrettyConsole {
     this.assertsTitle = "ASSERT";
   }
 
-  private getColor(
-    foregroundColor: string = "",
-    backgroundColor: string = ""
-  ): string {
+  private getColor(foregroundColor: string = "", backgroundColor: string = ""): string {
     let fgc = "\x1b[37m";
     switch (foregroundColor.trim().toLowerCase()) {
       case "black":
@@ -88,11 +85,7 @@ export class PrettyConsole {
   private getColorReset(): string {
     return "\x1b[0m";
   }
-  print(
-    foregroundColor: string = "white",
-    backgroundColor: string = "black",
-    ...strings: any
-  ) {
+  print(foregroundColor: string = "white", backgroundColor: string = "black", ...strings: any) {
     const c = this.getColor(foregroundColor, backgroundColor);
     // turns objects into printable strings
     console.log(c, strings.join(""), this.getColorReset());
@@ -127,7 +120,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }
@@ -155,7 +148,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }
@@ -183,7 +176,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }
@@ -211,7 +204,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }
@@ -239,7 +232,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }
@@ -267,7 +260,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }
@@ -295,7 +288,7 @@ export class PrettyConsole {
         bg,
         strings.map((item: any) => {
           return `${this.useIcons ? `${icon} ` : ""}${item}`;
-        })
+        }),
       );
     }
   }

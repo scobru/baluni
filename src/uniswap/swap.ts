@@ -12,18 +12,8 @@ import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
-export async function swap(
-  dexWallet: DexWallet,
-  pair: [string, string],
-  reverse?: boolean
-) {
-  const {
-    wallet,
-    walletAddress,
-    walletBalance,
-    providerGasPrice,
-    walletProvider,
-  } = dexWallet;
+export async function swap(dexWallet: DexWallet, pair: [string, string], reverse?: boolean) {
+  const { wallet, walletAddress, walletBalance, providerGasPrice, walletProvider } = dexWallet;
   const chainId = walletProvider.network.chainId;
 
   prettyConsole.log(walletAddress + ":", walletBalance.toBigInt());
@@ -33,39 +23,23 @@ export async function swap(
   const tokenAContract = new Contract(tokenAAddress, erc20Abi, wallet);
   const tokenBContract = new Contract(tokenBAddress, erc20Abi, wallet);
 
-  const tokenABalance: BigNumber = await tokenAContract.balanceOf(
-    walletAddress
-  );
+  const tokenABalance: BigNumber = await tokenAContract.balanceOf(walletAddress);
 
-  const tokenBBalance: BigNumber = await tokenBContract.balanceOf(
-    walletAddress
-  );
+  const tokenBBalance: BigNumber = await tokenBContract.balanceOf(walletAddress);
 
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
 
-  prettyConsole.log(
-    "Token A",
-    tokenABalance.toBigInt(),
-    "Token B:",
-    tokenBBalance.toBigInt()
-  );
+  prettyConsole.log("Token A", tokenABalance.toBigInt(), "Token B:", tokenBBalance.toBigInt());
 
   const swapRouterAddress = ROUTER[chainId]; // polygon
-  const swapRouterContract = new Contract(
-    swapRouterAddress,
-    swapRouterAbi,
-    wallet
-  );
+  const swapRouterContract = new Contract(swapRouterAddress, swapRouterAbi, wallet);
 
   prettyConsole.log("Provider gas price:", providerGasPrice.toBigInt());
   const gasPrice: BigNumber = providerGasPrice.mul(12).div(10);
   prettyConsole.log("  Actual gas price:", gasPrice.toBigInt());
 
-  const allowance: BigNumber = await tokenAContract.allowance(
-    walletAddress,
-    swapRouterAddress
-  );
+  const allowance: BigNumber = await tokenAContract.allowance(walletAddress, swapRouterAddress);
   prettyConsole.log("Token A spenditure allowance:", allowance.toBigInt());
 
   if (allowance.lt(tokenABalance)) {
@@ -80,9 +54,7 @@ export async function swap(
     if (!broadcasted) {
       throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);
     } else {
-      prettyConsole.success(
-        `Spending of ${tokenABalance.toBigInt()} approved.`
-      );
+      prettyConsole.success(`Spending of ${tokenABalance.toBigInt()} approved.`);
     }
   }
 
@@ -97,19 +69,17 @@ export async function swap(
     tokenBAddress,
     3000,
     tokenABalance.toString(),
-    0
+    0,
   );
 
   prettyConsole.log(
     "Amount A: ",
     formatEther(tokenABalance),
     "Expected amount B:",
-    formatEther(expectedAmountB.toString())
+    formatEther(expectedAmountB.toString()),
   );
 
-  const minimumAmountB = expectedAmountB
-    .mul(10000 - slippageTolerance)
-    .div(10000);
+  const minimumAmountB = expectedAmountB.mul(10000 - slippageTolerance).div(10000);
   const swapTxInputs = [
     tokenAAddress,
     tokenBAddress,
@@ -126,7 +96,7 @@ export async function swap(
     "exactInputSingle",
     [swapTxInputs],
     walletProvider,
-    gasPrice
+    gasPrice,
   );
 
   return swapTxResponse;

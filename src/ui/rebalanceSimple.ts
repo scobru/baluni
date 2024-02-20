@@ -392,7 +392,13 @@ async function executeSwap(
     minimumAmountB,
     BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInputSingle", [swapTxInputs],provider, gasPrice);
+  let swapTxResponse = await callContractMethod(
+    swapRouterContract,
+    "exactInputSingle",
+    [swapTxInputs],
+    provider,
+    gasPrice,
+  );
 
   return [swapTxResponse, minimumAmountB];
 }
@@ -424,7 +430,7 @@ async function executeMultiHopSwap(
     swapAmount,
     0, // BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInput", [swapTxInputs],provider, gasPrice);
+  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInput", [swapTxInputs], provider, gasPrice);
 
   return [swapTxResponse, minimumAmountB2];
 }

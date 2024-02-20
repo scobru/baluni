@@ -27,6 +27,6 @@ async function main() {
   prettyConsole.log("Rebalancer operation started");
 }
 
-main().catch((error) => {
+main().catch(error => {
   prettyConsole.error("An error occurred:", error);
 });

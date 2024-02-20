@@ -17,19 +17,13 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
 
   // Connect to the BSC mainnet
   // const provider = ethers.getDefaultProvider();
-  const provider = new ethers.providers.JsonRpcProvider(
-    "https://polygon-rpc.com/"
-  );
+  const provider = new ethers.providers.JsonRpcProvider("https://polygon-rpc.com/");
 
   // Sign the transaction with the contract owner's private key
   const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 
   // Get the contract instance
-  const factoryContract = new ethers.Contract(
-    uniswapV3FactoryAddress,
-    uniswapV3FactoryAbi,
-    wallet
-  );
+  const factoryContract = new ethers.Contract(uniswapV3FactoryAddress, uniswapV3FactoryAbi, wallet);
 
   const walletAddress = await wallet.getAddress();
   const walletBalance = await wallet.getBalance();
@@ -49,11 +43,7 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
     const poolAddress = await factoryContract.getPool(...txInputs);
     prettyConsole.log("Pool address:", poolAddress);
 
-    const poolContract = new ethers.Contract(
-      poolAddress,
-      uniswapV3PoolAbi,
-      wallet
-    );
+    const poolContract = new ethers.Contract(poolAddress, uniswapV3PoolAbi, wallet);
     const slot0 = await poolContract.slot0();
 
     const { tick } = slot0;

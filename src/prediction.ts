@@ -51,5 +51,4 @@ export async function predict(): Promise<PredictionResult | void> {
   }
 }
 
-
 predict();

@@ -12,19 +12,16 @@ export async function callContractMethod(
   inputs: any[],
   provider: ethers.providers.JsonRpcProvider,
   gasPrice?: BigNumber,
-  value?: BigNumber
+  value?: BigNumber,
 ) {
   // Leggi le transazioni esistenti
   let transactions = readTransactions();
 
   // Controlla il numero di transazioni in attesa
-  while (
-    transactions.filter((tx: { status: string }) => tx.status === "pending")
-      .length > 2
-  ) {
+  while (transactions.filter((tx: { status: string }) => tx.status === "pending").length > 2) {
     await updateTransactionStatus(provider as ethers.providers.JsonRpcProvider);
     pc.log("Waiting for some transactions to complete...");
-    await new Promise((resolve) => setTimeout(resolve, 10000)); // attendi 10 secondi
+    await new Promise(resolve => setTimeout(resolve, 10000)); // attendi 10 secondi
     transactions = readTransactions(); // Aggiorna le transazioni
   }
 
@@ -35,9 +32,7 @@ export async function callContractMethod(
   let txResponse: any;
 
   try {
-    const gasEstimate: BigNumber = await contract.estimateGas[method](
-      ...inputs
-    );
+    const gasEstimate: BigNumber = await contract.estimateGas[method](...inputs);
     gasLimit = gasEstimate.mul(2);
     pc.log("Gas estimate:", gasEstimate.toBigInt());
     pc.log("Gas limit:", gasLimit.toBigInt());
@@ -106,18 +101,14 @@ function writeTransactions(transactions: any) {
   }
 }
 
-async function updateTransactionStatus(
-  provider: ethers.providers.JsonRpcProvider
-) {
+async function updateTransactionStatus(provider: ethers.providers.JsonRpcProvider) {
   let transactions = readTransactions();
   let updatedTransactions = [];
 
   for (let i = 0; i < transactions.length; i++) {
     if (transactions[i].status === "pending") {
       try {
-        const receipt = await provider.getTransactionReceipt(
-          transactions[i].hash
-        );
+        const receipt = await provider.getTransactionReceipt(transactions[i].hash);
         if (receipt && receipt.confirmations > 0) {
           // Transazione confermata, la segna per la rimozione
           pc.success(`Transaction confirmed! Hash: ${transactions[i].hash}`);
@@ -130,9 +121,7 @@ async function updateTransactionStatus(
 
     if (transactions[i].status === "dropped") {
       try {
-        const receipt = await provider.getTransactionReceipt(
-          transactions[i].hash
-        );
+        const receipt = await provider.getTransactionReceipt(transactions[i].hash);
         if (receipt && receipt.confirmations > 0) {
           // Transazione confermata, la segna per la rimozione
           pc.success(`Transaction dropped! Hash: ${transactions[i].hash}`);
@@ -153,20 +142,13 @@ async function updateTransactionStatus(
   writeTransactions(updatedTransactions);
 }
 
-export async function simulateContractMethod(
-  contract: Contract,
-  method: string,
-  inputs: any[],
-  gasPrice: BigNumber
-) {
+export async function simulateContractMethod(contract: Contract, method: string, inputs: any[], gasPrice: BigNumber) {
   console.log(`${method}(${inputs})`);
 
   let gasLimit = BigNumber.from(500000);
 
   try {
-    const gasEstimate: BigNumber = await contract.estimateGas[method](
-      ...inputs
-    );
+    const gasEstimate: BigNumber = await contract.estimateGas[method](...inputs);
     const gasLimit = gasEstimate.mul(2);
     console.log("Gas estimate:", gasEstimate.toBigInt());
     console.log("   Gas limit:", gasLimit.toBigInt());

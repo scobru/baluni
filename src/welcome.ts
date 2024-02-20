@@ -13,8 +13,8 @@ export function welcomeMessage() {
         "$$ |__$$ |/$$$$$$$ |$$ |$$ \\__$$ |$$ |  $$ |$$ |\n" +
         "$$    $$/ $$    $$ |$$ |$$    $$/ $$ |  $$ |$$ |\n" +
         "$$$$$$$/   $$$$$$$/ $$/  $$$$$$/  $$/   $$/ $$/ \n" +
-        "                                                \n"
-    )
+        "                                                \n",
+    ),
   );
 
   console.log(
@@ -43,15 +43,11 @@ export function welcomeMessage() {
         "                               /    > /\n" +
         "                              j    < _\\\n" +
         "                          _.-' :      ``.\n" +
-        "                          \\ r=._\\        `.\n"
-    )
+        "                          \\ r=._\\        `.\n",
+    ),
   );
 
   console.log(chalk.yellow("\nPlease wait..."));
-  console.log(
-    chalk.red(
-      "This is an experimental project. Use at your own risk. No financial advice is given."
-    )
-  );
+  console.log(chalk.red("This is an experimental project. Use at your own risk. No financial advice is given."));
   console.log(chalk.white("\n\n"));
 }

@@ -12,36 +12,24 @@ export async function approveToken(
   swapAmount: BigNumber,
   to: string,
   gasPrice: BigNumber,
-  dexWallet: DexWallet
+  dexWallet: DexWallet,
 ) {
-  let allowance: BigNumber = await tokenContract.allowance(
-    dexWallet.walletAddress,
-    to
-  );
+  let allowance: BigNumber = await tokenContract.allowance(dexWallet.walletAddress, to);
 
   if (allowance.lt(swapAmount)) {
-    prettyConsole.log(
-      "Approving spending of",
-      swapAmount.toString(),
-      "tokens" + " to " + to + "... "
-    );
+    prettyConsole.log("Approving spending of", swapAmount.toString(), "tokens" + " to " + to + "... ");
 
-    const approveAmount = MAX_APPROVAL
-      ? ethers.constants.MaxUint256
-      : swapAmount;
+    const approveAmount = MAX_APPROVAL ? ethers.constants.MaxUint256 : swapAmount;
 
     const approvalResult = await callContractMethod(
       tokenContract,
       "approve",
       [to, approveAmount],
       dexWallet.walletProvider,
-      gasPrice
+      gasPrice,
     );
 
-    const broadcasted = await waitForTx(
-      dexWallet.wallet.provider,
-      approvalResult.hash
-    );
+    const broadcasted = await waitForTx(dexWallet.wallet.provider, approvalResult.hash);
 
     if (!broadcasted) {
       throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);

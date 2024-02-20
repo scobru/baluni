@@ -96,20 +96,21 @@ export const INVESTMENT_AMOUNT = 100;
 
 // KST
 export const TREND_FOLLOWING = true;
+export const KST_TIMEFRAME = "1h";
 
-// LINEAR REGRESSION
-export const PREDICTION = true;
+// AI
+export const PREDICTION = false;
 export const PREDICTION_PERIOD = 90;
 export const PREDICTION_EPOCHS = 100;
 export const PREDICTION_SYMBOL = "bitcoin";
 export const PREDICTION_ALGO = "REGR";
 
-
 // TECHNICAL ANALYSIS
-export const TECNICAL_ANALYSIS = false;
+export const TECNICAL_ANALYSIS = true;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;
 export const STOCKRSI_PERIOD = 14;
 export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
+export const RSI_TIMEFRAME = "5m";

@@ -3,14 +3,10 @@ import { loadPrettyConsole } from "../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
-export async function trainAndPredictGRU(
-  timeAndPriceData: any[],
-  newTimestamp: number,
-  epochs: number
-) {
+export async function trainAndPredictGRU(timeAndPriceData: any[], newTimestamp: number, epochs: number) {
   // Extract and normalize training data
-  const timestamps = timeAndPriceData.map((d) => d[0]);
-  const prices = timeAndPriceData.map((d) => d[1]);
+  const timestamps = timeAndPriceData.map(d => d[0]);
+  const prices = timeAndPriceData.map(d => d[1]);
 
   const minTimestamp = Math.min(...timestamps);
   const maxTimestamp = Math.max(...timestamps);
@@ -18,17 +14,11 @@ export async function trainAndPredictGRU(
   const maxPrice = Math.max(...prices);
 
   // Example of preparing input data
-  const normalizedTimestamps = timestamps.map(
-    (ts) => (ts - minTimestamp) / (maxTimestamp - minTimestamp)
-  );
-  const normalizedPrices = prices.map(
-    (p) => (p - minPrice) / (maxPrice - minPrice)
-  );
+  const normalizedTimestamps = timestamps.map(ts => (ts - minTimestamp) / (maxTimestamp - minTimestamp));
+  const normalizedPrices = prices.map(p => (p - minPrice) / (maxPrice - minPrice));
 
   // Assuming you've converted your data into tensors
-  const X = tf
-    .tensor2d(normalizedTimestamps, [normalizedTimestamps.length, 1])
-    .reshape([-1, 1, 1]);
+  const X = tf.tensor2d(normalizedTimestamps, [normalizedTimestamps.length, 1]).reshape([-1, 1, 1]);
   const y = tf.tensor2d(normalizedPrices, [normalizedPrices.length, 1]);
 
   // Create model
@@ -40,7 +30,7 @@ export async function trainAndPredictGRU(
       inputShape: [1, 1], // Adjust based on your input data shape
       units: 20, // Number of GRU units
       returnSequences: false, // Set to true if adding more recurrent layers
-    })
+    }),
   );
 
   // Adding a dropout layer for regularization
@@ -67,16 +57,13 @@ export async function trainAndPredictGRU(
   });
 
   // Predict
-  const normalizedNewTimestamp =
-    (newTimestamp - minTimestamp) / (maxTimestamp - minTimestamp);
+  const normalizedNewTimestamp = (newTimestamp - minTimestamp) / (maxTimestamp - minTimestamp);
   const normalizedPredictedPrice = model.predict(
-    tf.tensor2d([normalizedNewTimestamp], [1, 1]).reshape([1, 1, 1])
+    tf.tensor2d([normalizedNewTimestamp], [1, 1]).reshape([1, 1, 1]),
   ) as tf.Tensor;
 
   // Scale back prediction
-  const predictedPrice = normalizedPredictedPrice
-    .mul(maxPrice - minPrice)
-    .add(minPrice);
+  const predictedPrice = normalizedPredictedPrice.mul(maxPrice - minPrice).add(minPrice);
 
   // Evaluate model if you have separate test data
   await evaluateModel(timeAndPriceData, model);
@@ -86,28 +73,18 @@ export async function trainAndPredictGRU(
 
 export async function evaluateModel(testData: any[], model: any) {
   // Extract test data and normalize using training data min/max
-  const testTimestamps = testData.map((d) => d[0]);
-  const testPrices = testData.map((d) => d[1]);
+  const testTimestamps = testData.map(d => d[0]);
+  const testPrices = testData.map(d => d[1]);
   const minTimestamp = Math.min(...testTimestamps);
   const maxTimestamp = Math.max(...testTimestamps);
   const minPrice = Math.min(...testPrices);
   const maxPrice = Math.max(...testPrices);
-  const normalizedTestTimestamps = testTimestamps.map(
-    (ts) => (ts - minTimestamp) / (maxTimestamp - minTimestamp)
-  );
-  const normalizedTestPrices = testPrices.map(
-    (p) => (p - minPrice) / (maxPrice - minPrice)
-  );
+  const normalizedTestTimestamps = testTimestamps.map(ts => (ts - minTimestamp) / (maxTimestamp - minTimestamp));
+  const normalizedTestPrices = testPrices.map(p => (p - minPrice) / (maxPrice - minPrice));
 
   // Create tensors
-  const X_test = tf.tensor2d(normalizedTestTimestamps, [
-    normalizedTestTimestamps.length,
-    1,
-  ]);
-  const y_test = tf.tensor2d(normalizedTestPrices, [
-    normalizedTestPrices.length,
-    1,
-  ]);
+  const X_test = tf.tensor2d(normalizedTestTimestamps, [normalizedTestTimestamps.length, 1]);
+  const y_test = tf.tensor2d(normalizedTestPrices, [normalizedTestPrices.length, 1]);
 
   const X_reshaped = X_test.reshape([X_test.shape[0], 1, X_test.shape[1]]);
   const y_reshaped = y_test.reshape([y_test.shape[0], 1, y_test.shape[1]]);
@@ -128,15 +105,12 @@ export async function evaluateModel(testData: any[], model: any) {
   console.log(
     `MAPE: ${meanMAPE.dataSync()}, MAE: ${meanMAE.dataSync()}, MSE: ${meanMSE.dataSync()}, Corr: ${calculatePearsonCorrelation(
       y_test.flatten(),
-      predictions.flatten()
-    )}`
+      predictions.flatten(),
+    )}`,
   );
 }
 
-function calculatePearsonCorrelation(
-  y_true: tf.Tensor<tf.Rank>,
-  y_pred: tf.Tensor<tf.Rank>
-): number {
+function calculatePearsonCorrelation(y_true: tf.Tensor<tf.Rank>, y_pred: tf.Tensor<tf.Rank>): number {
   return tf.tidy(() => {
     const meanYTrue = y_true.mean();
     const meanYPred = y_pred.mean();

@@ -17,7 +17,7 @@ Before installing BALUNI, ensure you have Node.js and npm installed on your syst
 To install BALUNI, follow these simple steps:
 
 ```shell
-yarn add baluni 
+yarn add baluni
 npm install baluni
 ```
 
@@ -77,7 +77,7 @@ The DCA module allows the user to periodically invest a fixed amount in tokens o
 To use the DCA module, edit the investment configuration in src/config.ts with your desired tokens, investment amounts, and intervals. Execute the script via:
 
 ```shell
-yarn dca 
+yarn dca
 ```
 
 ### Market Prediction
@@ -94,7 +94,6 @@ Available ALGO: REGR, 1CONV, GRU, RNN, LSTM
 yarn prediction bitcoin 60 REGR 2000
 ```
 
-
 ### Pump-and-dump tool for Uniswap
 
 This tool buys or sells the entire balance of a specified token in the pair
@@ -105,8 +104,8 @@ yarn pumpOrDump <token1> <token2> <action>
 
 Command line arguments::
 
-- token1: Reserve token name if configured (eg. WBNB) or token contract address  
-- token2: Shit token's name if configured (eg. DARK) or token contract address  
+- token1: Reserve token name if configured (eg. WBNB) or token contract address
+- token2: Shit token's name if configured (eg. DARK) or token contract address
 - action: 'pump' | 'dump'
 
 Examples:
@@ -172,7 +171,7 @@ BALUNI has expanded its integration with Yearn Finance beyond the initial USDC o
 - **Comprehensive Support:** While the initial setup focused on the USDC.e-A AAVE on Polygon vault, BALUNI's latest version broadens this scope. Users can now potentially earn interest on any token supported by Yearn Finance, as long as these tokens are part of the user's portfolio and have designated weights in the configuration settings.
 - **Configuration Flexibility:** To take advantage of this extended functionality, ensure that YEARN_ENABLED is set to true in your src/config.ts. Then, specify the Yearn vault addresses for the tokens you wish to earn interest on, similar to how the USDC vault is specified. This setup allows BALUNI to dynamically interact with Yearn Finance, automatically depositing and managing your assets in the appropriate Yearn vaults based on your portfolio's configuration.
 - **Dynamic Earning Strategy:** With this update, BALUNI not only trades efficiently on decentralized exchanges but also ensures your assets are continuously working for you, earning interest through Yearn Finance even when market conditions are not favorable for trading. This dual approach maximizes potential returns and provides a more robust investment strategy.
-Ensure your portfolio includes the tokens with corresponding Yearn pools you wish to earn interest on, and update your src/config.ts to reflect these preferences. By doing so, you can enhance your investment strategy with BALUNI, leveraging both active trading and passive earning mechanisms for optimal asset growth.
+  Ensure your portfolio includes the tokens with corresponding Yearn pools you wish to earn interest on, and update your src/config.ts to reflect these preferences. By doing so, you can enhance your investment strategy with BALUNI, leveraging both active trading and passive earning mechanisms for optimal asset growth.
 
 ```shell
 export const YEARN_VAULTS = {
@@ -197,7 +196,7 @@ export const YEARN_VAULTS = {
 **Example PREDICTION_PERIOD:** 60.
 
 - Enables trend following and ML analysis.
-- Adjust `PREDICTION_PERIOD` and `PREDICTION_EPOCHS` for your analysis period and epochs. Select `PREDICTION_ALGO` and  `PREDICTION_SYMBOL`
+- Adjust `PREDICTION_PERIOD` and `PREDICTION_EPOCHS` for your analysis period and epochs. Select `PREDICTION_ALGO` and `PREDICTION_SYMBOL`
 - **To Modify**: Toggle `true`/`false` to enable/disable and adjust parameters for your analysis needs.
 
 #### 9. **Technical Analysis**
@@ -209,37 +208,45 @@ export const YEARN_VAULTS = {
 ## Workflow Overview with Enhanced Yearn Finance Integration
 
 1. **Bot Start**
+
    - Initialize the trading bot.
 
 2. **Check Prediction Module**
+
    - Perform forecast with ML analysis to understand market trends.
 
 3. **Check KST Trend**
+
    - Assess the Know Sure Thing (KST) trend signal to predict the market momentum.
 
 4. **Select Weight Based on Trend Signal**
+
    - Choose the asset allocation weight according to the trend signal.
 
 5. **Distribute Assets**
+
    - Allocate assets based on the selected weights.
 
 6. **Technical Analysis Upon Rebalance**
+
    - When a rebalance occurs, conduct technical analysis using signals like RSI (Relative Strength Index) and Stochastic RSI.
 
 7. **Deposit into Yearn Vaults**
+
    - Evaluate portfolio for assets eligible for Yearn Finance interest generation. If rebalancing is not triggered or if there are idle assets, deposit them into the corresponding Yearn vaults based on the asset's type and the user's configured Yearn vault addresses. This action is not limited to USDC but extends to all supported tokens in the user's portfolio that have corresponding Yearn pools.
 
 8. **Interest Accumulation**
+
    - While assets are in Yearn vaults, they accrue interest according to the performance of the selected Yearn pools. This step enhances the value of idle assets, providing an additional revenue stream aside from trading gains.
 
 9. **Withdraw from Vaults for Trading or Rebalancing**
+
    - Monitor market conditions and portfolio performance. When a trading opportunity arises or rebalancing is necessary, withdraw the appropriate amount of assets from Yearn vaults. This includes converting earned interest back into the portfolio's primary trading assets if desired.
 
 10. **Execute Trades and Rebalance Portfolio**
     - Use the withdrawn assets to execute trades according to the latest market analysis and rebalance the portfolio to maintain the desired asset allocation, optimizing for both trading performance and interest earnings.
 
 This enhanced workflow integrates the dynamic use of Yearn Finance for interest generation, making BALUNI not just a trading bot but a comprehensive DeFi portfolio management tool. It ensures assets are not lying idle but are continually working to generate returns, either through trading or earning interest, thereby maximizing the overall efficiency and profitability of the user's cryptocurrency portfolio.
-
 
 ## Workflow Diagram
 
@@ -256,7 +263,7 @@ This enhanced workflow integrates the dynamic use of Yearn Finance for interest 
    |
    |─> Check for Rebalance
    |    │
-   |    └─> Technical Analysis  
+   |    └─> Technical Analysis
    |        └──> RSI/STOCHRSI
    |                 ├─> false
    |                 └─> true

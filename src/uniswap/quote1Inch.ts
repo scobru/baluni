@@ -8,32 +8,25 @@ interface Token {
   decimals: number;
 }
 
-export async function fetchPrices(
-  token: Token,
-  chainId: number
-): Promise<number> {
+export async function fetchPrices(token: Token, chainId: number): Promise<number> {
   const rpcUrl = NETWORKS[chainId];
   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
   const offChainOracleAddress = ORACLE[chainId];
 
-  const offchainOracle = new ethers.Contract(
-    offChainOracleAddress,
-    OffChainOracleAbi,
-    provider
-  );
+  const offchainOracle = new ethers.Contract(offChainOracleAddress, OffChainOracleAbi, provider);
 
   const rateUSD = await offchainOracle.getRate(
     WNATIVE[chainId], // destination token
     USDC[chainId], // source token
-    true // use source wrappers
+    true, // use source wrappers
   );
 
   const rateUSDFormatted = rateUSD.mul(1e12);
 
   const rate = await offchainOracle.getRateToEth(
     token.address, // source token
-    true // use source wrappers
+    true, // use source wrappers
   );
 
   const numerator = 10 ** token.decimals;

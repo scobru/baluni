@@ -11,7 +11,9 @@
     "invest": "npx ts-node src/investor.ts",
     "dca": "npx ts-node src/dca.ts",
     "prediction": "npx ts-node src/prediction.ts",
-    "pumpOrDump": "npx ts-node src/pumpOrDump.ts"
+    "pumpOrDump": "npx ts-node src/pumpOrDump.ts",
+    "format": "npx prettier --write . --ignore-path .gitignore",
+    "check-types": "tsc --noEmit --incremental"
   },
   "keywords": [
     "defi",
@@ -37,7 +39,10 @@
     "cli-chart": "^0.3.1",
     "dotenv": "^16.3.1",
     "ethers": "^5.7.2",
-    "trading-indicator": "^2.0.4"
+    "trading-indicator": "^2.0.4",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.4"
   },
   "repository": {
     "type": "git",

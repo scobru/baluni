@@ -3,16 +3,13 @@ import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 
-export async function waitForTx(
-  provider: ethers.providers.Provider,
-  hash: string
-): Promise<boolean> {
+export async function waitForTx(provider: ethers.providers.Provider, hash: string): Promise<boolean> {
   let txReceipt: ethers.providers.TransactionReceipt | null = null;
   let count = 0;
 
   while (!txReceipt && count < 20) {
     txReceipt = await provider.getTransactionReceipt(hash);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise(resolve => setTimeout(resolve, 5000));
     count++;
   }
 

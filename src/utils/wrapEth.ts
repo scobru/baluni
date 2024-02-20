@@ -17,11 +17,7 @@ const WETH_ABI = [
 
 export async function wrapETH(dexWallet: DexWallet, amount: string) {
   const signer = dexWallet.wallet;
-  const wethContract = new ethers.Contract(
-    WNATIVE[dexWallet.walletProvider.network.chainId],
-    WETH_ABI,
-    signer
-  );
+  const wethContract = new ethers.Contract(WNATIVE[dexWallet.walletProvider.network.chainId], WETH_ABI, signer);
 
   console.log(`Wrapping ${amount} ETH...`);
   const depositTx = await wethContract.deposit({
@@ -31,38 +27,18 @@ export async function wrapETH(dexWallet: DexWallet, amount: string) {
   await waitForTx(dexWallet.wallet.provider, depositTx.hash);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
-  console.log(
-    chalk.green(
-      `Wrapped ${amount} NATIVE into ${ethers.utils.formatUnits(
-        wethBalance,
-        18
-      )} WNATIVE`
-    )
-  );
+  console.log(chalk.green(`Wrapped ${amount} NATIVE into ${ethers.utils.formatUnits(wethBalance, 18)} WNATIVE`));
 }
 
 export async function unwrapETH(dexWallet: DexWallet, amount: string) {
   const signer = dexWallet.wallet;
-  const wethContract = new ethers.Contract(
-    WNATIVE[dexWallet.walletProvider.network.chainId],
-    WETH_ABI,
-    signer
-  );
+  const wethContract = new ethers.Contract(WNATIVE[dexWallet.walletProvider.network.chainId], WETH_ABI, signer);
 
   console.log(`Unwrapping ${amount} WNATIVE...`);
-  const withdrawTx = await wethContract.withdraw(
-    ethers.utils.parseEther(amount)
-  );
+  const withdrawTx = await wethContract.withdraw(ethers.utils.parseEther(amount));
   prettyConsole.success("Done! Tx Hash:", withdrawTx.hash);
   await waitForTx(dexWallet.wallet.provider, withdrawTx.hash);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
-  console.log(
-    chalk.green(
-      `Unwrapped ${amount} WNATIVE into ${ethers.utils.formatUnits(
-        wethBalance,
-        18
-      )} NATIVE`
-    )
-  );
+  console.log(chalk.green(`Unwrapped ${amount} WNATIVE into ${ethers.utils.formatUnits(wethBalance, 18)} NATIVE`));
 }

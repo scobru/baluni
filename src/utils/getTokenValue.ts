@@ -10,7 +10,7 @@ export async function getTokenValue(
   balance: BigNumber,
   decimals: number,
   usdcAddress: string,
-  chainId: number
+  chainId: number,
 ): Promise<BigNumber> {
   if (token === usdcAddress) {
     return balance; // USDT value is the balance itself
@@ -29,25 +29,19 @@ export async function getTokenValue(
     let value;
 
     if (decimals == 8) {
-      value = balance
-        .mul(1e10)
-        .mul(pricePerToken)
-        .div(BigNumber.from(10).pow(18)); // Adjust for token's value
+      value = balance.mul(1e10).mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
     } else {
       value = balance.mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
     }
 
-    const _balance =
-      decimals == 8
-        ? formatEther(String(Number(balance) * 1e10))
-        : formatEther(balance.toString());
+    const _balance = decimals == 8 ? formatEther(String(Number(balance) * 1e10)) : formatEther(balance.toString());
 
     prettyConsole.log(
       `🔤 Token Symbol: ${tokenSymbol}`,
       `📄 Token: ${token}`,
       `👛 Balance:${_balance}`,
       `📈 Price:${price?.toString()}`,
-      `💵 Value:${formatEther(value.toString())}`
+      `💵 Value:${formatEther(value.toString())}`,
     );
     return value;
   }
