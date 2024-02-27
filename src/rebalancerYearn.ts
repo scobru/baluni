@@ -93,8 +93,10 @@ async function executeRebalance(chainId: number) {
   const fs = require("fs");
   const path = require("path");
 
+  // date and time
+  const date = new Date();
   const kstResultPath = path.join(__dirname, "kstResult.txt");
-  fs.writeFileSync(kstResultPath, JSON.stringify({ KST: kstResult, AI: signalAI }), "utf-8");
+  fs.writeFileSync(kstResultPath, JSON.stringify({ KST: kstResult, AI: signalAI, time: date }), "utf-8");
 
   let TREND: Boolean = true;
   let LAST_TREND: Boolean = true;
