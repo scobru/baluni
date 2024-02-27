@@ -90,13 +90,6 @@ async function executeRebalance(chainId: number) {
   );
 
   //log the kst result into a txt file
-  const fs = require("fs");
-  const path = require("path");
-
-  // date and time
-  const date = new Date();
-  const kstResultPath = path.join(__dirname, "kstResult.txt");
-  fs.writeFileSync(kstResultPath, JSON.stringify({ KST: kstResult, AI: signalAI, time: date }), "utf-8");
 
   let TREND: Boolean = true;
   let LAST_TREND: Boolean = true;
@@ -137,6 +130,17 @@ async function executeRebalance(chainId: number) {
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
     await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC[chainId]);
   }
+
+  const fs = require("fs");
+  const path = require("path");
+  // date and time
+  const date = new Date();
+  const kstResultPath = path.join(__dirname, "kstResult.txt");
+  fs.writeFileSync(
+    kstResultPath,
+    JSON.stringify({ KST: kstResult, AI: signalAI, selectedWeights: selectedWeights, time: date }),
+    "utf-8",
+  );
 }
 
 async function main() {
