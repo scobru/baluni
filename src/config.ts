@@ -106,7 +106,7 @@ export const PREDICTION_SYMBOL = "bitcoin";
 export const PREDICTION_ALGO = "REGR";
 
 // TECHNICAL ANALYSIS
-export const TECNICAL_ANALYSIS = true;
+export const TECNICAL_ANALYSIS = false;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;

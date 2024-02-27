@@ -89,6 +89,13 @@ async function executeRebalance(chainId: number) {
     kstResult.cross,
   );
 
+  //log the kst result into a txt file
+  const fs = require("fs");
+  const path = require("path");
+
+  const kstResultPath = path.join(__dirname, "kstResult.txt");
+  fs.writeFileSync(kstResultPath, JSON.stringify({ KST: kstResult, AI: signalAI }), "utf-8");
+
   let TREND: Boolean = true;
   let LAST_TREND: Boolean = true;
 
