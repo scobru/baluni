@@ -107,10 +107,25 @@ export const PREDICTION_ALGO = "REGR";
 
 // TECHNICAL ANALYSIS
 export const TECNICAL_ANALYSIS = false;
+//RSI
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;
+export const RSI_TIMEFRAME = "5m";
+
+//STOCKRSI
 export const STOCKRSI_PERIOD = 14;
 export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
-export const RSI_TIMEFRAME = "5m";
+
+// EMA
+export const EMA_TIMEFRAME = "5m";
+export const EMA_PERIOD = 20;
+export const EMA_SYMBOL = "bitcoin";
+
+//EMA CROSSOVER
+export const EMA_FAST = 50;
+export const EMA_SLOW = 200;
+
+//VWAP
+export const VWAP_PERIOD = 20;

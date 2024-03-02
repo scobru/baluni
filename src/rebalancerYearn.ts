@@ -133,9 +133,11 @@ async function executeRebalance(chainId: number) {
 
   const fs = require("fs");
   const path = require("path");
+
   // date and time
   const date = new Date();
   const kstResultPath = path.join(__dirname, "kstResult.txt");
+
   fs.writeFileSync(
     kstResultPath,
     JSON.stringify({ KST: kstResult, AI: signalAI, selectedWeights: selectedWeights, time: date }),
