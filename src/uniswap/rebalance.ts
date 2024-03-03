@@ -181,14 +181,7 @@ export async function rebalancePortfolio(
     const decimals = tokenMetadata.decimals;
     const tokenSymbol = await tokenContract.symbol();
 
-    tokenValue = await getTokenValue(
-      tokenSymbol,
-      token,
-      tokenBalance,
-      decimals,
-      usdcAddress,
-      dexWallet.walletProvider.network.chainId,
-    );
+    tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, usdcAddress, config);
 
     tokenSymbol == "USDC" ? tokenValue.mul(1e12) : tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);

@@ -4,13 +4,14 @@ import { fetchPrices } from "../uniswap/quote1Inch";
 import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
+
 export async function getTokenValue(
   tokenSymbol: string,
   token: string,
   balance: BigNumber,
   decimals: number,
   usdcAddress: string,
-  chainId: number,
+  config: any,
 ): Promise<BigNumber> {
   if (token === usdcAddress) {
     return balance; // USDT value is the balance itself
@@ -20,7 +21,7 @@ export async function getTokenValue(
       address: token,
       decimals: decimals,
     };
-    const price: any = await fetchPrices(_token, chainId);
+    const price: any = await fetchPrices(_token, config);
 
     if (!price) throw new Error("Price is undefined");
     // Here, ensure that the price is parsed with respect to the token's decimals

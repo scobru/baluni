@@ -15,7 +15,7 @@ export async function fetchPrices(token: Token, config: any): Promise<number> {
   const offchainOracle = new ethers.Contract(offChainOracleAddress, OffChainOracleAbi, provider);
 
   const rateUSD = await offchainOracle.getRate(
-    config?.WNATIVE, // destination token
+    config?.WRAPPED, // destination token
     config?.USDC, // source token
     true, // use source wrappers
   );

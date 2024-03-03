@@ -186,12 +186,13 @@ export async function rebalancePortfolio(
     const _tokenbalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
     const tokenBalance = _tokenbalance.balance;
     const decimals = tokenMetadata.decimals;
-    const tokenSymbol = await tokenContract.symbol();
+    const tokenSymbol = await tokenContract?.symbol();
     const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
-    if (yearnVaultDetails) {
+    if (yearnVaultDetails !== undefined) {
       const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
       const interestAccrued = await accuredYearnInterest(yearnVaultDetails, dexWallet);
+
       tokenValue = await getTokenValueEnhanced(
         tokenSymbol,
         token,
@@ -200,20 +201,13 @@ export async function rebalancePortfolio(
         usdcAddress,
         yearnBalance,
         interestAccrued,
-        dexWallet.walletProvider.network.chainId,
+        config,
       );
 
       tokenValues[token] = tokenValue;
     } else {
       // Handle tokens without Yearn Vault
-      tokenValue = await getTokenValue(
-        tokenSymbol,
-        token,
-        tokenBalance,
-        decimals,
-        config?.USDC,
-        dexWallet.walletProvider.network.chainId,
-      );
+      tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, config?.USDC, config);
     }
     tokenValues[token] = tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
@@ -496,7 +490,7 @@ async function getTokenValueEnhanced(
   usdcAddress: string,
   yearnBalance?: BigNumber,
   interestAccrued?: any,
-  chainId?: number,
+  config?: any,
 ) {
   let effectiveBalance = tokenBalance;
   if (config?.YEARN_ENABLED && yearnBalance) {
@@ -504,5 +498,5 @@ async function getTokenValueEnhanced(
   }
   return tokenSymbol === "USDC"
     ? effectiveBalance.mul(1e12)
-    : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, chainId as number);
+    : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, config);
 }
