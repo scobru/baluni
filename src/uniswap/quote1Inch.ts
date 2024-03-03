@@ -1,6 +1,4 @@
 import { ethers } from "ethers";
-import { USDC, WNATIVE, ORACLE } from "../config";
-import { NETWORKS } from "../config";
 import OffChainOracleAbi from "../abis/OffChainOracle.json";
 
 interface Token {
@@ -8,17 +6,17 @@ interface Token {
   decimals: number;
 }
 
-export async function fetchPrices(token: Token, chainId: number): Promise<number> {
-  const rpcUrl = NETWORKS[chainId];
+export async function fetchPrices(token: Token, config: any): Promise<number> {
+  const rpcUrl = config?.NETWORKS;
   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
 
-  const offChainOracleAddress = ORACLE[chainId];
+  const offChainOracleAddress = config?.ORACLE;
 
   const offchainOracle = new ethers.Contract(offChainOracleAddress, OffChainOracleAbi, provider);
 
   const rateUSD = await offchainOracle.getRate(
-    WNATIVE[chainId], // destination token
-    USDC[chainId], // source token
+    config?.WNATIVE, // destination token
+    config?.USDC, // source token
     true, // use source wrappers
   );
 

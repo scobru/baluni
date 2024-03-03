@@ -1,7 +1,6 @@
 import erc20Abi from "../abis/ERC20.json";
 import quoterAbi from "../abis/Quoter.json";
 import swapRouterAbi from "../abis/SwapRouter.json";
-import { LIMIT, QUOTER, ROUTER, USDC, WNATIVE } from "../config";
 import { approveToken } from "../utils/approveToken";
 import { callContractMethod } from "../utils/contractUtils";
 import { DexWallet } from "../utils/dexWallet";
@@ -31,7 +30,7 @@ async function initializeSwap(dexWallet: DexWallet, pair: [string, string], reve
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
   const chainId = dexWallet.walletProvider.network.chainId;
-  const swapRouterAddress = ROUTER[chainId] as string;
+  const swapRouterAddress = config?.ROUTER as string;
   const swapRouterContract = new Contract(swapRouterAddress, swapRouterAbi, signer);
   return {
     tokenAAddress,
@@ -90,7 +89,7 @@ export async function swapCustom(
   console.log(providerGasPrice);
   //const gasPrice = providerGasPrice.mul(12).div(10);
   const gasPrice = providerGasPrice;
-  const quoterContract = new Contract(QUOTER[chainId], quoterAbi, dexWallet.wallet);
+  const quoterContract = new Contract(config?.QUOTER, quoterAbi, dexWallet.wallet);
   const quote = await quotePair(tokenAAddress, tokenBAddress);
 
   pc.log(`⛽ Actual gas price: ${gasPrice}`, `💲 Provider gas price: ${providerGasPrice}`);
@@ -100,12 +99,12 @@ export async function swapCustom(
     pc.log("↩️ Using WMATIC route");
     await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
 
-    const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, WNATIVE[chainId], swapAmount);
-    const poolFee2 = await findPoolAndFee(quoterContract, WNATIVE[chainId], USDC[chainId], swapAmount);
+    const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, config?.WRAPPED, swapAmount);
+    const poolFee2 = await findPoolAndFee(quoterContract, config?.WRAPPED, config?.USDC, swapAmount);
 
     const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
       tokenAAddress,
-      WNATIVE[chainId],
+      config?.WRAPPED,
       tokenBAddress,
       poolFee,
       poolFee2,
@@ -239,7 +238,7 @@ export async function rebalancePortfolio(
       `👛 Balance: ${formatEther(tokenBalance)} ${tokenSymbol}`,
     );
 
-    if (difference < 0 && Math.abs(difference) > LIMIT) {
+    if (difference < 0 && Math.abs(difference) > config?.LIMIT) {
       // Calculate token amount to sell
       //const tokenPriceInUSDT = await quotePair(token, usdcAddress);
       const tokenMetadata = await getTokenMetadata(token, dexWallet.walletProvider);
@@ -255,7 +254,7 @@ export async function rebalancePortfolio(
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
 
       tokensToSell.push({ token, amount: tokenAmountToSell });
-    } else if (difference > 0 && Math.abs(difference) > LIMIT) {
+    } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
       // For buying, we can use valueToRebalance directly as we will be spending USDT
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) });
     }
@@ -357,7 +356,7 @@ export async function calculateRebalanceStats(
       const difference = desiredAllocation - currentAllocation;
       const valueToRebalance = totalPortfolioValue.mul(BigNumber.from(Math.abs(difference))).div(10000); // USDT value to rebalance
 
-      if (Math.abs(difference) > LIMIT) {
+      if (Math.abs(difference) > config?.LIMIT) {
         rebalanceStats.adjustments.push({
           token: token,
           action: difference > 0 ? "Buy" : "Sell",

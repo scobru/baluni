@@ -17,17 +17,8 @@ import { getTokenValue } from "../utils/getTokenValue";
 import { getRSI } from "../utils/getRSI";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../updateConfig";
-import { ROUTER, QUOTER, WNATIVE, USDC, WETH } from "../config";
 
-let config: {
-  MAX_APPROVAL: boolean;
-  LIMIT: number;
-  STOCKRSI_OVERBOUGHT: number;
-  RSI_OVERBOUGHT: number;
-  TECNICAL_ANALYSIS: any;
-  STOCKRSI_OVERSOLD: number;
-  RSI_OVERSOLD: number;
-};
+let config: any;
 
 const pc = loadPrettyConsole();
 
@@ -40,7 +31,7 @@ async function initializeSwap(dexWallet: DexWallet, pair: [string, string], reve
   const tokenBContract = new Contract(tokenBAddress, erc20Abi, wallet);
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
-  const swapRouterAddress = ROUTER[chainId];
+  const swapRouterAddress = config?.ROUTER;
   const swapRouterContract = new Contract(swapRouterAddress, swapRouterAbi, wallet);
   return {
     tokenAAddress,
@@ -96,7 +87,7 @@ export async function swapCustom(
     chainId,
   } = await initializeSwap(dexWallet, pair, reverse);
   const gasPrice = providerGasPrice.mul(12).div(10);
-  const quoterContract = new Contract(QUOTER[chainId], quoterAbi, dexWallet.wallet);
+  const quoterContract = new Contract(config?.QUOTER, quoterAbi, dexWallet.wallet);
   const quote = await quotePair(tokenAAddress, tokenBAddress);
 
   pc.log(`⛽ Actual gas price: ${gasPrice.toBigInt()}`, `💲 Provider gas price: ${providerGasPrice.toBigInt()}`);
@@ -106,13 +97,13 @@ export async function swapCustom(
     pc.log("↩️ Using WMATIC route");
     await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config?.MAX_APPROVAL);
 
-    const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, WNATIVE[chainId], swapAmount);
+    const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, config?.WRAPPED, swapAmount);
 
-    const poolFee2 = await findPoolAndFee(quoterContract, WNATIVE[chainId], USDC[chainId], swapAmount);
+    const poolFee2 = await findPoolAndFee(quoterContract, config?.WRAPPED, config?.USDC, swapAmount);
 
     const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
       tokenAAddress,
-      WNATIVE[chainId],
+      config?.WRAPPED,
       tokenBAddress,
       poolFee,
       poolFee2,

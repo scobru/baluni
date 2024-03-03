@@ -1,5 +1,4 @@
 import { initializeWallet } from "./utils/dexWallet";
-import { TOKENS, INVESTMENT_AMOUNT, USDC, WEIGHTS_UP, INVESTMENT_INTERVAL, NETWORKS, SELECTED_CHAINID } from "./config";
 import { invest } from "./uniswap/invest";
 import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
