@@ -1,15 +1,10 @@
 // set TOKENS and WEIGHTS
 
-type ConfigType = {
-  [key: number]: string;
-};
-
 type ConfigTypeYearn = {
   [key: number]: { [key: string]: any };
 };
 
 export const SELECTED_CHAINID = 137;
-
 export const TOKENS = [
   "LINK", // LINK
   "WETH", // WETH
@@ -22,7 +17,6 @@ export const TOKENS = [
   "LDO", // LDO
   "USDC", // USDC
 ];
-
 export const WEIGHTS_UP = {
   LINK: 1250,
   WETH: 1000,
@@ -35,7 +29,6 @@ export const WEIGHTS_UP = {
   LDO: 500,
   USDC: 250,
 };
-
 export const WEIGHTS_DOWN = {
   LINK: 0,
   WETH: 1000,
