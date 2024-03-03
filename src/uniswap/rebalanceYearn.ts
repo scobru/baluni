@@ -266,9 +266,8 @@ export async function rebalancePortfolio(
         decimals: decimals,
       };
 
-      const tokenPriceInUSDT: any = await fetchPrices(_token, dexWallet.walletProvider.network.chainId); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(_token, config); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
-
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
 
       if (token === usdcAddress) {
