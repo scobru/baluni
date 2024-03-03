@@ -3,7 +3,6 @@ import { callContractMethod } from "./contractUtils";
 import { DexWallet } from "./dexWallet";
 import { waitForTx } from "./networkUtils";
 import { loadPrettyConsole } from "./prettyConsole";
-import { MAX_APPROVAL } from "../config";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -13,13 +12,14 @@ export async function approveToken(
   to: string,
   gasPrice: BigNumber,
   dexWallet: DexWallet,
+  maxApproval: boolean,
 ) {
   let allowance: BigNumber = await tokenContract.allowance(dexWallet.walletAddress, to);
 
   if (allowance.lt(swapAmount)) {
     prettyConsole.log("Approving spending of", swapAmount.toString(), "tokens" + " to " + to + "... ");
 
-    const approveAmount = MAX_APPROVAL ? ethers.constants.MaxUint256 : swapAmount;
+    const approveAmount = maxApproval ? ethers.constants.MaxUint256 : swapAmount;
 
     const approvalResult = await callContractMethod(
       tokenContract,

@@ -1,6 +1,5 @@
 import { ethers, BigNumber } from "ethers";
 import dotenv from "dotenv";
-import { NETWORKS } from "../config";
 dotenv.config();
 
 export interface DexWallet {

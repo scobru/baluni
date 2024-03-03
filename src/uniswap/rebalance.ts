@@ -6,19 +6,6 @@ import erc20Abi from "../abis/ERC20.json";
 import quoterAbi from "../abis/Quoter.json";
 import swapRouterAbi from "../abis/SwapRouter.json";
 import { formatEther } from "ethers/lib/utils";
-import {
-  LIMIT,
-  ROUTER,
-  QUOTER,
-  RSI_OVERBOUGHT,
-  RSI_OVERSOLD,
-  STOCKRSI_OVERBOUGHT,
-  STOCKRSI_OVERSOLD,
-  TECNICAL_ANALYSIS,
-  WNATIVE,
-  USDC,
-  WETH,
-} from "../config";
 import { fetchPrices } from "./quote1Inch";
 import { rechargeFees } from "../utils/rechargeFees";
 import { quotePair } from "./quote";
@@ -29,6 +16,18 @@ import { approveToken } from "../utils/approveToken";
 import { getTokenValue } from "../utils/getTokenValue";
 import { getRSI } from "../utils/getRSI";
 import { loadPrettyConsole } from "../utils/prettyConsole";
+import { updateConfig } from "../updateConfig";
+import { ROUTER, QUOTER, WNATIVE, USDC, WETH } from "../config";
+
+let config: {
+  MAX_APPROVAL: boolean;
+  LIMIT: number;
+  STOCKRSI_OVERBOUGHT: number;
+  RSI_OVERBOUGHT: number;
+  TECNICAL_ANALYSIS: any;
+  STOCKRSI_OVERSOLD: number;
+  RSI_OVERSOLD: number;
+};
 
 const pc = loadPrettyConsole();
 
@@ -68,7 +67,7 @@ async function findPoolAndFee(
 
   let poolFee: Number = 0;
 
-  poolFee = await getPoolFee(tokenAAddress, tokenBAddress, swapAmount, quoterContract);
+  poolFee = await getPoolFee(tokenAAddress, tokenBAddress, swapAmount, quoterContract, config);
 
   return poolFee;
 }
@@ -105,7 +104,7 @@ export async function swapCustom(
   if (!quote) {
     pc.error("❌ USDC Pool Not Found");
     pc.log("↩️ Using WMATIC route");
-    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet);
+    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config?.MAX_APPROVAL);
 
     const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, WNATIVE[chainId], swapAmount);
 
@@ -132,7 +131,7 @@ export async function swapCustom(
   }
 
   pc.log("🎉 Pool Found!");
-  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet);
+  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config?.MAX_APPROVAL);
   pc.log(`↔️ Swap ${tokenAName} for ${tokenBName})}`);
 
   const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, tokenBAddress, swapAmount);
@@ -161,12 +160,15 @@ export async function rebalancePortfolio(
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
   usdcAddress: string,
+  configCustom: any,
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
 
+  config = configCustom;
+
   // Recharge Fees
-  await rechargeFees(dexWallet);
+  await rechargeFees(dexWallet, configCustom);
 
   const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, usdcAddress);
   let usdBalance = _usdBalance.balance;
@@ -234,7 +236,7 @@ export async function rebalancePortfolio(
       `👛 Balance: ${formatEther(tokenBalance)} ${tokenSymbol}`,
     );
 
-    if (difference < 0 && Math.abs(difference) > LIMIT) {
+    if (difference < 0 && Math.abs(difference) > config?.LIMIT) {
       // Calculate token amount to sell
       //const tokenPriceInUSDT = await quotePair(token, usdcAddress);
       const tokenMetadata = await getTokenMetadata(token, dexWallet.walletProvider);
@@ -250,7 +252,7 @@ export async function rebalancePortfolio(
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
 
       tokensToSell.push({ token, amount: tokenAmountToSell });
-    } else if (difference > 0 && Math.abs(difference) > LIMIT) {
+    } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
       // For buying, we can use valueToRebalance directly as we will be spending USDT
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) });
     }
@@ -268,14 +270,18 @@ export async function rebalancePortfolio(
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
 
-    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
 
-    if (stochasticRSIResult.stochRSI > STOCKRSI_OVERBOUGHT && rsiResult.rsiVal > RSI_OVERBOUGHT && TECNICAL_ANALYSIS) {
+    if (
+      stochasticRSIResult.stochRSI > config?.STOCKRSI_OVERBOUGHT &&
+      rsiResult.rsiVal > config?.RSI_OVERBOUGHT &&
+      config?.TECNICAL_ANALYSIS
+    ) {
       // Call swapCustom or equivalent function to sell the token
       // Assume that the swapCustom function takes in the token addresses, direction, and amount in token units
       await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
       await new Promise(resolve => setTimeout(resolve, 10000));
-    } else if (!TECNICAL_ANALYSIS) {
+    } else if (!config?.TECNICAL_ANALYSIS) {
       await swapCustom(dexWallet, [token, usdcAddress], false, amount); // true for reverse because we're selling
       await new Promise(resolve => setTimeout(resolve, 10000));
     } else {
@@ -293,7 +299,7 @@ export async function rebalancePortfolio(
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
-    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, configCustom);
 
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
@@ -302,10 +308,10 @@ export async function rebalancePortfolio(
     usdBalance = _usdBalance.balance;
 
     const isTechnicalAnalysisConditionMet =
-      stochasticRSIResult.stochRSI < STOCKRSI_OVERSOLD && rsiResult.rsiVal < RSI_OVERSOLD;
+      stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD && rsiResult.rsiVal < config?.RSI_OVERSOLD;
 
     // Check if either technical analysis condition is met or if technical analysis is disabled
-    if (isTechnicalAnalysisConditionMet || !TECNICAL_ANALYSIS) {
+    if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
       if (usdBalance.gte(amount)) {
         await swapCustom(dexWallet, [token, usdcAddress], true, amount);
         await new Promise(resolve => setTimeout(resolve, 5000));
@@ -335,7 +341,9 @@ async function executeSwap(
   provider: any,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
+
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
+
   let swapTxInputs = [
     tokenA,
     tokenB,
@@ -371,8 +379,8 @@ async function executeMultiHopSwap(
   provider: any,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
-  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
+  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, config);
   const path = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
     [tokenA, poolFee, tokenB, poolFee2, tokenC],

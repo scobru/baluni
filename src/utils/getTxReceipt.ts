@@ -4,8 +4,8 @@ import { NETWORKS } from "../config";
 
 const txHash = process.argv[2];
 
-const main = promisify(async (chainId: number) => {
-  const dexWallet = await initializeWallet(NETWORKS[chainId]);
+const main = promisify(async (chainId: number, config: any) => {
+  const dexWallet = await initializeWallet(config?.NETWORK);
   const { wallet } = dexWallet;
   const txReceipt = await wallet.provider.getTransactionReceipt(txHash);
   console.log("TX RECEIPT", txReceipt);

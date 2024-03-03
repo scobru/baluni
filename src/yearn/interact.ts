@@ -9,7 +9,13 @@ import { waitForTx } from "../utils/networkUtils";
 
 const pc = loadPrettyConsole();
 
-export async function depositToYearn(tokenAddr: string, pool: string, amount: BigNumber, dexWallet: DexWallet) {
+export async function depositToYearn(
+  tokenAddr: string,
+  pool: string,
+  amount: BigNumber,
+  dexWallet: DexWallet,
+  config: any,
+) {
   try {
     const provider = dexWallet.wallet.provider;
     const signer = dexWallet.wallet;
@@ -22,7 +28,7 @@ export async function depositToYearn(tokenAddr: string, pool: string, amount: Bi
       throw new Error("Insufficient balance");
     }
 
-    await approveToken(token, amount, pool, gasPrice, dexWallet);
+    await approveToken(token, amount, pool, gasPrice, dexWallet, config);
     pc.log("Deposit to yearn", amount.div(1e6), "USDC");
 
     const tx = await callContractMethod(
@@ -41,7 +47,7 @@ export async function depositToYearn(tokenAddr: string, pool: string, amount: Bi
   }
 }
 
-export async function redeemFromYearn(pool: string, amount: BigNumber, dexWallet: DexWallet) {
+export async function redeemFromYearn(pool: string, amount: BigNumber, dexWallet: DexWallet, config: any) {
   try {
     const provider = dexWallet.wallet.provider;
     const signer = dexWallet.wallet;
@@ -53,7 +59,7 @@ export async function redeemFromYearn(pool: string, amount: BigNumber, dexWallet
       throw new Error("Insufficient balance");
     }
 
-    await approveToken(vault, amount, pool, gasPrice, dexWallet);
+    await approveToken(vault, amount, pool, gasPrice, dexWallet, config);
     pc.log("Withdraw from yearn", amount.toString());
 
     const tx = await callContractMethod(

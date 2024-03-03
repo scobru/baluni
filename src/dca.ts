@@ -3,22 +3,32 @@ import { TOKENS, INVESTMENT_AMOUNT, USDC, WEIGHTS_UP, INVESTMENT_INTERVAL, NETWO
 import { invest } from "./uniswap/invest";
 import { rechargeFees } from "./utils/rechargeFees";
 import { loadPrettyConsole } from "./utils/prettyConsole";
+import { updateConfig } from "./updateConfig";
 
 const prettyConsole = loadPrettyConsole();
 
 // DCA configuration
 // the amount in USDC for each investment
 
-async function dca(chainId: number) {
+async function dca() {
+  const config = await updateConfig();
+
   try {
-    const dexWallet = await initializeWallet(NETWORKS[chainId]);
-    await rechargeFees(dexWallet);
+    const dexWallet = await initializeWallet(String(config?.NETWORKS));
+    await rechargeFees(dexWallet, config);
     // Initialize your DexWallet here
 
     // DCA Mechanism - periodically invest
     const investDCA = async () => {
       try {
-        await invest(dexWallet, WEIGHTS_UP, USDC[chainId], TOKENS, false, INVESTMENT_AMOUNT);
+        await invest(
+          dexWallet,
+          config?.WEIGHTS_UP as any,
+          String(config?.USDC),
+          config?.TOKENS as any,
+          false,
+          config?.INVESTMENT_AMOUNT,
+        );
         prettyConsole.log("Invested part of funds, continuing DCA");
       } catch (error) {
         prettyConsole.error("Error during DCA investment:", error);
@@ -31,14 +41,14 @@ async function dca(chainId: number) {
     // Schedule further investments
     setInterval(async () => {
       await investDCA();
-    }, INVESTMENT_INTERVAL);
+    }, config?.INVESTMENT_INTERVAL);
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
   }
 }
 
 async function main() {
-  await dca(SELECTED_CHAINID);
+  await dca();
   prettyConsole.log("DCA Rebalancer operation started");
 }
 

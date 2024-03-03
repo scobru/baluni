@@ -40,6 +40,8 @@ import {
 
 const pc = loadPrettyConsole();
 
+let config: boolean;
+
 async function initializeSwap(dexWallet: DexWallet, pair: [string, string], reverse?: boolean) {
   const { wallet, walletAddress, providerGasPrice, walletProvider } = dexWallet;
   const chainId = walletProvider.network.chainId;
@@ -75,7 +77,7 @@ async function findPoolAndFee(
 
   let poolFee: Number = 0;
 
-  poolFee = await getPoolFee(tokenAAddress, tokenBAddress, swapAmount, quoterContract);
+  poolFee = await getPoolFee(tokenAAddress, tokenBAddress, swapAmount, quoterContract, config);
 
   return poolFee;
 }
@@ -113,7 +115,7 @@ export async function swapCustom(
   if (!quote) {
     pc.error("❌ USDC Pool Not Found");
     pc.log("↩️ Using WMATIC route");
-    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet);
+    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
 
     const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, WNATIVE[chainId], swapAmount);
 
@@ -140,7 +142,7 @@ export async function swapCustom(
   }
 
   pc.log("🎉 Pool Found!");
-  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet);
+  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
   pc.log(`↔️ Swap ${tokenAName} for ${tokenBName})}`);
 
   const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, tokenBAddress, swapAmount);
@@ -169,12 +171,15 @@ export async function rebalancePortfolio(
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
   usdcAddress: string,
+  customConfig: any,
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
 
+  config = customConfig;
+
   // Recharge Fees
-  await rechargeFees(dexWallet);
+  await rechargeFees(dexWallet, config);
   const chainId = dexWallet.walletProvider.network.chainId;
 
   const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, usdcAddress);
@@ -317,7 +322,7 @@ export async function rebalancePortfolio(
       yearnContract: string,
     ) => {
       if (tokenBalance.lt(amount)) {
-        await redeemFromYearn(yearnContract, yearnBalance, dexWallet);
+        await redeemFromYearn(yearnContract, yearnBalance, dexWallet, config);
       }
       return amount;
     };
@@ -331,7 +336,7 @@ export async function rebalancePortfolio(
       amount = await handleTokenRedemption(balance.balance, yearnBalance, dexWallet, yearnVaultDetails);
     }
 
-    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
 
     if (stochasticRSIResult.stochRSI > STOCKRSI_OVERBOUGHT && rsiResult.rsiVal > RSI_OVERBOUGHT && TECNICAL_ANALYSIS) {
       // Call swapCustom or equivalent function to sell the token
@@ -357,7 +362,7 @@ export async function rebalancePortfolio(
 
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
-    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol);
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
 
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
@@ -371,11 +376,11 @@ export async function rebalancePortfolio(
     const balanceYearnUSDC = await yearnContract?.balanceOf(dexWallet.walletAddress);
 
     if (usdBalance.lt(amount) && balanceYearnUSDC.gte(amount)) {
-      await redeemFromYearn(yearnVaultDetails, amount, dexWallet);
+      await redeemFromYearn(yearnVaultDetails, amount, dexWallet, config);
     } else if (usdBalance.gte(reducedAmount)) {
       amount = reducedAmount;
     } else if (balanceYearnUSDC.gte(reducedAmount)) {
-      await redeemFromYearn(yearnVaultDetails, reducedAmount, dexWallet);
+      await redeemFromYearn(yearnVaultDetails, reducedAmount, dexWallet, config);
       amount = reducedAmount;
     }
 
@@ -409,6 +414,7 @@ export async function rebalancePortfolio(
           vault, // Qui è stato corretto
           balance,
           dexWallet,
+          config,
         );
       }
     }
@@ -429,7 +435,7 @@ async function executeSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
   let swapTxInputs = [
     tokenA,
     tokenB,
@@ -467,8 +473,8 @@ async function executeMultiHopSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
-  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
+  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, config);
   const path = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
     [tokenA, poolFee, tokenB, poolFee2, tokenC],

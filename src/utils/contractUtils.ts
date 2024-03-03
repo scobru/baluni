@@ -1,6 +1,5 @@
 import { BigNumber, Contract, errors, ethers, providers } from "ethers";
 import fs from "fs";
-import { NETWORKS } from "../config";
 import { loadPrettyConsole } from "./prettyConsole";
 
 const pc = loadPrettyConsole();

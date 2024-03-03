@@ -1,5 +1,4 @@
 import { BigNumber, Contract } from "ethers";
-import { SLIPPAGE } from "../config";
 import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
@@ -10,9 +9,10 @@ export async function getAmountOut(
   poolFee: Number,
   swapAmount: BigNumber,
   quoterContract: Contract,
+  config: any,
 ) {
   try {
-    let slippageTolerance = SLIPPAGE;
+    let slippageTolerance = config?.SLIPPAGE;
 
     let expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
       tokenA,
@@ -62,13 +62,14 @@ export async function getPoolFee(
   tokenBAddress: string,
   swapAmount: BigNumber,
   quoterContract: Contract,
+  config:any
 ): Promise<number> {
   const poolFees = [100, 500, 3000, 10000];
   let bestPoolFee = 0;
   let minimumAmountBSoFar = null;
 
   for (const _poolFee of poolFees) {
-    let minimumAmountB = await getAmountOut(tokenAAddress, tokenBAddress, _poolFee, swapAmount, quoterContract);
+    let minimumAmountB = await getAmountOut(tokenAAddress, tokenBAddress, _poolFee, swapAmount, quoterContract, config);
 
     if (minimumAmountB && (minimumAmountBSoFar === null || minimumAmountB.lt(minimumAmountBSoFar))) {
       bestPoolFee = _poolFee;

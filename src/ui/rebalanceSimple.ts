@@ -15,8 +15,10 @@ import { quotePair } from "../uniswap/quote";
 import { fetchPrices } from "../uniswap/quote1Inch";
 import { BigNumber, Contract, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
-
+import { updateConfig } from "./updateConfig";
 const pc = loadPrettyConsole();
+
+let config: any;
 
 async function initializeSwap(dexWallet: DexWallet, pair: [string, string], reverse?: boolean) {
   const provider = dexWallet.walletProvider;
@@ -56,7 +58,7 @@ async function findPoolAndFee(
 
   let poolFee: Number = 0;
 
-  poolFee = await getPoolFee(tokenAAddress, tokenBAddress, swapAmount, quoterContract);
+  poolFee = await getPoolFee(tokenAAddress, tokenBAddress, swapAmount, quoterContract, config?.SLIPPAGE);
 
   return poolFee;
 }
@@ -96,7 +98,7 @@ export async function swapCustom(
   if (!quote) {
     pc.error("❌ USDC Pool Not Found");
     pc.log("↩️ Using WMATIC route");
-    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet);
+    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
 
     const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, WNATIVE[chainId], swapAmount);
     const poolFee2 = await findPoolAndFee(quoterContract, WNATIVE[chainId], USDC[chainId], swapAmount);
@@ -123,7 +125,7 @@ export async function swapCustom(
   }
 
   pc.log("🎉 Pool Found!");
-  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet);
+  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
   pc.log(`↔️ Swap ${tokenAName} for ${tokenBName})}`);
 
   const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, tokenBAddress, swapAmount);
@@ -154,6 +156,8 @@ export async function rebalancePortfolio(
   usdcAddress: string,
   walletProvider: ethers.providers.JsonRpcProvider,
 ) {
+  config = await updateConfig(desiredTokens, desiredAllocations, walletProvider.network.chainId);
+
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
 
@@ -381,7 +385,7 @@ async function executeSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
   let swapTxInputs = [
     tokenA,
     tokenB,
@@ -417,8 +421,8 @@ async function executeMultiHopSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract);
-  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
+  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, config);
   const path = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
     [tokenA, poolFee, tokenB, poolFee2, tokenC],

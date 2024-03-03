@@ -1,62 +1,47 @@
 import { initializeWallet } from "./utils/dexWallet";
 import { rebalancePortfolio } from "./uniswap/rebalanceYearn";
-import {
-  TOKENS,
-  WEIGHTS_UP,
-  WEIGHTS_DOWN,
-  USDC,
-  INTERVAL,
-  PREDICTION,
-  PREDICTION_PERIOD,
-  PREDICTION_SYMBOL,
-  PREDICTION_ALGO,
-  PREDICTION_EPOCHS,
-  TREND_FOLLOWING,
-  KST_TIMEFRAME,
-  SELECTED_CHAINID,
-} from "./config";
-import { NETWORKS } from "./config";
 import { predict } from "./predict/predict";
 import { PrettyConsole } from "./utils/prettyConsole";
 import { welcomeMessage } from "./welcome";
-import {} from "./config";
+import { updateConfig } from "./updateConfig";
 
 const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
-async function rebalancer(chainId: number) {
+async function rebalancer(config: any) {
   welcomeMessage();
-  await executeRebalance(chainId);
+
+  await executeRebalance(config);
   try {
     setInterval(async () => {
       try {
-        await executeRebalance(chainId);
+        await executeRebalance(config);
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }
-    }, INTERVAL * 1000);
+    }, config?.INTERVAL * 1000);
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
   }
 }
 
-async function executeRebalance(chainId: number) {
+async function executeRebalance(config: any) {
   // Log the initiation of portfolio checking
   prettyConsole.log("Checking portfolio");
 
   // Initialize the wallet with the first Polygon network node
-  const dexWallet = await initializeWallet(NETWORKS[chainId]);
+  const dexWallet = await initializeWallet(config?.NETWORKS);
 
   // Set the default weight
-  let selectedWeights = WEIGHTS_UP;
+  let selectedWeights = config?.WEIGHTS_UP;
 
   // Import required modules and functions
   const { kstCross, getDetachSourceFromOHLCV } = require("trading-indicator");
 
   // Get input data from Binance for BTC/USDT pair with 1h interval
-  const { input } = await getDetachSourceFromOHLCV("binance", "BTC/USDT", KST_TIMEFRAME, false);
+  const { input } = await getDetachSourceFromOHLCV("binance", "BTC/USDT", config?.KST_TIMEFRAME, false);
 
   // Calculate KST indicator results
   const kstResult = await kstCross(input, 10, 15, 20, 30, 10, 10, 10, 15, 9);
@@ -65,12 +50,12 @@ async function executeRebalance(chainId: number) {
   // Initialize the signal for AI
   let signalAI = "none";
 
-  if (PREDICTION) {
+  if (config?.PREDICTION) {
     const linearRegression: any = await predict(
-      PREDICTION_ALGO,
-      PREDICTION_SYMBOL,
-      PREDICTION_PERIOD,
-      PREDICTION_EPOCHS,
+      config?.PREDICTION_ALGO,
+      config?.PREDICTION_SYMBOL,
+      config?.PREDICTION_PERIOD,
+      config?.PREDICTION_EPOCHS,
     );
     if (linearRegression.predicted > linearRegression.actual) {
       signalAI = "up";
@@ -94,7 +79,7 @@ async function executeRebalance(chainId: number) {
   let TREND: Boolean = true;
   let LAST_TREND: Boolean = true;
 
-  if (TREND_FOLLOWING) {
+  if (config?.TREND_FOLLOWING) {
     if (kstResult.direction === "up" && signalAI === "up" && kstResult.cross) {
       TREND = true;
       LAST_TREND = true;
@@ -104,7 +89,7 @@ async function executeRebalance(chainId: number) {
     } else if (kstResult.direction === "none" && !kstResult.cross) {
       TREND = LAST_TREND;
     }
-  } else if (TREND_FOLLOWING && signalAI == "none") {
+  } else if (config?.TREND_FOLLOWING && signalAI == "none") {
     if (kstResult.direction === "up" && kstResult.cross) {
       TREND = true;
     } else if (kstResult.direction === "down" && kstResult.cross) {
@@ -112,7 +97,7 @@ async function executeRebalance(chainId: number) {
     } else if (kstResult.direction === "none" && !kstResult.cross) {
       TREND = LAST_TREND;
     }
-  } else if (!TREND_FOLLOWING && signalAI == "none") {
+  } else if (!config?.TREND_FOLLOWING && signalAI == "none") {
     TREND = true;
   }
 
@@ -122,13 +107,13 @@ async function executeRebalance(chainId: number) {
   // It logs and changes weights based on KST and AI signals
   // The conditions for weight change are much more clearly laid out
   if (TREND) {
-    selectedWeights = WEIGHTS_UP;
+    selectedWeights = config?.WEIGHTS_UP;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
-    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC[chainId]);
-  } else if (!TREND) {
-    selectedWeights = WEIGHTS_DOWN;
+    await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, config?.USDC, config);
+  } else if (!config?.TREND) {
+    selectedWeights = config?.WEIGHTS_DOWN;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
-    await rebalancePortfolio(dexWallet, TOKENS, selectedWeights, USDC[chainId]);
+    await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, config?.USDC, config);
   }
 
   const fs = require("fs");
@@ -146,7 +131,9 @@ async function executeRebalance(chainId: number) {
 }
 
 async function main() {
-  await rebalancer(SELECTED_CHAINID); //
+  const config = await updateConfig();
+
+  await rebalancer(config); //
 }
 
 main().catch(error => {
