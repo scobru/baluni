@@ -269,7 +269,6 @@ export async function rebalancePortfolio(
       const tokenPriceInUSDT: any = await fetchPrices(_token, config); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
-
       if (token === usdcAddress) {
         pc.log("SKIP USDC SELL");
         break;
@@ -278,7 +277,6 @@ export async function rebalancePortfolio(
       tokensToSell.push({ token, amount: tokenAmountToSell });
     } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
       // For buying, we can use valueToRebalance directly as we will be spending USDT
-
       if (token === usdcAddress) {
         pc.log("SKIP USDC SELL");
         break;
@@ -495,7 +493,7 @@ async function getTokenValueEnhanced(
   if (config?.YEARN_ENABLED && yearnBalance) {
     effectiveBalance = yearnBalance.add(interestAccrued).add(tokenBalance);
   }
-  return tokenSymbol === "USDC"
+  return tokenSymbol === "USDC.E" || tokenSymbol === "USDC"
     ? effectiveBalance.mul(1e12)
     : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, config);
 }

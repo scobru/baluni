@@ -15,7 +15,7 @@ export const TOKENS = [
   "1INCH", // 1INCH,
   "CRV", // CRV
   "LDO", // LDO
-  "USDC", // USDC
+  "USDC.E", // USDC
 ];
 export const WEIGHTS_UP = {
   LINK: 1250,
@@ -27,7 +27,7 @@ export const WEIGHTS_UP = {
   "1INCH": 500,
   CRV: 500,
   LDO: 500,
-  USDC: 250,
+  USDC.E: 250,
 };
 export const WEIGHTS_DOWN = {
   LINK: 0,
@@ -39,7 +39,7 @@ export const WEIGHTS_DOWN = {
   "1INCH": 0,
   CRV: 0,
   LDO: 0,
-  USDC: 7000,
+  "USDC.E": 7000,
 };
 
 // YEARN
