@@ -7,7 +7,7 @@ dotenv.config();
 
 async function postRequest() {
   const url =
-    "http://localhost:3001/swap/0x3c499c542cef5e3811e1192ce70d8cc03d5c3359/0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174/0xb33EaAd8d922B1083446DC23f610c2567fB5180f/false/uni-v3/137/1000000";
+    "http://localhost:3002/swap/0x8aA5F726d9F868a21a8bd748E2f1E43bA31eb670/0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174/0xb33EaAd8d922B1083446DC23f610c2567fB5180f/false/uni-v3/137/0";
 
   const response = await fetch(url, {
     method: "POST",
@@ -26,6 +26,7 @@ async function postRequest() {
   const batcher = new ethers.Contract("0xA7d0bdC6235a745d283aCF6b036b54E77AFFCAd5", BatcherABI, wallet);
 
   Promise.resolve(await data);
+
   const dataParsed = JSON.parse(JSON.stringify(data));
 
   const gasPrice = await provider.getFeeData();
@@ -39,11 +40,25 @@ async function postRequest() {
     gasLimit: 5000000,
   };
 
+  const calldataWithGasUni = {
+    to: dataParsed?.approvalToUni?.to,
+    value: dataParsed?.approvalToUni?.value,
+    data: dataParsed?.approvalToUni?.data,
+    gasPrice: String(gasPrice?.gasPrice),
+    gasLimit: 5000000,
+  };
+
   const txApprove = await wallet.sendTransaction(calldataWithGas);
   const result = await waitForTx(provider, txApprove?.hash);
 
   console.log(calldataWithGas);
-  console.log("Approve result:", result);
+  console.log("Approve: ", result);
+
+  const txApproveUni = await wallet.sendTransaction(calldataWithGasUni);
+  const resultUni = await waitForTx(provider, txApproveUni?.hash);
+
+  console.log(calldataWithGasUni);
+  console.log("Approve Uni: ", resultUni);
 
   const calldataWithGasTransferFrom = {
     to: dataParsed?.transferFromTx?.to,
@@ -63,7 +78,7 @@ async function postRequest() {
     data: dataParsed?.swapTx?.data,
   };
 
-  const txSwap = await batcher?.multicall(
+  const tx = await batcher?.multicall(
     [calldataWithGasTransferFrom, calldataApproveRouterToUni, calldataSwapRouterToUni],
     {
       gasLimit: 8000000,
@@ -71,12 +86,13 @@ async function postRequest() {
     },
   );
 
-  const broadcaster = await waitForTx(provider, await txSwap?.hash);
-  console.log(broadcaster);
+  const broadcaster = await waitForTx(provider, await tx?.hash);
+
+  console.log("Batcher: ", broadcaster);
 }
 
 async function getRequest() {
-  await postRequest().catch(console.error);
+  await postRequest();
 }
 
-getRequest().catch(console.error);
+getRequest();

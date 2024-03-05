@@ -15,6 +15,7 @@ const prettyConsole = loadPrettyConsole();
 export async function swap(dexWallet: DexWallet, pair: [string, string], reverse?: boolean) {
   const config = await updateConfig();
   const { wallet, walletAddress, walletBalance, providerGasPrice, walletProvider } = dexWallet;
+  
   const chainId = walletProvider.network.chainId;
 
   prettyConsole.log(walletAddress + ":", walletBalance.toBigInt());
@@ -91,6 +92,7 @@ export async function swap(dexWallet: DexWallet, pair: [string, string], reverse
     minimumAmountB, // BigNumber.from(0),
     BigNumber.from(0),
   ];
+  
 
   const swapTxResponse = await callContractMethod(
     swapRouterContract,
