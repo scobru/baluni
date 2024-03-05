@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import * as Config from "../config-api";
+import { writeConfig } from "../api/api";
 
 // Definizione del tipo per la risposta attesa
 interface ConfigResponse {
@@ -85,7 +86,8 @@ export async function updateConfig(tokens: string[], _weights: { [token: string]
     };
 
     // Esegui la richiesta POST
-    const response = await axios.post<ConfigResponse>("https://baluni-api.scobrudot.dev/write-config", payload);
+    //const response = await axios.post<ConfigResponse>("https://baluni-api.scobrudot.dev/write-config", payload);
+    const response = await writeConfig(payload);
 
     // Gestisci la risposta
     console.log("Configurazione aggiornata:", response.data);

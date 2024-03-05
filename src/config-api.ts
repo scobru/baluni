@@ -27,7 +27,7 @@ export const WEIGHTS_UP = {
   "1INCH": 500,
   CRV: 500,
   LDO: 500,
-  USDC.E: 250,
+  "USDC.E": 250,
 };
 export const WEIGHTS_DOWN = {
   LINK: 0,

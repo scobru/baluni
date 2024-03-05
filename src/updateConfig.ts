@@ -1,5 +1,4 @@
-import axios from "axios";
-
+import { writeConfig } from "./api/api";
 import * as Config from "./config-api";
 
 // Definizione del tipo per la risposta attesa
@@ -85,12 +84,13 @@ export async function updateConfig() {
     };
 
     // Esegui la richiesta POST
-    const response = await axios.post<ConfigResponse>("https://baluni-api.scobrudot.dev/write-config", payload);
+    //const response = await axios.post<ConfigResponse>("https://baluni-api.scobrudot.dev/write-config", payload);
+    const response = await writeConfig(payload);
 
     // Gestisci la risposta
-    console.log("Configurazione aggiornata:", response.data);
+    console.log("Configurazione aggiornata:", response);
 
-    return response.data;
+    return response;
   } catch (error) {
     console.error("Si è verificato un errore durante l'aggiornamento della configurazione:", error);
   }
