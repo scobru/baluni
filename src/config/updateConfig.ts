@@ -1,4 +1,4 @@
-import { writeConfig } from "./api/api";
+import { writeConfig } from "../api/api";
 import * as Config from "./config-api";
 
 // Definizione del tipo per la risposta attesa

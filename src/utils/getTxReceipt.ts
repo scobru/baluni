@@ -1,6 +1,6 @@
 import { initializeWallet } from "./dexWallet";
 import { promisify } from "util";
-import { updateConfig } from "../updateConfig";
+import { updateConfig } from "../config/updateConfig";
 
 const txHash = process.argv[2];
 

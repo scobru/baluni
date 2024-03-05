@@ -1,5 +1,5 @@
 // import chalk from "chalk";
-import ERC20_ABI from "../abis/ERC20.json";
+import ERC20_ABI from "../abis/common/ERC20.json";
 import { loadPrettyConsole } from "./prettyConsole";
 import { ethers } from "ethers";
 

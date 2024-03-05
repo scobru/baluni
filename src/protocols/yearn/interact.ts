@@ -1,11 +1,11 @@
-import YEARN_VAULT_ABI from "./contracts/YEARN_VAULT.json";
-import ERC20ABI from "./contracts/ERC20.json";
+import YEARN_VAULT_ABI from "../../abis/yearn/YearnVault.json";
+import ERC20ABI from "../../abis/common/ERC20.json";
 import { BigNumber, ContractInterface, ethers } from "ethers";
-import { DexWallet } from "../utils/dexWallet";
-import { approveToken } from "../utils/approveToken";
-import { loadPrettyConsole } from "../utils/prettyConsole";
-import { callContractMethod } from "../utils/contractUtils";
-import { waitForTx } from "../utils/networkUtils";
+import { DexWallet } from "../../utils/dexWallet";
+import { approveToken } from "../../utils/approveToken";
+import { loadPrettyConsole } from "../../utils/prettyConsole";
+import { callContractMethod } from "../../utils/contractUtils";
+import { waitForTx } from "../../utils/networkUtils";
 
 const pc = loadPrettyConsole();
 

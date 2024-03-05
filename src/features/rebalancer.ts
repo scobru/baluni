@@ -1,9 +1,9 @@
-import { initializeWallet } from "./utils/dexWallet";
-import { rebalancePortfolio } from "./uniswap/rebalance";
-import { predict } from "./predict/predict";
-import { PrettyConsole } from "./utils/prettyConsole";
-import { welcomeMessage } from "./welcome";
-import { updateConfig } from "./updateConfig";
+import { initializeWallet } from "../utils/dexWallet";
+import { rebalancePortfolio } from "../scripts/uniswap/rebalance";
+import { predict } from "../prediction/predict";
+import { PrettyConsole } from "../utils/prettyConsole";
+import { welcomeMessage } from "../welcome";
+import { updateConfig } from "../config/updateConfig";
 
 const prettyConsole = new PrettyConsole();
 

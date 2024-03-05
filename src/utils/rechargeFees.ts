@@ -3,7 +3,7 @@ import { formatEther, parseEther } from "ethers/lib/utils";
 import { unwrapETH } from "./wrapEth";
 import { getTokenBalance } from "./getTokenBalance";
 import { loadPrettyConsole } from "./prettyConsole";
-import { redeemFromYearn } from "../yearn/interact";
+import { redeemFromYearn } from "../protocols/yearn/interact";
 import { DexWallet } from "./dexWallet";
 
 const pc = loadPrettyConsole();

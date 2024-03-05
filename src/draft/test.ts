@@ -1,7 +1,7 @@
 import fetch from "node-fetch";
-import BatcherABI from "./abis/Batcher.json";
+import BatcherABI from "../abis/Batcher.json";
 import { ethers } from "ethers";
-import { waitForTx } from "./utils/networkUtils";
+import { waitForTx } from "../utils/networkUtils";
 import dotenv from "dotenv";
 dotenv.config();
 

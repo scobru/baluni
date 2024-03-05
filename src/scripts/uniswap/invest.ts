@@ -1,10 +1,10 @@
 import { BigNumber, Contract } from "ethers";
-import { DexWallet } from "../utils/dexWallet";
-import { swapCustom } from "./rebalanceYearn";
+import { DexWallet } from "../../utils/dexWallet";
+import { swapCustom } from "../uniswap-yearn/rebalanceYearn";
 import { swap } from "./swap";
-import erc20Abi from "../abis/ERC20.json";
+import erc20Abi from "../../abis/common/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
-import { loadPrettyConsole } from "../utils/prettyConsole";
+import { loadPrettyConsole } from "../../utils/prettyConsole";
 
 const prettyConsole = loadPrettyConsole();
 

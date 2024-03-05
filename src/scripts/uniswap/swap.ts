@@ -1,21 +1,20 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../utils/dexWallet";
-import { callContractMethod } from "../utils/contractUtils";
-import { waitForTx } from "../utils/networkUtils";
-import erc20Abi from "../abis/ERC20.json";
-import swapRouterAbi from "../abis/SwapRouter.json";
-import { PrettyConsole } from "../utils/prettyConsole";
-import quoterAbi from "../abis/Quoter.json";
+import { DexWallet } from "../../utils/dexWallet";
+import { callContractMethod } from "../../utils/contractUtils";
+import { waitForTx } from "../../utils/networkUtils";
+import erc20Abi from "../../abis/common/ERC20.json";
+import swapRouterAbi from "../../abis/uniswap/SwapRouter.json";
+import quoterAbi from "../../abis/uniswap/Quoter.json";
 import { formatEther, parseEther } from "ethers/lib/utils";
-import { loadPrettyConsole } from "../utils/prettyConsole";
-import { updateConfig } from "../updateConfig";
+import { loadPrettyConsole } from "../../utils/prettyConsole";
+import { updateConfig } from "../../config/updateConfig";
 
 const prettyConsole = loadPrettyConsole();
 
 export async function swap(dexWallet: DexWallet, pair: [string, string], reverse?: boolean) {
   const config = await updateConfig();
   const { wallet, walletAddress, walletBalance, providerGasPrice, walletProvider } = dexWallet;
-  
+
   const chainId = walletProvider.network.chainId;
 
   prettyConsole.log(walletAddress + ":", walletBalance.toBigInt());
@@ -92,7 +91,6 @@ export async function swap(dexWallet: DexWallet, pair: [string, string], reverse
     minimumAmountB, // BigNumber.from(0),
     BigNumber.from(0),
   ];
-  
 
   const swapTxResponse = await callContractMethod(
     swapRouterContract,

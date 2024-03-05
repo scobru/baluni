@@ -1,8 +1,8 @@
-import { initializeWallet } from "./utils/dexWallet";
-import { invest } from "./uniswap/invest";
-import { rechargeFees } from "./utils/rechargeFees";
-import { loadPrettyConsole } from "./utils/prettyConsole";
-import { updateConfig } from "./updateConfig";
+import { initializeWallet } from "../utils/dexWallet";
+import { invest } from "../scripts/uniswap/invest";
+import { rechargeFees } from "../utils/rechargeFees";
+import { loadPrettyConsole } from "../utils/prettyConsole";
+import { updateConfig } from "../config/updateConfig";
 
 const prettyConsole = loadPrettyConsole();
 

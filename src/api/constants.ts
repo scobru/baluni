@@ -24,9 +24,9 @@ type GeneralCOnfig = {
 
 export const INFRA: InfraConfig = {
   "137": {
-    BATCHER: "0xA7d0bdC6235a745d283aCF6b036b54E77AFFCAd5"
-  }
-}
+    BATCHER: "0xA7d0bdC6235a745d283aCF6b036b54E77AFFCAd5",
+  },
+};
 
 export const PROTOCOLS: GeneralCOnfig = {
   "137": {
