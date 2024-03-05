@@ -4,11 +4,17 @@ export type TokenConfig = {
   };
 };
 
+export type InfraConfig = {
+  [chainId: string]: {
+    [contractName: string]: string;
+  };
+};
+
 type NetworkConfig = {
   [chainId: string]: string;
 };
 
-type ProtocolConfig = {
+type GeneralCOnfig = {
   [chainId: string]: {
     [protocolName: string]: {
       [contractName: string]: string;
@@ -16,15 +22,13 @@ type ProtocolConfig = {
   };
 };
 
-type OracleConfig = {
-  [chainId: string]: {
-    [protocolName: string]: {
-      [contractName: string]: string;
-    };
-  };
-};
+export const INFRA: InfraConfig = {
+  "137": {
+    BATCHER: "0xA7d0bdC6235a745d283aCF6b036b54E77AFFCAd5"
+  }
+}
 
-export const PROTOCOLS: ProtocolConfig = {
+export const PROTOCOLS: GeneralCOnfig = {
   "137": {
     "uni-v3": {
       ROUTER: "0xE592427A0AEce92De3Edee1F18E0157C05861564",
@@ -34,7 +38,7 @@ export const PROTOCOLS: ProtocolConfig = {
   },
 };
 
-export const ORACLE: OracleConfig = {
+export const ORACLE: GeneralCOnfig = {
   "137": {
     "1inch-spot-agg": {
       OFFCHAINORACLE: "0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8",
