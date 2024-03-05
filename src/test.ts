@@ -7,7 +7,7 @@ dotenv.config();
 
 async function postRequest() {
   const url =
-    "http://localhost:3002/swap/0x8aA5F726d9F868a21a8bd748E2f1E43bA31eb670/0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174/0xb33EaAd8d922B1083446DC23f610c2567fB5180f/false/uni-v3/137/0";
+    "http://localhost:3001/swap/0x8aA5F726d9F868a21a8bd748E2f1E43bA31eb670/0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174/0xb33EaAd8d922B1083446DC23f610c2567fB5180f/true/uni-v3/137/0";
 
   const response = await fetch(url, {
     method: "POST",
@@ -27,25 +27,23 @@ async function postRequest() {
 
   Promise.resolve(await data);
 
-  const dataParsed = JSON.parse(JSON.stringify(data));
-
   const gasPrice = await provider.getFeeData();
 
   // Approve To Router
   const calldataWithGas = {
-    to: dataParsed?.approvalToRouter?.to,
-    value: dataParsed?.approvalToRouter?.value,
-    data: dataParsed?.approvalToRouter?.data,
+    to: data?.approvalSenderToRouter?.to,
+    value: data?.approvalSenderToRouter?.value,
+    data: data?.approvalSenderToRouter?.data,
     gasPrice: String(gasPrice?.gasPrice),
-    gasLimit: 5000000,
+    gasLimit: 10000000,
   };
 
   const calldataWithGasUni = {
-    to: dataParsed?.approvalToUni?.to,
-    value: dataParsed?.approvalToUni?.value,
-    data: dataParsed?.approvalToUni?.data,
+    to: data?.approvalSenderToUni?.to,
+    value: data?.approvalSenderToUni?.value,
+    data: data?.approvalSenderToUni?.data,
     gasPrice: String(gasPrice?.gasPrice),
-    gasLimit: 5000000,
+    gasLimit: 10000000,
   };
 
   const txApprove = await wallet.sendTransaction(calldataWithGas);
@@ -61,33 +59,32 @@ async function postRequest() {
   console.log("Approve Uni: ", resultUni);
 
   const calldataWithGasTransferFrom = {
-    to: dataParsed?.transferFromTx?.to,
-    value: dataParsed?.transferFromTx?.value,
-    data: dataParsed?.transferFromTx?.data,
+    to: data?.transferFromSenderToRouter?.to,
+    value: data?.transferFromSenderToRouter?.value,
+    data: data?.transferFromSenderToRouter?.data,
   };
 
   const calldataApproveRouterToUni = {
-    to: dataParsed?.approvalRouterToUni?.to,
-    value: dataParsed?.approvalRouterToUni?.value,
-    data: dataParsed?.approvalRouterToUni?.data,
+    to: data?.approvalRouterToUni?.to,
+    value: data?.approvalRouterToUni?.value,
+    data: data?.approvalRouterToUni?.data,
   };
 
   const calldataSwapRouterToUni = {
-    to: dataParsed?.swapTx?.to,
-    value: dataParsed?.swapTx?.value,
-    data: dataParsed?.swapTx?.data,
+    to: data?.swapRouterToUni?.to,
+    value: data?.swapRouterToUni?.value,
+    data: data?.swapRouterToUni?.data,
   };
 
   const tx = await batcher?.multicall(
     [calldataWithGasTransferFrom, calldataApproveRouterToUni, calldataSwapRouterToUni],
     {
-      gasLimit: 8000000,
+      gasLimit: 10000000,
       gasPrice: String(gasPrice?.gasPrice),
     },
   );
 
   const broadcaster = await waitForTx(provider, await tx?.hash);
-
   console.log("Batcher: ", broadcaster);
 }
 
