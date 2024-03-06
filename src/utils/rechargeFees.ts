@@ -25,10 +25,12 @@ export async function rechargeFees(dexWallet: DexWallet, config: any) {
       config?.WRAPPED,
     );
 
+    console.log("YEARN_VAULTS.WMATIC", config?.YEARN_VAULTS.WMATIC);
+
     const balanceWMATIC_YEARN = await getTokenBalance(
       dexWallet.walletProvider,
       dexWallet.walletAddress,
-      config?.YEARN_VAULTS.WMATIC,
+      config?.YEARN_VAULTS?.WMATIC,
     );
 
     pc.info("BALANCE WNATIVE", formatEther(balanceWNATIVEB4.toString()));
