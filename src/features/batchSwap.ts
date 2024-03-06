@@ -1,0 +1,37 @@
+import { batchSwap } from "../scripts/uniswap/swap";
+import { DexWallet, initializeWallet } from "../utils/dexWallet";
+import { loadPrettyConsole } from "../utils/prettyConsole";
+import { updateConfig } from "../config/updateConfig";
+const prettyConsole = loadPrettyConsole();
+
+const main = async () => {
+  const config = await updateConfig();
+  const dexWallet: DexWallet = await initializeWallet(config?.NETWORKS as string);
+
+  const swaps = [
+    {
+      dexWallet: dexWallet,
+      token0: "USDC.E",
+      token1: "UNI",
+      reverse: false,
+      protocol: "uni-v3",
+      chainId: "137",
+      amount: 0.0001,
+    },
+    {
+      dexWallet: dexWallet,
+      token0: "WMATIC",
+      token1: "UNI",
+      reverse: true,
+      protocol: "uni-v3",
+      chainId: "137",
+      amount: 0.0001,
+    },
+  ];
+
+  await batchSwap(swaps);
+};
+
+main().then(() => {
+  prettyConsole.log("Async operation completed");
+});

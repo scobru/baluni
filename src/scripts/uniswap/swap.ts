@@ -1,15 +1,8 @@
-import { BigNumber, Contract, ethers } from "ethers";
+import { ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
-import { callContractMethod } from "../../utils/contractUtils";
 import { waitForTx } from "../../utils/networkUtils";
-import erc20Abi from "../../abis/common/ERC20.json";
-import swapRouterAbi from "../../abis/uniswap/SwapRouter.json";
-import quoterAbi from "../../abis/uniswap/Quoter.json";
-import barcherAbi from "../../abis/Batcher.json";
-import { formatEther, parseEther } from "ethers/lib/utils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { updateConfig } from "../../config/updateConfig";
-import { INFRA } from "../../api/constants";
+import { INFRA, BASEURL } from "../../api/constants";
 import routerAbi from "../../abis/Router.json";
 const pc = loadPrettyConsole();
 
@@ -114,7 +107,7 @@ export async function swap(
   chainId: string,
   amount: number,
 ) {
-  const url = `http://localhost:3001/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
+  const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -130,7 +123,7 @@ export async function swap(
 
   const routerAddress = INFRA[chainId].ROUTER;
 
-  const wallet = new ethers.Wallet(process.env.PRIVATE_KEY as string, provider);
+  const wallet = dexWallet.wallet;
   const data = await response.json().then(data => data);
   const router = new ethers.Contract(routerAddress, routerAbi, dexWallet.wallet);
 
@@ -138,86 +131,147 @@ export async function swap(
 
   const gasPrice = await provider.getFeeData();
 
-  if (data.Approvals) {
-    if (Object.keys(data.Approvals.UNIROUTER).length > 0) {
-      const approveTxRouter = {
-        to: data?.Approvals["UNIROUTER"]?.to,
-        value: data?.Approvals["UNIROUTER"]?.value,
-        data: data?.Approvals["UNIROUTER"]?.data,
-        gasPrice: String(gasPrice?.gasPrice),
-        gasLimit: 10000000,
-      };
+  if (data.Approvals && data.Approvals.length > 0) {
+    for (const approval of data.Approvals) {
+      if (approval && Object.keys(approval).length > 0) {
+        const approveTx = {
+          to: approval.to,
+          value: approval.value,
+          data: approval.data,
+          gasPrice: String(gasPrice?.gasPrice),
+          gasLimit: 10000000,
+        };
 
-      const txApproveRouter = await wallet.sendTransaction(approveTxRouter);
-      const resultApproveRouter = await waitForTx(provider, txApproveRouter?.hash);
-
-      pc.log("Approve Router: ", resultApproveRouter);
-    }
-
-    if (Object.keys(data.Approvals.AGENT).length > 0) {
-      const approveTxAgent = {
-        to: data?.Approvals["AGENT"]?.to,
-        value: data?.Approvals["AGENT"]?.value,
-        data: data?.Approvals["AGENT"]?.data,
-        gasPrice: String(gasPrice?.gasPrice),
-        gasLimit: 10000000,
-      };
-      const txApproveAgent = await wallet.sendTransaction(approveTxAgent);
-      const resultApproveAgent = await waitForTx(provider, txApproveAgent?.hash);
-
-      pc.log("Approve Agent: ", resultApproveAgent);
+        try {
+          // Invio della transazione di approvazione
+          const txApprove = await wallet.sendTransaction(approveTx);
+          const resultApprove = await waitForTx(provider, txApprove?.hash);
+          pc.log("Approval Transaction Result: ", resultApprove);
+        } catch (error) {
+          pc.error("Approval Transaction Error: ", error);
+        }
+      }
     }
   }
 
-  const transferFromSenderToAgent = {
-    to: data?.Calldatas?.transferFromSenderToAgent?.to,
-    value: data?.Calldatas?.transferFromSenderToAgent?.value,
-    data: data?.Calldatas?.transferFromSenderToAgent?.data,
-  };
-
-  const approvalAgentToRouter = {
-    to: data?.Calldatas?.approvalAgentToRouter?.to,
-    value: data?.Calldatas?.approvalAgentToRouter?.value,
-    data: data?.Calldatas?.approvalAgentToRouter?.data,
-  };
-
-  const swapAgentToRouter = {
-    to: data?.Calldatas?.swapAgentToRouter?.to,
-    value: data?.Calldatas?.swapAgentToRouter?.value,
-    data: data?.Calldatas?.swapAgentToRouter?.data,
-  };
-
-  // simulate tx
+  // Supponendo che data.Calldatas sia ora un array di oggetti
+  const calldatasArray = data.Calldatas.map((calldata: { to: any; value: any; data: any }) => ({
+    to: calldata.to,
+    value: calldata.value,
+    data: calldata.data,
+  }));
 
   const TokensReturn = await data?.TokensReturn;
-  console.log(TokensReturn);
 
-  /* try {
-    const simulationResult = await router?.callStatic?.execute(
-      [transferFromSenderToAgent, approvalAgentToRouter, swapAgentToRouter],
-      TokensReturn,
-      {
-        gasLimit: 10000000,
-        gasPrice: String(gasPrice?.gasPrice),
-      },
-    );
-    pc.log("Simulation successful:", simulationResult);
-  } catch (error) {
-    pc.error("Simulation failed:", error);
-    return; // Abort if simulation fails
-  }
+  pc.log(TokensReturn);
+  console.log(calldatasArray);
 
-  return; */
-
-  const tx = await router?.execute(
-    [transferFromSenderToAgent, approvalAgentToRouter, swapAgentToRouter],
-    TokensReturn,
-    {
+  try {
+    // Simulazione della transazione utilizzando callStatic per eseguire senza consumare gas
+    const simulationResult = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
       gasLimit: 10000000,
       gasPrice: String(gasPrice?.gasPrice),
-    },
-  );
+    });
+    pc.log("Simulation successful:", simulationResult);
+  } catch (error) {
+    console.error("Simulation failed:", error);
+    return; // Interrompe l'esecuzione se la simulazione fallisce
+  }
 
-  const broadcaster = await waitForTx(provider, await tx?.hash);
-  pc.log("Batcher: ", broadcaster);
+  // Esecuzione effettiva della transazione dopo una simulazione di successo
+  const tx = await router?.execute(calldatasArray, TokensReturn, {
+    gasLimit: 10000000,
+    gasPrice: String(gasPrice?.gasPrice),
+  });
+
+  // Attesa della ricevuta della transazione
+  const txReceipt = await waitForTx(provider, await tx?.hash);
+  pc.log("Transaction executed, receipt:", txReceipt);
+}
+
+export async function batchSwap(
+  swaps: Array<{
+    dexWallet: DexWallet;
+    token0: string;
+    token1: string;
+    reverse: boolean;
+    protocol: string;
+    chainId: string;
+    amount: number;
+  }>,
+) {
+  const provider = swaps[0].dexWallet.wallet.provider;
+  const gasPrice = await provider.getFeeData();
+  const wallet = swaps[0].dexWallet.wallet;
+  const routerAddress = INFRA[swaps[0].chainId].ROUTER;
+  const router = new ethers.Contract(routerAddress, routerAbi, wallet);
+
+  let allApprovals = [];
+  let allCalldatas = [];
+  let allTokensReturn = [];
+
+  for (const swap of swaps) {
+    const url = `${BASEURL}/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
+
+    const response = await fetch(url, { method: "POST" });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    if (data.Approvals && data.Approvals.length > 0) {
+      allApprovals.push(...data.Approvals);
+    }
+
+    if (data.Calldatas && data.Calldatas.length > 0) {
+      allCalldatas.push(...data.Calldatas);
+    }
+
+    if (data.TokensReturn && data.TokensReturn.length > 0) {
+      allTokensReturn.push(...data.TokensReturn);
+    }
+  }
+
+  // Gestione delle approvazioni (potrebbe essere necessario consolidare le approvazioni per lo stesso token)
+  for (const approval of allApprovals) {
+    const approveTx = {
+      to: approval.to,
+      value: approval.value,
+      data: approval.data,
+      gasPrice: String(gasPrice?.gasPrice),
+      gasLimit: 10000000,
+    };
+
+    try {
+      const txApprove = await wallet.sendTransaction(approveTx);
+      await txApprove.wait();
+      console.log("Approval Transaction Result: ", txApprove.hash);
+    } catch (error) {
+      console.error("Approval Transaction Error: ", error);
+    }
+  }
+
+  // Simulazione della transazione utilizzando callStatic per eseguire senza consumare gas
+  try {
+    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
+      gasLimit: 10000000,
+      gasPrice: String(gasPrice?.gasPrice),
+    });
+    console.log("Simulation successful:", simulationResult);
+  } catch (error) {
+    console.error("Simulation failed:", error);
+    return; // Interrompe l'esecuzione se la simulazione fallisce
+  }
+
+  // Esecuzione effettiva della transazione dopo una simulazione di successo
+  const tx = await router.execute(allCalldatas, allTokensReturn, {
+    gasLimit: 10000000,
+    gasPrice: String(gasPrice?.gasPrice),
+  });
+
+  // Attesa della ricevuta della transazione
+  const txReceipt = await tx.wait();
+  console.log("Transaction executed, receipt:", txReceipt.transactionHash);
 }
