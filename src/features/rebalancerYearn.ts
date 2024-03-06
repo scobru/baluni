@@ -6,14 +6,17 @@ import { welcomeMessage } from "../welcome";
 import { updateConfig } from "../config/updateConfig";
 
 const prettyConsole = new PrettyConsole();
+
 prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
 async function rebalancer(config: any) {
   welcomeMessage();
+  console.log("config", config);
 
   await executeRebalance(config);
+
   try {
     setInterval(async () => {
       try {
@@ -132,8 +135,7 @@ async function executeRebalance(config: any) {
 
 async function main() {
   const config = await updateConfig();
-
-  await rebalancer(config); //
+  await rebalancer(config);
 }
 
 main().catch(error => {
