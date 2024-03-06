@@ -10,6 +10,9 @@ const pc = loadPrettyConsole();
 
 export async function rechargeFees(dexWallet: DexWallet, config: any) {
   try {
+    console.log("NATIVE", config?.NATIVE);
+    console.log("WRAPPED", config?.WRAPPED);
+
     const { balance: balanceNATIVEB4, formatted: balanceNATIVEB4Formatted } = await getTokenBalance(
       dexWallet.walletProvider,
       dexWallet.walletAddress,
