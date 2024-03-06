@@ -42,6 +42,8 @@ interface ConfigResponse {
   EMA_FAST: number;
   EMA_SLOW: number;
   VWAP_PERIOD: number;
+  YEARN_ENABLED: boolean;
+  YEARN_VAULTS: string[];
 }
 
 export async function updateConfig() {
