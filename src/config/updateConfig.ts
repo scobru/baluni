@@ -1,51 +1,6 @@
 import { writeConfig } from "./writeConfig";
 import * as Config from "./config-api";
 
-// Definizione del tipo per la risposta attesa
-interface ConfigResponse {
-  TOKENS: string[];
-  WEIGHTS_UP: Record<string, number>;
-  WEIGHTS_DOWN: Record<string, number>;
-  USDC: string;
-  NATIVE: string;
-  WRAPPED: string;
-  WETH: string;
-  ORACLE: string;
-  ROUTER: string;
-  QUOTER: string;
-  FACTORY: string;
-  NETWORKS: string;
-  LIMIT: number;
-  SLIPPAGE: number;
-  INTERVAL: number;
-  MAX_APPROVAL: boolean;
-  INVESTMENT_INTERVAL: number;
-  INVESTMENT_AMOUNT: number;
-  TREND_FOLLOWING: boolean;
-  KST_TIMEFRAME: string;
-  PREDICTION: boolean;
-  PREDICTION_PERIOD: number;
-  PREDICTION_EPOCHS: number;
-  PREDICTION_SYMBOL: string;
-  PREDICTION_ALGO: string;
-  TECNICAL_ANALYSIS: boolean;
-  RSI_PERIOD: number;
-  RSI_OVERBOUGHT: number;
-  RSI_OVERSOLD: number;
-  RSI_TIMEFRAME: string;
-  STOCKRSI_PERIOD: number;
-  STOCKRSI_OVERBOUGHT: number;
-  STOCKRSI_OVERSOLD: number;
-  EMA_TIMEFRAME: string;
-  EMA_PERIOD: number;
-  EMA_SYMBOL: string;
-  EMA_FAST: number;
-  EMA_SLOW: number;
-  VWAP_PERIOD: number;
-  YEARN_ENABLED: boolean;
-  YEARN_VAULTS: any;
-}
-
 export async function updateConfig() {
   try {
     // Dati da inviare all'API
