@@ -8,6 +8,7 @@ const token0 = String(process.argv[2]);
 const token1 = String(process.argv[3]);
 const action = process.argv[4];
 const protocol = String(process.argv[5]);
+yar;
 const chainId = process.argv[6];
 const amount = process.argv[7];
 
