@@ -43,7 +43,7 @@ interface ConfigResponse {
   EMA_SLOW: number;
   VWAP_PERIOD: number;
   YEARN_ENABLED: boolean;
-  YEARN_VAULTS: string[];
+  YEARN_VAULTS: any;
 }
 
 export async function updateConfig() {
