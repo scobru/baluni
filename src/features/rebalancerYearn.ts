@@ -13,8 +13,6 @@ prettyConsole.useIcons = true;
 
 async function rebalancer(config: any) {
   welcomeMessage();
-  console.log("config", config);
-
   await executeRebalance(config);
 
   try {
