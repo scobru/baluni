@@ -25,7 +25,7 @@ export async function rechargeFees(dexWallet: DexWallet, config: any) {
       config?.WRAPPED,
     );
 
-    console.log("YEARN_VAULTS.WMATIC", config?.YEARN_VAULTS.WMATIC);
+    console.log("YEARN_VAULTS.WMATIC", config?.YEARN_VAULTS);
 
     const balanceWMATIC_YEARN = await getTokenBalance(
       dexWallet.walletProvider,
