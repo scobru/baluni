@@ -1,4 +1,4 @@
-import { writeConfig } from "../api/api";
+import { writeConfig } from "./writeConfig";
 import * as Config from "./config-api";
 
 // Definizione del tipo per la risposta attesa
@@ -83,8 +83,6 @@ export async function updateConfig() {
       vwapPeriod: Config.VWAP_PERIOD,
     };
 
-    // Esegui la richiesta POST
-    //const response = await axios.post<ConfigResponse>("https://baluni-api.scobrudot.dev/write-config", payload);
     const response = await writeConfig(payload);
 
     // Gestisci la risposta
