@@ -31,7 +31,7 @@ export async function wrapETH(dexWallet: DexWallet, amount: string, config: any)
 
 export async function unwrapETH(dexWallet: DexWallet, amount: string, config: any) {
   const signer = dexWallet.wallet;
-  const wethContract = new ethers.Contract(config?.WNATIVE, WETH_ABI, signer);
+  const wethContract = new ethers.Contract(config?.WRAPPED, WETH_ABI, signer);
 
   console.log(`Unwrapping ${amount} WNATIVE...`);
   const withdrawTx = await wethContract.withdraw(ethers.utils.parseEther(amount));

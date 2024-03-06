@@ -40,9 +40,9 @@ export async function getTokenValue(
     prettyConsole.log(
       `🔤 Token Symbol: ${tokenSymbol}`,
       `📄 Token: ${token}`,
-      `👛 Balance:${_balance}`,
-      `📈 Price:${price?.toString()}`,
-      `💵 Value:${formatEther(value.toString())}`,
+      `👛 Balance: ${_balance}`,
+      `📈 Price: ${price?.toString()}`,
+      `💵 Value: ${formatEther(value.toString())}`,
     );
     return value;
   }

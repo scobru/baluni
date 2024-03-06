@@ -22,7 +22,12 @@ export async function getAmountOut(
       0,
     );
 
-    prettyConsole.log(`Amount A: ${swapAmount.toString()}`, `Expected amount B: ${expectedAmountB.toString()}`);
+    prettyConsole.log(
+      `Amount A: ${swapAmount.toString()}`,
+      `Expected amount B: ${expectedAmountB.toString()}`,
+      `Pool Fee: ${poolFee}`,
+      `Slippage Tolerance: ${slippageTolerance}`,
+    );
 
     let minimumAmountB = expectedAmountB.mul(10000 - slippageTolerance).div(10000);
 
@@ -62,7 +67,7 @@ export async function getPoolFee(
   tokenBAddress: string,
   swapAmount: BigNumber,
   quoterContract: Contract,
-  config:any
+  config: any,
 ): Promise<number> {
   const poolFees = [100, 500, 3000, 10000];
   let bestPoolFee = 0;
@@ -71,7 +76,7 @@ export async function getPoolFee(
   for (const _poolFee of poolFees) {
     let minimumAmountB = await getAmountOut(tokenAAddress, tokenBAddress, _poolFee, swapAmount, quoterContract, config);
 
-    if (minimumAmountB && (minimumAmountBSoFar === null || minimumAmountB.lt(minimumAmountBSoFar))) {
+    if (minimumAmountB && (minimumAmountBSoFar === null || minimumAmountB.gt(minimumAmountBSoFar))) {
       bestPoolFee = _poolFee;
       minimumAmountBSoFar = minimumAmountB;
     }

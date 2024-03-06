@@ -29,8 +29,6 @@ async function postRequest() {
   Promise.resolve(await data);
 
   const gasPrice = await provider.getFeeData();
-  let txPermitRouter;
-  let txPermitBatcher;
 
   if (data.Approvals) {
     if (Object.keys(data.Approvals.ROUTER).length > 0) {

@@ -15,7 +15,7 @@ async function investor() {
   try {
     const dexWallet = await initializeWallet(String(config?.NETWORKS));
     await rechargeFees(dexWallet, config);
-    // Initialize your DexWallet here
+
     await invest(dexWallet, config?.WEIGHTS_UP as any, String(config?.USDC), config?.TOKENS as any, sellAll);
     prettyConsole.log("Investing operation completed");
   } catch (error) {
