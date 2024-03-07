@@ -107,6 +107,7 @@ export async function swap(
   chainId: string,
   amount: number,
 ) {
+  // METHOD 1
   // const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
 
   // const response = await fetch(url, {
@@ -116,8 +117,11 @@ export async function swap(
   // if (!response.ok) {
   //   throw new Error(`HTTP error! status: ${response.status}`);
   // }
+  //const data = await response.json().then(data => data);
 
+  // METHOD 2
   const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
+  console.log(token0AddressUrl);
 
   let response = await fetch(token0AddressUrl, {
     method: "GET",
@@ -126,7 +130,7 @@ export async function swap(
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  const token0Address = await response.json().then(data => data);
+  const token0Info = await response.json().then(data => data);
 
   const token1AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token1}`;
   response = await fetch(token1AddressUrl, {
@@ -136,13 +140,12 @@ export async function swap(
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-
-  const token1Address = await response.json().then(data => data);
+  const token1Info = await response.json().then(data => data);
 
   const data = await swapUniV3(
     dexWallet?.walletAddress,
-    String(token0Address),
-    String(token1Address),
+    String(token0Info.address),
+    String(token1Info.address),
     String(reverse),
     protocol,
     Number(chainId),
@@ -156,10 +159,9 @@ export async function swap(
   const routerAddress = INFRA[chainId].ROUTER;
 
   const wallet = dexWallet.wallet;
-  //const data = await response.json().then(data => data);
   const router = new ethers.Contract(routerAddress, infraRouterAbi, dexWallet.wallet);
 
-  Promise.resolve(await data);
+  Promise.resolve(data);
 
   const gasPrice = await provider.getFeeData();
 
