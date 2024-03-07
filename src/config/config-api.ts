@@ -4,6 +4,8 @@ type ConfigTypeYearn = {
   [key: number]: { [key: string]: any };
 };
 
+export const SELECTED_PROTOCOL = "uni-v3";
+
 export const SELECTED_CHAINID = 137;
 export const TOKENS = [
   "LINK", // LINK

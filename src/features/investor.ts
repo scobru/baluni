@@ -6,9 +6,8 @@ import { updateConfig } from "../config/updateConfig";
 
 const prettyConsole = loadPrettyConsole();
 
-const protocol = process.argv[3];
-const amount = String(process.argv[4]);
-const sellAll = Boolean(process.argv[5]);
+const amount = String(process.argv[3]);
+const sellAll = Boolean(process.argv[4]);
 
 async function investor() {
   const config = await updateConfig();
@@ -25,7 +24,7 @@ async function investor() {
       config?.TOKENS as any,
       sellAll,
       amount,
-      protocol,
+      config?.SELECTED_PROTOCOL,
       config?.SELECTED_CHAINID,
     );
     prettyConsole.log("Investing operation completed");

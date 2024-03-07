@@ -38,6 +38,7 @@ export async function updateConfig() {
       emaFast: Config.EMA_FAST,
       emaSlow: Config.EMA_SLOW,
       vwapPeriod: Config.VWAP_PERIOD,
+      selectedProtocol: Config.SELECTED_PROTOCOL,
     };
 
     const response = await writeConfig(payload);

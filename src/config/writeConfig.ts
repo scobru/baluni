@@ -123,6 +123,7 @@ export async function writeConfig(config: any): Promise<any> {
     EMA_SLOW: config.emaSlow,
     VWAP_PERIOD: config.vwapPeriod,
     SELECTED_CHAINID: config.chainId,
+    SELECTED_PROTOCOL: config.selectedProtocol,
   };
 }
 
