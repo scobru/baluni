@@ -117,10 +117,32 @@ export async function swap(
   //   throw new Error(`HTTP error! status: ${response.status}`);
   // }
 
+  const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
+
+  let response = await fetch(token0AddressUrl, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const token0Address = await response.json().then(data => data);
+
+  const token1AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token1}`;
+  response = await fetch(token1AddressUrl, {
+    method: "GET",
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  const token1Address = await response.json().then(data => data);
+
   const data = await swapUniV3(
     dexWallet?.walletAddress,
-    token0,
-    token1,
+    String(token0Address),
+    String(token1Address),
     String(reverse),
     protocol,
     Number(chainId),
