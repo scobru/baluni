@@ -1,10 +1,10 @@
+import infraRouterAbi from "baluni-api/dist/abis/infra/Router.json";
 import { ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
 import { waitForTx } from "../../utils/networkUtils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { INFRA, BASEURL } from "../../api/constants";
-import routerAbi from "../../abis/Router.json";
 const pc = loadPrettyConsole();
+import { INFRA, BASEURL, swapUniV3 } from "baluni-api";
 
 /* export async function swap(dexWallet: DexWallet, pair: [string, string], reverse?: boolean) {
   const config = await updateConfig();
@@ -107,15 +107,25 @@ export async function swap(
   chainId: string,
   amount: number,
 ) {
-  const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
+  // const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
 
-  const response = await fetch(url, {
-    method: "POST",
-  });
+  // const response = await fetch(url, {
+  //   method: "POST",
+  // });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
+  // if (!response.ok) {
+  //   throw new Error(`HTTP error! status: ${response.status}`);
+  // }
+
+  const data = await swapUniV3(
+    dexWallet?.walletAddress,
+    token0,
+    token1,
+    String(reverse),
+    protocol,
+    Number(chainId),
+    amount,
+  );
 
   const provider = new ethers.providers.JsonRpcProvider(
     "https://polygon-mainnet.g.alchemy.com/v2/nPBTC9lNonD1KsZGmuXSRGfVh6O63x2_",
@@ -124,14 +134,14 @@ export async function swap(
   const routerAddress = INFRA[chainId].ROUTER;
 
   const wallet = dexWallet.wallet;
-  const data = await response.json().then(data => data);
-  const router = new ethers.Contract(routerAddress, routerAbi, dexWallet.wallet);
+  //const data = await response.json().then(data => data);
+  const router = new ethers.Contract(routerAddress, infraRouterAbi, dexWallet.wallet);
 
   Promise.resolve(await data);
 
   const gasPrice = await provider.getFeeData();
 
-  if (data.Approvals && data.Approvals.length > 0) {
+  if (data?.Approvals && data?.Approvals.length > 0) {
     for (const approval of data.Approvals) {
       if (approval && Object.keys(approval).length > 0) {
         const approveTx = {
@@ -155,7 +165,7 @@ export async function swap(
   }
 
   // Supponendo che data.Calldatas sia ora un array di oggetti
-  const calldatasArray = data.Calldatas.map((calldata: { to: any; value: any; data: any }) => ({
+  const calldatasArray = data?.Calldatas.map((calldata: { to: any; value: any; data: any }) => ({
     to: calldata.to,
     value: calldata.value,
     data: calldata.data,
@@ -204,7 +214,7 @@ export async function batchSwap(
   const gasPrice = await provider.getFeeData();
   const wallet = swaps[0].dexWallet.wallet;
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
-  const router = new ethers.Contract(routerAddress, routerAbi, wallet);
+  const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet);
 
   let allApprovals = [];
   let allCalldatas = [];

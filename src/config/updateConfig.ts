@@ -43,7 +43,7 @@ export async function updateConfig() {
     const response = await writeConfig(payload);
 
     // Gestisci la risposta
-    console.log("Configurazione aggiornata:", response);
+    // console.log("Configurazione aggiornata:", response);
 
     return response;
   } catch (error) {
