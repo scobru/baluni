@@ -8,6 +8,8 @@
     "build": "npx tsc",
     "rebalance": "npx ts-node src/features/rebalancer.ts",
     "rebalance-yearn": "npx ts-node src/features/rebalancerYearn.ts",
+    "rebalance-yearn-batched": "npx ts-node src/features/rebalancerYearnBatched.ts",
+
     "invest": "npx ts-node src/features/investor.ts",
     "dca": "npx ts-node src/dca.ts",
     "prediction": "npx ts-node src/prediction.ts",

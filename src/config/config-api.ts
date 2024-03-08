@@ -64,7 +64,7 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
 };
 
 // REBALANCE SETTINGS
-export const LIMIT = 50; // 1%
+export const LIMIT = 10; // 10/10000 = 0.1%
 export const SLIPPAGE = 50; // 1%
 export const INTERVAL = 300; // 1 minute
 export const MAX_APPROVAL = true;

@@ -108,49 +108,50 @@ export async function swap(
   amount: number,
 ) {
   // METHOD 1
-  // const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
+  const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
 
-  // const response = await fetch(url, {
-  //   method: "POST",
+  const response = await fetch(url, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  const data = await response.json().then(data => data);
+
+  // METHOD 2
+
+  //  const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
+  // console.log(token0AddressUrl);
+
+  // let response = await fetch(token0AddressUrl, {
+  //   method: "GET",
   // });
 
   // if (!response.ok) {
   //   throw new Error(`HTTP error! status: ${response.status}`);
   // }
-  //const data = await response.json().then(data => data);
+  // const token0Info = await response.json().then(data => data);
 
-  // METHOD 2
-  const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
-  console.log(token0AddressUrl);
+  // const token1AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token1}`;
+  // response = await fetch(token1AddressUrl, {
+  //   method: "GET",
+  // });
 
-  let response = await fetch(token0AddressUrl, {
-    method: "GET",
-  });
+  // if (!response.ok) {
+  //   throw new Error(`HTTP error! status: ${response.status}`);
+  // }
+  // const token1Info = await response.json().then(data => data);
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const token0Info = await response.json().then(data => data);
-
-  const token1AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token1}`;
-  response = await fetch(token1AddressUrl, {
-    method: "GET",
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const token1Info = await response.json().then(data => data);
-
-  const data = await swapUniV3(
-    dexWallet?.walletAddress,
-    String(token0Info.address),
-    String(token1Info.address),
-    String(reverse),
-    protocol,
-    Number(chainId),
-    amount,
-  );
+  // const data = await swapUniV3(
+  //   dexWallet?.walletAddress,
+  //   String(token0Info.address),
+  //   String(token1Info.address),
+  //   String(reverse),
+  //   protocol,
+  //   Number(chainId),
+  //   amount,
+  // );
 
   const provider = new ethers.providers.JsonRpcProvider(
     "https://polygon-mainnet.g.alchemy.com/v2/nPBTC9lNonD1KsZGmuXSRGfVh6O63x2_",
@@ -164,6 +165,9 @@ export async function swap(
   Promise.resolve(data);
 
   const gasPrice = await provider.getFeeData();
+  // calculate the gas price
+  // const gasPrice = await provider.getFeeData();
+  // calculate the gas limit for the transaction
 
   if (data?.Approvals && data?.Approvals.length > 0) {
     for (const approval of data.Approvals) {
@@ -173,7 +177,7 @@ export async function swap(
           value: approval.value,
           data: approval.data,
           gasPrice: String(gasPrice?.gasPrice),
-          gasLimit: 10000000,
+          gasLimit: 30000000,
         };
 
         try {
@@ -203,7 +207,7 @@ export async function swap(
   try {
     // Simulazione della transazione utilizzando callStatic per eseguire senza consumare gas
     const simulationResult = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
-      gasLimit: 10000000,
+      gasLimit: 30000000,
       gasPrice: String(gasPrice?.gasPrice),
     });
     pc.log("Simulation successful:", simulationResult);
@@ -214,7 +218,7 @@ export async function swap(
 
   // Esecuzione effettiva della transazione dopo una simulazione di successo
   const tx = await router?.execute(calldatasArray, TokensReturn, {
-    gasLimit: 10000000,
+    gasLimit: 30000000,
     gasPrice: String(gasPrice?.gasPrice),
   });
 
@@ -234,7 +238,9 @@ export async function batchSwap(
     amount: number;
   }>,
 ) {
-  const provider = swaps[0].dexWallet.wallet.provider;
+  console.log("____________________________________________________Batch Swap");
+
+  const provider = swaps[0].dexWallet?.wallet.provider;
   const gasPrice = await provider.getFeeData();
   const wallet = swaps[0].dexWallet.wallet;
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
@@ -246,7 +252,6 @@ export async function batchSwap(
 
   for (const swap of swaps) {
     const url = `${BASEURL}/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
-
     const response = await fetch(url, { method: "POST" });
 
     if (!response.ok) {
@@ -275,7 +280,7 @@ export async function batchSwap(
       value: approval.value,
       data: approval.data,
       gasPrice: String(gasPrice?.gasPrice),
-      gasLimit: 10000000,
+      gasLimit: 30000000,
     };
 
     try {
@@ -290,7 +295,7 @@ export async function batchSwap(
   // Simulazione della transazione utilizzando callStatic per eseguire senza consumare gas
   try {
     const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
-      gasLimit: 10000000,
+      gasLimit: 30000000,
       gasPrice: String(gasPrice?.gasPrice),
     });
     console.log("Simulation successful:", simulationResult);
@@ -301,11 +306,13 @@ export async function batchSwap(
 
   // Esecuzione effettiva della transazione dopo una simulazione di successo
   const tx = await router.execute(allCalldatas, allTokensReturn, {
-    gasLimit: 10000000,
+    gasLimit: 30000000,
     gasPrice: String(gasPrice?.gasPrice),
   });
 
   // Attesa della ricevuta della transazione
   const txReceipt = await tx.wait();
   console.log("Transaction executed, receipt:", txReceipt.transactionHash);
+
+  return txReceipt;
 }
