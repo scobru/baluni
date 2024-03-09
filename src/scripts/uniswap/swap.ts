@@ -3,16 +3,9 @@ import { ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
 import { waitForTx } from "../../utils/networkUtils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-const pc = loadPrettyConsole();
-import /* buildSwap, buildBatchSwap */ "baluni-api";
+import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
-import {
-  /* batchSwapUniV3, swapUniV3, */ buildSwap,
-  buildBatchSwap,
-  NETWORKS,
-  INFRA,
-  BASEURL,
-} from "../../../../baluni-api/dist";
+const pc = loadPrettyConsole();
 
 export async function swap(
   dexWallet: DexWallet,
@@ -164,8 +157,8 @@ export async function batchSwap(
 
   await Promise.all(
     swaps.map(async swap => {
-      //const token0AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`;
-      const token0AddressUrl = `http://localhost:3001/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`;
+      const token0AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`;
+      //const token0AddressUrl = `http://localhost:3001/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`;
 
       let response = await fetch(token0AddressUrl, {
         method: "GET",
@@ -176,8 +169,8 @@ export async function batchSwap(
       }
       const token0Info = await response.json().then(data => data);
 
-      //const token1AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`;
-      const token1AddressUrl = `http://localhost:3001/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`;
+      const token1AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`;
+      //const token1AddressUrl = `http://localhost:3001/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`;
 
       response = await fetch(token1AddressUrl, {
         method: "GET",
