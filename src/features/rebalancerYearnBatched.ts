@@ -13,6 +13,7 @@ prettyConsole.useIcons = true;
 
 async function rebalancer(config: any) {
   welcomeMessage();
+
   await executeRebalance(config);
 
   try {

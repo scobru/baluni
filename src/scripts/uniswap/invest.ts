@@ -1,6 +1,5 @@
 import { BigNumber, Contract } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
-import { swapCustom } from "../uniswap-yearn/rebalanceYearn";
 import { swap } from "./swap";
 import erc20Abi from "../../abis/common/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
@@ -17,6 +16,7 @@ export async function invest(
   buyAmount: string,
   protocol: string,
   chainId: any,
+  slippage: number,
 ) {
   const tokenContract = new Contract(usdtAddress, erc20Abi, dexWallet.wallet);
   let usdBalance: BigNumber = await tokenContract.balanceOf(dexWallet.wallet.address);
@@ -40,7 +40,7 @@ export async function invest(
       if (tokenBalance > BigNumber.from(0)) {
         prettyConsole.log("Selling", token);
         const balanceString = token.decimals == 6 ? tokenBalance.div(1e6) : tokenBalance.div(1e18);
-        await swap(dexWallet, token, "USDC.E", false, protocol, chainId, Number(balanceString));
+        await swap(dexWallet, token, "USDC.E", false, protocol, chainId, String(balanceString), slippage);
         await new Promise(resolve => setTimeout(resolve, 10000));
       } else {
         prettyConsole.log("No Balance for", token);
@@ -62,7 +62,7 @@ export async function invest(
       //await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
       const balanceString = tokenAmount.div(1e6);
 
-      await swap(dexWallet, token, "USDC.E", true, protocol, chainId, Number(balanceString));
+      await swap(dexWallet, token, "USDC.E", true, protocol, chainId, String(balanceString), slippage);
       await new Promise(resolve => setTimeout(resolve, 10000));
     }
   }

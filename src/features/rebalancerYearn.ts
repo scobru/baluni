@@ -14,6 +14,7 @@ prettyConsole.useIcons = true;
 
 async function rebalancer(config: any) {
   welcomeMessage();
+
   await executeRebalance(config);
 
   try {
@@ -43,7 +44,7 @@ async function executeRebalance(config: any) {
   const { kstCross, getDetachSourceFromOHLCV } = require("trading-indicator");
 
   let kstResult;
-  
+
   if (TREND_FOLLOWING) {
     // Get input data from Binance for BTC/USDT pair with 1h interval
     const { input } = await getDetachSourceFromOHLCV("binance", "BTC/USDT", config?.KST_TIMEFRAME, false);

@@ -26,6 +26,7 @@ async function investor() {
       amount,
       config?.SELECTED_PROTOCOL,
       config?.SELECTED_CHAINID,
+      Number(config?.SLIPPAGE),
     );
     prettyConsole.log("Investing operation completed");
   } catch (error) {
