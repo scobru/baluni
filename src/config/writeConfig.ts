@@ -1,5 +1,5 @@
 //import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "baluni-api";
-import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "../../../baluni-api/dist";
+import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "baluni-api";
 
 interface YearnVault {
   address: string;
