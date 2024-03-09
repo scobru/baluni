@@ -245,7 +245,7 @@ export async function batchSwap(
 
     // Simulazione della transazione utilizzando callStatic per eseguire senza consumare gas
     try {
-      const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn);
+      const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, { gasLimit: 8000000 });
 
       pc.log("Simulation successful:", simulationResult);
     } catch (error) {
@@ -255,7 +255,7 @@ export async function batchSwap(
     }
 
     try {
-      const tx = await router.execute(allCalldatas, allTokensReturn);
+      const tx = await router.execute(allCalldatas, allTokensReturn, { gasLimit: 8000000 });
 
       const broadcaster = await waitForTx(provider, tx.hash);
       pc.log("Transaction executed", broadcaster);

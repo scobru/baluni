@@ -1,4 +1,3 @@
-//import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "baluni-api";
 import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "baluni-api";
 
 interface YearnVault {
@@ -27,7 +26,7 @@ interface YearnVault {
   boosted: boolean;
 }
 
-const TOKENS_URL = "https://tokens.uniswap.org";
+const TOKENS_URL = "https://gateway.ipfs.io/ipns/tokens.uniswap.org";
 
 export async function writeConfig(config: any): Promise<any> {
   const updatedWeightsDown: Record<string, number> = {};
