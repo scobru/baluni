@@ -6,7 +6,8 @@ import { updateConfig } from "../config/updateConfig";
 
 const prettyConsole = loadPrettyConsole();
 
-const sellAll = Boolean(process.argv[3]);
+const amount = String(process.argv[3]);
+const sellAll = Boolean(process.argv[4]);
 
 async function investor() {
   const config = await updateConfig();
@@ -16,7 +17,17 @@ async function investor() {
     const dexWallet = await initializeWallet(String(config?.NETWORKS));
     await rechargeFees(dexWallet, config);
 
-    await invest(dexWallet, config?.WEIGHTS_UP as any, String(config?.USDC), config?.TOKENS as any, sellAll);
+    await invest(
+      dexWallet,
+      config?.WEIGHTS_UP as any,
+      String(config?.USDC),
+      config?.TOKENS as any,
+      sellAll,
+      amount,
+      config?.SELECTED_PROTOCOL,
+      config?.SELECTED_CHAINID,
+      Number(config?.SLIPPAGE),
+    );
     prettyConsole.log("Investing operation completed");
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);

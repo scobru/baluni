@@ -1,4 +1,5 @@
-import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "../api/constants";
+//import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "baluni-api";
+import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS } from "baluni-api";
 
 interface YearnVault {
   address: string;
@@ -23,10 +24,10 @@ interface YearnVault {
   };
   kind: string;
   version?: string;
-  boosted: boolean; // Assuming there's a version field, adjust based on actual API response
+  boosted: boolean;
 }
 
-const TOKENS_URL = "https://gateway.ipfs.io/ipns/tokens.uniswap.org";
+const TOKENS_URL = "https://tokens.uniswap.org";
 
 export async function writeConfig(config: any): Promise<any> {
   const updatedWeightsDown: Record<string, number> = {};
@@ -123,6 +124,7 @@ export async function writeConfig(config: any): Promise<any> {
     EMA_SLOW: config.emaSlow,
     VWAP_PERIOD: config.vwapPeriod,
     SELECTED_CHAINID: config.chainId,
+    SELECTED_PROTOCOL: config.selectedProtocol,
   };
 }
 

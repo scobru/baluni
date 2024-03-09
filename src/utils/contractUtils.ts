@@ -81,7 +81,7 @@ export async function callContractMethod(
 }
 
 // Funzione per leggere le transazioni da un file
-function readTransactions() {
+export function readTransactions() {
   try {
     const txData = fs.readFileSync(TX_FILE);
     return JSON.parse(txData as any);
@@ -92,7 +92,7 @@ function readTransactions() {
 }
 
 // Funzione per scrivere le transazioni in un file
-function writeTransactions(transactions: any) {
+export function writeTransactions(transactions: any) {
   try {
     fs.writeFileSync(TX_FILE, JSON.stringify(transactions, null, 2));
   } catch (e) {
@@ -100,7 +100,7 @@ function writeTransactions(transactions: any) {
   }
 }
 
-async function updateTransactionStatus(provider: ethers.providers.JsonRpcProvider) {
+export async function updateTransactionStatus(provider: ethers.providers.JsonRpcProvider) {
   let transactions = readTransactions();
   let updatedTransactions = [];
 

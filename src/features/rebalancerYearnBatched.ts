@@ -1,10 +1,9 @@
 import { initializeWallet } from "../utils/dexWallet";
-import { rebalancePortfolio } from "../scripts/uniswap-yearn/rebalanceYearn";
+import { rebalancePortfolio } from "../scripts/uniswap-yearn/rebalanceYearnBatched";
 import { predict } from "../prediction/predict";
 import { PrettyConsole } from "../utils/prettyConsole";
 import { welcomeMessage } from "../welcome";
 import { updateConfig } from "../config/updateConfig";
-import { PREDICTION, TREND_FOLLOWING } from "../config/config-api";
 
 const prettyConsole = new PrettyConsole();
 
@@ -45,7 +44,7 @@ async function executeRebalance(config: any) {
 
   let kstResult;
 
-  if (TREND_FOLLOWING) {
+  if (config?.TREND_FOLLOWING) {
     // Get input data from Binance for BTC/USDT pair with 1h interval
     const { input } = await getDetachSourceFromOHLCV("binance", "BTC/USDT", config?.KST_TIMEFRAME, false);
 

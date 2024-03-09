@@ -27,6 +27,9 @@ async function dca() {
           config?.TOKENS as any,
           false,
           config?.INVESTMENT_AMOUNT,
+          config?.SELECTED_PROTOCOL,
+          config?.NETWORKS,
+          Number(config?.SLIPPAGE),
         );
         prettyConsole.log("Invested part of funds, continuing DCA");
       } catch (error) {

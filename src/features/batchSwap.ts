@@ -16,7 +16,8 @@ const main = async () => {
       reverse: false,
       protocol: "uni-v3",
       chainId: "137",
-      amount: 0.0001,
+      amount: "0.0001", // Change the type of amount from number to string
+      slippage: 100,
     },
     {
       dexWallet: dexWallet,
@@ -25,7 +26,8 @@ const main = async () => {
       reverse: true,
       protocol: "uni-v3",
       chainId: "137",
-      amount: 0.0001,
+      amount: "0.0001", // Change the type of amount from number to string
+      slippage: 100,
     },
   ];
 

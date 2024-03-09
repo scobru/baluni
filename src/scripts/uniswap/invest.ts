@@ -1,11 +1,10 @@
 import { BigNumber, Contract } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
-import { swapCustom } from "../uniswap-yearn/rebalanceYearn";
 import { swap } from "./swap";
 import erc20Abi from "../../abis/common/ERC20.json";
 import { formatEther } from "ethers/lib/utils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-
+import { getTokenAddressUniV3 } from "~~/src/utils/getTokenAddress";
 const prettyConsole = loadPrettyConsole();
 
 export async function invest(
@@ -14,7 +13,10 @@ export async function invest(
   usdtAddress: string,
   desiredTokens: string[],
   sellAll: boolean,
-  buyAmount?: Number,
+  buyAmount: string,
+  protocol: string,
+  chainId: any,
+  slippage: number,
 ) {
   const tokenContract = new Contract(usdtAddress, erc20Abi, dexWallet.wallet);
   let usdBalance: BigNumber = await tokenContract.balanceOf(dexWallet.wallet.address);
@@ -30,13 +32,15 @@ export async function invest(
   }
 
   if (sellAll) {
-    for (const token of desiredTokens) {
+    for (const _token of desiredTokens) {
+      const token = await getTokenAddressUniV3(_token, chainId);
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
       const tokenBalance: BigNumber = await tokenContract.balanceOf(dexWallet.wallet.address);
       prettyConsole.log("Balance for", token, "is", formatEther(tokenBalance));
       if (tokenBalance > BigNumber.from(0)) {
         prettyConsole.log("Selling", token);
-        await swap(dexWallet, [token, usdtAddress], false);
+        const balanceString = token.decimals == 6 ? tokenBalance.div(1e6) : tokenBalance.div(1e18);
+        await swap(dexWallet, token, "USDC.E", false, protocol, chainId, String(balanceString), slippage);
         await new Promise(resolve => setTimeout(resolve, 10000));
       } else {
         prettyConsole.log("No Balance for", token);
@@ -44,7 +48,8 @@ export async function invest(
     }
   }
 
-  for (const token of desiredTokens) {
+  for (const _token of desiredTokens) {
+    const token = await getTokenAddressUniV3(_token, chainId);
     if (buyAmount) {
       usdBalance = BigNumber.from(buyAmount).mul(1e6);
     }
@@ -54,7 +59,10 @@ export async function invest(
 
     // Swap USDT for the current token based on its allocation
     if (!tokenAmount.isZero()) {
-      await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
+      //await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
+      const balanceString = tokenAmount.div(1e6);
+
+      await swap(dexWallet, token, "USDC.E", true, protocol, chainId, String(balanceString), slippage);
       await new Promise(resolve => setTimeout(resolve, 10000));
     }
   }
