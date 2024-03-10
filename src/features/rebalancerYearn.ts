@@ -125,16 +125,19 @@ async function executeRebalance(config: any) {
 
   const fs = require("fs");
   const path = require("path");
-
-  // date and time
   const date = new Date();
   const kstResultPath = path.join(__dirname, "kstResult.txt");
 
-  fs.writeFileSync(
-    kstResultPath,
-    JSON.stringify({ KST: kstResult, AI: signalAI, selectedWeights: selectedWeights, time: date }),
-    "utf-8",
-  );
+  let results = [];
+  if (fs.existsSync(kstResultPath)) {
+    const data = fs.readFileSync(kstResultPath, "utf-8");
+    results = JSON.parse(data);
+  }
+
+  const newResult = { KST: kstResult, AI: signalAI, selectedWeights: selectedWeights, time: date };
+  results.push(newResult);
+
+  fs.writeFileSync(kstResultPath, JSON.stringify(results), "utf-8");
 }
 
 async function main() {

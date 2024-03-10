@@ -1,22 +1,42 @@
 import { ethers } from "ethers";
 import { loadPrettyConsole } from "./prettyConsole";
 
-const prettyConsole = loadPrettyConsole();
+const pc = loadPrettyConsole();
+const MAX_ATTEMPTS = 50;
+const POLLING_INTERVAL = 5000;
 
-export async function waitForTx(provider: ethers.providers.Provider, hash: string): Promise<boolean> {
+export async function waitForTx(provider: ethers.providers.Provider, hash: string, sender: string): Promise<boolean> {
+  pc.log(`Waiting for TX ${hash} to be broadcasted`);
   let txReceipt: ethers.providers.TransactionReceipt | null = null;
-  let count = 0;
+  let attempts = 0;
+  let lastNonce = await provider.getTransactionCount(sender, "latest");
 
-  while (!txReceipt && count < 20) {
-    txReceipt = await provider.getTransactionReceipt(hash);
-    await new Promise(resolve => setTimeout(resolve, 5000));
-    count++;
+  while (!txReceipt && attempts < MAX_ATTEMPTS) {
+    try {
+      txReceipt = await provider.getTransactionReceipt(hash);
+      let currentNonce = await provider.getTransactionCount(sender, "latest");
+
+      if (currentNonce > lastNonce && !txReceipt) {
+        pc.error(`TX ${hash} dropped`);
+        return false;
+      }
+
+      lastNonce = currentNonce;
+    } catch (error) {
+      console.error(`Error getting transaction receipt: ${error}`);
+    }
+
+    if (!txReceipt) {
+      await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
+      attempts++;
+    }
   }
 
   if (txReceipt) {
-    prettyConsole.success(`TX ${hash} broadcasted`);
+    pc.success(`TX ${hash} broadcasted`);
     return true;
+  } else {
+    pc.error(`TX ${hash} not broadcasted after ${MAX_ATTEMPTS} attempts`);
+    return false;
   }
-
-  return false;
 }

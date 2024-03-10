@@ -29,7 +29,7 @@ export async function approveToken(
       gasPrice,
     );
 
-    const broadcasted = await waitForTx(dexWallet.wallet.provider, approvalResult.hash);
+    const broadcasted = await waitForTx(dexWallet.wallet.provider, approvalResult.hash, dexWallet.wallet.address);
 
     if (!broadcasted) {
       throw new Error(`TX broadcast timeout for ${approvalResult.hash}`);

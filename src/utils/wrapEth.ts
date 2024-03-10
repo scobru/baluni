@@ -23,7 +23,7 @@ export async function wrapETH(dexWallet: DexWallet, amount: string, config: any)
     value: ethers.utils.parseEther(amount),
   });
   prettyConsole.success("Done! Tx Hash:", depositTx.hash);
-  await waitForTx(dexWallet.wallet.provider, depositTx.hash);
+  await waitForTx(dexWallet.wallet.provider, depositTx.hash, dexWallet.wallet.address);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
   console.log(chalk.green(`Wrapped ${amount} NATIVE into ${ethers.utils.formatUnits(wethBalance, 18)} WNATIVE`));
@@ -36,7 +36,7 @@ export async function unwrapETH(dexWallet: DexWallet, amount: string, config: an
   console.log(`Unwrapping ${amount} WNATIVE...`);
   const withdrawTx = await wethContract.withdraw(ethers.utils.parseEther(amount));
   prettyConsole.success("Done! Tx Hash:", withdrawTx.hash);
-  await waitForTx(dexWallet.wallet.provider, withdrawTx.hash);
+  await waitForTx(dexWallet.wallet.provider, withdrawTx.hash, dexWallet.wallet.address);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
   console.log(chalk.green(`Unwrapped ${amount} WNATIVE into ${ethers.utils.formatUnits(wethBalance, 18)} NATIVE`));

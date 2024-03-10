@@ -2,7 +2,7 @@ import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
 import erc20Abi from "../../abis/common/ERC20.json";
 import { formatEther, formatUnits } from "ethers/lib/utils";
-import { fetchPrices } from "../../protocols/1inch/quote1Inch";
+import { fetchPrices } from "../../utils/quote1Inch";
 import { rechargeFees } from "../../utils/rechargeFees";
 import { getTokenMetadata } from "../../utils/getTokenMetadata";
 import { getTokenBalance } from "../../utils/getTokenBalance";

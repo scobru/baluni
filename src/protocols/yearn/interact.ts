@@ -39,7 +39,7 @@ export async function depositToYearn(
       gasPrice,
     );
 
-    await waitForTx(provider, tx.hash);
+    await waitForTx(provider, tx.hash, dexWallet.wallet.address);
 
     pc.success("Deposited to yearn", amount, "USDC");
   } catch (e) {
@@ -70,7 +70,7 @@ export async function redeemFromYearn(pool: string, amount: BigNumber, dexWallet
       gasPrice,
     );
 
-    await waitForTx(provider, tx.hash);
+    await waitForTx(provider, tx.hash, dexWallet.wallet.address);
   } catch (e) {
     console.log(e);
   }

@@ -37,31 +37,6 @@ export async function getAmountOut(
   }
 }
 
-/* export async function getPoolFee(
-  tokenAAddress: string,
-  tokenBAddress: string,
-  swapAmount: BigNumber,
-  quoterContract: Contract
-): Promise<number> {
-  const poolFees = [100, 500, 3000, 10000];
-  let poolFee = 0;
-  for (const _poolFee of poolFees) {
-    let minimumAmountB = await getAmountOut(
-      tokenAAddress,
-      tokenBAddress,
-      _poolFee,
-      swapAmount,
-      quoterContract
-    );
-
-    if (minimumAmountB) {
-      poolFee = _poolFee;
-    }
-  }
-
-  return poolFee;
-} */
-
 export async function getPoolFee(
   tokenAAddress: string,
   tokenBAddress: string,

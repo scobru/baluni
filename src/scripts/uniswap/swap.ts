@@ -1,11 +1,16 @@
 import infraRouterAbi from "baluni-api/dist/abis/infra/Router.json";
+//import infraAgentAbi from "baluni-api/dist/abis/infra/router.json";
+
 import { ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
 import { waitForTx } from "../../utils/networkUtils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
+
 import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 const pc = loadPrettyConsole();
+
+const gasLimit = 30000000;
 
 export async function swap(
   dexWallet: DexWallet,
@@ -71,20 +76,19 @@ export async function swap(
 
   await Promise.all(data?.Approvals).then(async approvals => {
     if (approvals.length > 0) {
+      pc.log("Sending approvals");
+
       for (const approval of approvals) {
-        const gasPrice = await provider.getFeeData();
         if (approval && Object.keys(approval).length > 0) {
           const approveTx = {
             to: approval.to,
             value: approval.value,
             data: approval.data,
-            gasLimit: 8000000,
-            gasPrice: String(gasPrice?.gasPrice),
           };
 
           try {
             const txApprove = await wallet.sendTransaction(approveTx);
-            const resultApprove = await waitForTx(provider, txApprove?.hash);
+            const resultApprove = await waitForTx(provider, txApprove?.hash, dexWallet.walletAddress);
             pc.log("Approval Transaction Result: ", resultApprove);
           } catch (error) {
             pc.error("Approval Transaction Error: ", error);
@@ -95,8 +99,6 @@ export async function swap(
       pc.log("No approvals required");
     }
   });
-
-  const gasPrice = await provider.getFeeData();
 
   const calldatasArray = await Promise.all(data?.Calldatas).then(async calldatas => {
     calldatas.map((calldata: { to: any; value: any; data: any }) => ({
@@ -113,23 +115,30 @@ export async function swap(
   if (calldatasArray?.length === 0) return pc.error("No calldatas found");
 
   try {
+    console.log("Sending calldatasArray");
     const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
-      gasLimit: 8000000,
-      gasPrice: String(gasPrice?.gasPrice),
+      gasLimit: gasLimit,
+      gasPrice: await provider.getGasPrice(),
     });
     pc.log("Simulation successful:", await simulationResult);
+
+    if (simulationResult === false) {
+      pc.error("Simulation failed");
+      return;
+    }
+
+    pc.log("Executing transaction...");
+    const tx = await router?.execute(calldatasArray, TokensReturn, {
+      gasPrice: await provider.getGasPrice(),
+      gasLimit: gasLimit,
+    });
+    const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
+
+    pc.log("Transaction executed, receipt:", txReceipt);
   } catch (error) {
     console.error("Simulation failed:", error);
     return;
   }
-
-  const tx = await router?.execute(calldatasArray, TokensReturn, {
-    gasLimit: 8000000,
-    gasPrice: String(gasPrice?.gasPrice),
-  });
-  const txReceipt = await waitForTx(provider, await tx?.hash);
-
-  pc.log("Transaction executed, receipt:", txReceipt);
 }
 
 export async function batchSwap(
@@ -146,7 +155,6 @@ export async function batchSwap(
 ) {
   pc.log("Execute Batch Swap");
   const provider = swaps[0].dexWallet?.wallet?.provider;
-  const gasPrice = await provider.getFeeData();
   const wallet = swaps[0].dexWallet.wallet;
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet);
@@ -226,13 +234,11 @@ export async function batchSwap(
           to: (approval as { to: string }).to,
           value: (approval as { value: number }).value!,
           data: (approval as { data: any }).data,
-          gasPrice: String(gasPrice?.gasPrice), // String(gasPrice?.gasPrice),
-          maxFeePerGas: String(gasPrice?.maxFeePerGas),
         };
 
         try {
           const txApprove = await wallet.sendTransaction(approveTx);
-          const broadcaster = await waitForTx(provider, txApprove.hash);
+          const broadcaster = await waitForTx(provider, txApprove.hash, swap.dexWallet.walletAddress);
 
           pc.log("Approval Transaction Result: ", broadcaster);
         } catch (error) {
@@ -243,26 +249,24 @@ export async function batchSwap(
       pc.log("No approvals required");
     }
 
-    // Simulazione della transazione utilizzando callStatic per eseguire senza consumare gas
     try {
-      const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, { gasLimit: 8000000 });
+      const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
+        gasLimit: gasLimit,
+        gasPrice: await provider.getGasPrice(),
+      });
 
       pc.log("Simulation successful:", simulationResult);
+
+      const tx = await router.execute(allCalldatas, allTokensReturn, {
+        gasLimit: gasLimit,
+        gasPrice: await provider.getGasPrice(),
+      });
+
+      const broadcaster = await waitForTx(provider, tx.hash, swap.dexWallet.walletAddress);
+      pc.log("Transaction executed", broadcaster);
     } catch (error) {
       pc.error("Simulation failed:", error);
-
-      return; // Interrompe l'esecuzione se la simulazione fallisce
-    }
-
-    try {
-      const tx = await router.execute(allCalldatas, allTokensReturn, { gasLimit: 8000000 });
-
-      const broadcaster = await waitForTx(provider, tx.hash);
-      pc.log("Transaction executed", broadcaster);
-
-      return broadcaster;
-    } catch (error) {
-      console.error("Transaction failed:", error);
+      return;
     }
   }
 }

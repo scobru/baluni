@@ -37,7 +37,7 @@
     "@uniswap/sdk-core": "^4.0.10",
     "asciichart": "^1.5.25",
     "axios": "^1.6.5",
-    "baluni-api": "^1.3.5",
+    "baluni-api": "^1.3.6",
     "chakl": "^0.0.1-security",
     "cli-chart": "^0.3.1",
     "dotenv": "^16.3.1",
