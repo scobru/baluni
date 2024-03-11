@@ -126,12 +126,17 @@ async function executeRebalance(config: any) {
   const fs = require("fs");
   const path = require("path");
   const date = new Date();
-  const kstResultPath = path.join(__dirname, "kstResult.txt");
+  const kstResultPath = path.join(__dirname, "kstResult.json");
 
   let results = [];
+
   if (fs.existsSync(kstResultPath)) {
     const data = fs.readFileSync(kstResultPath, "utf-8");
-    results = JSON.parse(data);
+    try {
+      results = JSON.parse(data);
+    } catch (error) {
+      console.error(`Error parsing JSON from ${kstResultPath}:`, error);
+    }
   }
 
   const newResult = { KST: kstResult, AI: signalAI, selectedWeights: selectedWeights, time: date };

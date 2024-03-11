@@ -1,17 +1,26 @@
 import infraRouterAbi from "baluni-api/dist/abis/infra/Router.json";
-//import infraAgentAbi from "baluni-api/dist/abis/infra/router.json";
-
 import { ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
 import { waitForTx } from "../../utils/networkUtils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-
 import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
+
+// TEST ONLY
+// import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
 
 const pc = loadPrettyConsole();
 
-const gasLimit = 30000000;
-
+/**
+ * Swaps tokens on a decentralized exchange.
+ * @param dexWallet - The wallet used for the swap.
+ * @param token0 - The address of the first token.
+ * @param token1 - The address of the second token.
+ * @param reverse - Indicates whether to reverse the swap.
+ * @param protocol - The protocol used for the swap.
+ * @param chainId - The chain ID of the network.
+ * @param amount - The amount of tokens to swap.
+ * @param slippage - The slippage tolerance for the swap.
+ */
 export async function swap(
   dexWallet: DexWallet,
   token0: string,
@@ -27,9 +36,11 @@ export async function swap(
   const wallet = dexWallet.wallet;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, dexWallet.wallet);
 
-  // METHOD 1
+  const gasLimit = 8000000;
 
-  //const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
+  // METHOD 1
+  //-------------------------------------------------------------------------------------
+  // const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
   // const url = `http://localhost:3001/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
   // const response = await fetch(url, {
   //   method: "POST",
@@ -40,7 +51,7 @@ export async function swap(
   // const data = await response.json().then(data => data);
 
   // METHOD 2
-
+  //-------------------------------------------------------------------------------------
   const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
 
   let response = await fetch(token0AddressUrl, {
@@ -64,6 +75,7 @@ export async function swap(
   const token1Info = await response.json().then(data => data);
 
   const data = await buildSwap(
+    dexWallet?.wallet,
     dexWallet?.walletAddress,
     String(token0Info.address),
     String(token1Info.address),
@@ -74,20 +86,14 @@ export async function swap(
     slippage,
   );
 
-  await Promise.all(data?.Approvals).then(async approvals => {
+  await Promise.resolve(data?.Approvals).then(async approvals => {
     if (approvals.length > 0) {
       pc.log("Sending approvals");
 
       for (const approval of approvals) {
         if (approval && Object.keys(approval).length > 0) {
-          const approveTx = {
-            to: approval.to,
-            value: approval.value,
-            data: approval.data,
-          };
-
           try {
-            const txApprove = await wallet.sendTransaction(approveTx);
+            const txApprove = await wallet.sendTransaction(approval);
             const resultApprove = await waitForTx(provider, txApprove?.hash, dexWallet.walletAddress);
             pc.log("Approval Transaction Result: ", resultApprove);
           } catch (error) {
@@ -100,16 +106,7 @@ export async function swap(
     }
   });
 
-  const calldatasArray = await Promise.all(data?.Calldatas).then(async calldatas => {
-    calldatas.map((calldata: { to: any; value: any; data: any }) => ({
-      to: calldata.to,
-      value: calldata.value,
-      data: calldata.data,
-    }));
-
-    return calldatas;
-  });
-
+  const calldatasArray = await Promise.all(data?.Calldatas);
   const TokensReturn = data?.TokensReturn;
 
   if (calldatasArray?.length === 0) return pc.error("No calldatas found");
@@ -129,8 +126,8 @@ export async function swap(
 
     pc.log("Executing transaction...");
     const tx = await router?.execute(calldatasArray, TokensReturn, {
-      gasPrice: await provider.getGasPrice(),
       gasLimit: gasLimit,
+      gasPrice: await provider.getGasPrice(),
     });
     const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
 
@@ -154,7 +151,8 @@ export async function batchSwap(
   }>,
 ) {
   pc.log("Execute Batch Swap");
-  const provider = swaps[0].dexWallet?.wallet?.provider;
+
+  const provider = new ethers.providers.JsonRpcProvider(NETWORKS[swaps[0].chainId]);
   const wallet = swaps[0].dexWallet.wallet;
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet);
@@ -194,79 +192,85 @@ export async function batchSwap(
     }),
   );
 
-  for (let swap of swaps) {
-    // const url = `${BASEURL}/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
-    // const url = `http://localhost:3001/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
-    // const response = await fetch(url, { method: "POST" });
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! status: ${response.status}`);
-    // }
-    // const data = await response.json();
+  // const url = `${BASEURL}/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
+  // const url = `http://localhost:3001/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
+  // const response = await fetch(url, { method: "POST" });
+  // if (!response.ok) {
+  //   throw new Error(`HTTP error! status: ${response.status}`);
+  // }
+  // const data = await response.json();
 
-    const data = await buildBatchSwap(
-      swaps.map(swap => ({
-        address: swap.dexWallet.walletAddress,
-        token0: swap.token0,
-        token1: swap.token1,
-        reverse: Boolean(swap.reverse),
-        protocol: swap.protocol,
-        chainId: swap.chainId,
-        amount: String(swap.amount),
-        slippage: swap.slippage,
-      })),
-    );
+  const data = await buildBatchSwap(
+    swaps.map(swap => ({
+      wallet: swap.dexWallet.wallet,
+      address: swap.dexWallet.walletAddress,
+      token0: swap.token0,
+      token1: swap.token1,
+      reverse: Boolean(swap.reverse),
+      protocol: swap.protocol,
+      chainId: swap.chainId,
+      amount: String(swap.amount),
+      slippage: swap.slippage,
+    })),
+  );
 
-    if (data.TokensReturn && data.TokensReturn.length > 0) {
-      allTokensReturn.push(...data.TokensReturn);
-    }
+  if (data.TokensReturn && data.TokensReturn.length > 0) {
+    allTokensReturn.push(...data.TokensReturn);
+  }
 
-    if (data.Approvals && data.Approvals.length > 0) {
-      allApprovals.push(...data.Approvals);
-    }
+  if (data.Approvals && data.Approvals.length > 0) {
+    allApprovals.push(...data.Approvals);
+  }
 
-    if (data.Calldatas && data.Calldatas.length > 0) {
-      allCalldatas.push(...data.Calldatas);
-    }
+  if (data.Calldatas && data.Calldatas.length > 0) {
+    allCalldatas.push(...data.Calldatas);
+  }
 
-    if (allApprovals.length != 0) {
-      for (const approval of allApprovals) {
-        const approveTx = {
-          to: (approval as { to: string }).to,
-          value: (approval as { value: number }).value!,
-          data: (approval as { data: any }).data,
-        };
+  if (allApprovals.length != 0) {
+    for (const approval of allApprovals) {
+      const approveTx = {
+        to: (approval as { to: string }).to,
+        value: (approval as { value: number }).value,
+        data: (approval as { data: any }).data,
+        gasLimit: 8000000,
+        gasPrice: await provider.getGasPrice(),
+      };
 
-        try {
-          const txApprove = await wallet.sendTransaction(approveTx);
-          const broadcaster = await waitForTx(provider, txApprove.hash, swap.dexWallet.walletAddress);
-
-          pc.log("Approval Transaction Result: ", broadcaster);
-        } catch (error) {
-          console.error("Approval Transaction Error: ", error);
-        }
+      try {
+        pc.log("Sending approvals");
+        const txApprove = await wallet.sendTransaction(approveTx);
+        const broadcaster = await waitForTx(
+          swaps[0].dexWallet.walletProvider,
+          txApprove.hash,
+          swaps[0].dexWallet.walletAddress,
+        );
+        pc.log("Approval Transaction Result: ", broadcaster);
+      } catch (error) {
+        console.error("Approval Transaction Error: ", error);
       }
-    } else {
-      pc.log("No approvals required");
     }
+  } else {
+    pc.log("No approvals required");
+  }
 
-    try {
-      const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
-        gasLimit: gasLimit,
-        gasPrice: await provider.getGasPrice(),
-      });
+  try {
+    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn);
 
-      pc.log("Simulation successful:", simulationResult);
+    pc.log("Simulation successful:", simulationResult);
 
+    if (simulationResult) {
       const tx = await router.execute(allCalldatas, allTokensReturn, {
-        gasLimit: gasLimit,
+        gasLimit: 8000000,
         gasPrice: await provider.getGasPrice(),
       });
 
-      const broadcaster = await waitForTx(provider, tx.hash, swap.dexWallet.walletAddress);
+      const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
       pc.log("Transaction executed", broadcaster);
-    } catch (error) {
-      pc.error("Simulation failed:", error);
-      return;
+    } else {
+      pc.error("Simulation failed");
     }
+  } catch (error) {
+    pc.error("Simulation failed:", error);
+    return;
   }
 }

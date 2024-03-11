@@ -7,6 +7,7 @@ const POLLING_INTERVAL = 5000;
 
 export async function waitForTx(provider: ethers.providers.Provider, hash: string, sender: string): Promise<boolean> {
   pc.log(`Waiting for TX ${hash} to be broadcasted`);
+
   let txReceipt: ethers.providers.TransactionReceipt | null = null;
   let attempts = 0;
   let lastNonce = await provider.getTransactionCount(sender, "latest");
@@ -15,6 +16,10 @@ export async function waitForTx(provider: ethers.providers.Provider, hash: strin
     try {
       txReceipt = await provider.getTransactionReceipt(hash);
       let currentNonce = await provider.getTransactionCount(sender, "latest");
+
+      console.log(
+        `🕛 Waiting for TX ${hash} to be broadcasted. Attempts: ${attempts}/${MAX_ATTEMPTS} - Nonce: ${currentNonce} - Last Nonce: ${lastNonce} - Receipt: ${txReceipt}`,
+      );
 
       if (currentNonce > lastNonce && !txReceipt) {
         pc.error(`TX ${hash} dropped`);

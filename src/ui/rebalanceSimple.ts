@@ -116,7 +116,7 @@ export async function swapCustom(
       provider as ethers.providers.JsonRpcProvider,
     );
 
-    const broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash);
+    const broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash, dexWallet.walletAddress);
 
     if (!broadcasted) throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
     pc.success(`Transaction Complete!`);
@@ -141,7 +141,7 @@ export async function swapCustom(
     provider as ethers.providers.JsonRpcProvider,
   );
 
-  let broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash);
+  let broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash, dexWallet.walletAddress);
   if (!broadcasted) throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
   pc.success(`Transaction Complete!`);
 
@@ -282,10 +282,6 @@ export async function rebalancePortfolio(
       break;
     }
     pc.info(`🟩 Buying ${Number(amount) / 1e6} USDC worth of ${token}`);
-
-    const tokenContract = new Contract(token, erc20Abi, provider);
-    const tokenSymbol = await tokenContract.symbol();
-
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
     const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, usdcAddress);

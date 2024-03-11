@@ -19,8 +19,18 @@ import {
 import { swap } from "../uniswap/swap";
 
 const pc = loadPrettyConsole();
-
 let config: any;
+
+type Tswap = {
+  dexWallet: DexWallet;
+  token0: string;
+  token1: string;
+  reverse: boolean;
+  protocol: string;
+  chainId: string;
+  amount: string;
+  slippage: number;
+};
 
 export async function rebalancePortfolio(
   dexWallet: DexWallet,
@@ -31,22 +41,17 @@ export async function rebalancePortfolio(
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
-
   config = customConfig;
 
+  // Recharge Fees
+  // --------------------------------
   await rechargeFees(dexWallet, config);
-  // const chainId = dexWallet.walletProvider.network.chainId;
-
-  const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, usdcAddress);
-  let usdBalance = _usdBalance.balance;
-
-  // let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
   let totalPortfolioValue = BigNumber.from(0);
-
+  let tokenValues: { [token: string]: BigNumber } = {};
   pc.log("🏦 Total Portfolio Value (in USDT) at Start: ", formatEther(totalPortfolioValue));
 
-  let tokenValues: { [token: string]: BigNumber } = {};
-
+  // Calculate the total value of the portfolio
+  // --------------------------------
   for (const token of desiredTokens) {
     let tokenValue;
     const tokenContract = new ethers.Contract(token, erc20Abi, dexWallet.wallet);
@@ -81,16 +86,26 @@ export async function rebalancePortfolio(
   }
 
   pc.log("🏦 Total Portfolio Value (in USDT): ", formatEther(totalPortfolioValue));
-
   let currentAllocations: { [token: string]: number } = {};
+  let tokensToSell = [];
+  let tokensToBuy = [];
+
+  let _swap: Tswap = {
+    dexWallet: dexWallet,
+    token0: "",
+    token1: "",
+    reverse: false,
+    protocol: "",
+    chainId: "",
+    amount: "",
+    slippage: 0,
+  };
 
   Object.keys(tokenValues).forEach(token => {
     currentAllocations[token] = tokenValues[token].mul(10000).div(totalPortfolioValue).toNumber(); // Store as percentage
   });
 
-  let tokensToSell = [];
-  let tokensToBuy = [];
-
+  // Calculate the difference for each token
   for (const token of desiredTokens) {
     const currentAllocation = currentAllocations[token]; // current allocation as percentage
     const desiredAllocation = desiredAllocations[token];
@@ -146,6 +161,7 @@ export async function rebalancePortfolio(
   }
 
   // Sell Tokens
+  // --------------------------------
   for (let { token, amount } of tokensToSell) {
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenDecimals = await tokenContract.decimals();
@@ -181,41 +197,51 @@ export async function rebalancePortfolio(
       config?.TECNICAL_ANALYSIS
     ) {
       const tokenSymbol = await tokenContract.symbol();
-      await swap(
-        dexWallet,
-        tokenSymbol,
-        "USDC.E",
-        false,
-        config?.SELECTED_PROTOCOL,
-        config?.SELECTED_CHAINID,
-        adjustedAmount,
-        Number(config?.SLIPPAGE),
-      );
-
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      _swap = {
+        dexWallet: dexWallet,
+        token0: tokenSymbol,
+        token1: "USDC.E",
+        reverse: false,
+        protocol: config?.SELECTED_PROTOCOL,
+        chainId: config?.SELECTED_CHAINID,
+        amount: adjustedAmount,
+        slippage: Number(config?.SLIPPAGE),
+      };
     } else if (!config?.TECNICAL_ANALYSIS) {
       const tokenDecimals = await tokenContract.decimals();
       const adjustedAmount = formatUnits(amount, tokenDecimals);
       const tokenSymbol = await tokenContract.symbol();
-
-      await swap(
-        dexWallet,
-        tokenSymbol,
-        "USDC.E",
-        false,
-        config?.SELECTED_PROTOCOL,
-        config?.SELECTED_CHAINID,
-        adjustedAmount,
-        Number(config?.SLIPPAGE),
-      );
-
-      await new Promise(resolve => setTimeout(resolve, 10000));
+      _swap = {
+        dexWallet: dexWallet,
+        token0: tokenSymbol,
+        token1: "USDC.E",
+        reverse: false,
+        protocol: config?.SELECTED_PROTOCOL,
+        chainId: config?.SELECTED_CHAINID,
+        amount: adjustedAmount,
+        slippage: Number(config?.SLIPPAGE),
+      };
     } else {
       pc.warn("⚠️ Waiting for StochRSI overBought");
     }
   }
 
+  // Execute sell
+  if (tokensToSell.length > 0) {
+    await swap(
+      _swap.dexWallet,
+      _swap.token0,
+      _swap.token1,
+      _swap.reverse,
+      _swap.protocol,
+      _swap.chainId,
+      _swap.amount,
+      _swap.slippage,
+    );
+  }
+
   // Buy Tokens
+  // --------------------------------
   for (let { token, amount } of tokensToBuy) {
     if (token === usdcAddress) {
       pc.log("SKIP USDC BUY");
@@ -228,9 +254,11 @@ export async function rebalancePortfolio(
     const tokenSymbol = await tokenContract.symbol();
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
     const usdBalance = (await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC)).balance;
+
     const yearnVaultDetails = config?.YEARN_VAULTS.USDC;
     const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
     const balanceYearnUSDC = await yearnContract?.balanceOf(dexWallet.walletAddress);
+
     const isTechnicalAnalysisConditionMet =
       stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD && rsiResult.rsiVal < config?.RSI_OVERSOLD;
 
@@ -244,35 +272,32 @@ export async function rebalancePortfolio(
         const adjustedAmount = formatUnits(amount, 6);
         const tokenSymbol = await tokenContract.symbol();
 
-        await swap(
-          dexWallet,
-          tokenSymbol,
-          "USDC.E",
-          true,
-          config?.SELECTED_PROTOCOL,
-          config?.SELECTED_CHAINID,
-          adjustedAmount,
-          Number(config?.SLIPPAGE),
-        );
-
-        await new Promise(resolve => setTimeout(resolve, 5000));
+        _swap = {
+          dexWallet: dexWallet,
+          token0: tokenSymbol,
+          token1: "USDC.E",
+          reverse: true,
+          protocol: config?.SELECTED_PROTOCOL,
+          chainId: config?.SELECTED_CHAINID,
+          amount: adjustedAmount,
+          slippage: Number(config?.SLIPPAGE),
+        };
       } else if (usdBalance.lt(amount)) {
         pc.log("Use all USDT to buy");
-        //await swapCustom(dexWallet, [token, usdcAddress], true, usdBalance);
         const tokenDecimals = await tokenContract.decimals();
-        const adjustedAmount = formatUnits(usdBalance, 6);
+        const adjustedAmount = usdBalance.balance;
         const tokenSymbol = await tokenContract.symbol();
 
-        await swap(
-          dexWallet,
-          tokenSymbol,
-          "USDC.E",
-          true,
-          config?.SELECTED_PROTOCOL,
-          config?.SELECTED_CHAINID,
-          adjustedAmount,
-          Number(config?.SLIPPAGE),
-        );
+        _swap = {
+          dexWallet: dexWallet,
+          token0: tokenSymbol,
+          token1: "USDC.E",
+          reverse: true,
+          protocol: config?.SELECTED_PROTOCOL,
+          chainId: config?.SELECTED_CHAINID,
+          amount: adjustedAmount,
+          slippage: Number(config?.SLIPPAGE),
+        };
       } else {
         pc.error("✖️ Not enough USDT to buy, balance under 60% of required USD");
       }
@@ -281,6 +306,23 @@ export async function rebalancePortfolio(
     }
   }
 
+  // Execute buy
+  // --------------------------------
+  if (tokensToBuy.length > 0) {
+    await swap(
+      _swap.dexWallet,
+      _swap.token0,
+      _swap.token1,
+      _swap.reverse,
+      _swap.protocol,
+      _swap.chainId,
+      _swap.amount,
+      _swap.slippage,
+    );
+  }
+
+  // Deposit to Yearn
+  // --------------------------------
   for (const vault of Object.values(config?.YEARN_VAULTS)) {
     const vaultAsset = await getVaultAsset(String(vault), dexWallet);
     const assetContract = new ethers.Contract(vaultAsset, erc20Abi, dexWallet.wallet);
