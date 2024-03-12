@@ -11,19 +11,30 @@ import { getRSI } from "../../utils/getRSI";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { batchSwap } from "../uniswap/swap";
 import { waitForTx } from "../../utils/networkUtils";
-import { depositToYearn, redeemFromYearn, accuredYearnInterest, previewWithdraw, getVaultAsset } from "baluni-api";
-import { INFRA } from "baluni-api";
-import routerAbi from "baluni-api/dist/abis/infra/Router.json";
-
-// TEST ONLY
-/* import {
+import {
+  depositToYearnBatched,
+  redeemFromYearnBatched,
   depositToYearn,
   redeemFromYearn,
   accuredYearnInterest,
   previewWithdraw,
   getVaultAsset,
+} from "baluni-api";
+import { INFRA } from "baluni-api";
+import routerAbi from "baluni-api/dist/abis/infra/Router.json";
+
+// TEST ONLY
+
+/* import {
+  depositToYearn,
+  redeemFromYearn,
+  accuredYearnInterest,
+  redeemFromYearnBatched,
+  depositToYearnBatched,
+  previewWithdraw,
+  getVaultAsset,
 } from "../../../../baluni-api/dist"; */
-import { depositToYearnBatched, redeemFromYearnBatched } from "../../../../baluni-api/dist/yearn/deposit-redeem";
+// import {} from "../../../../baluni-api/dist/yearn/deposit-redeem";
 // import { INFRA } from "../../../../baluni-api/dist";
 // import routerAbi from "../../../../baluni-api/dist/abis/infra/Router.json";
 
