@@ -11,7 +11,7 @@ import { getRSI } from "../../utils/getRSI";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { batchSwap } from "../uniswap/swap";
 import { waitForTx } from "../../utils/networkUtils";
-import {
+/* import {
   depositToYearnBatched,
   redeemFromYearnBatched,
   depositToYearn,
@@ -19,13 +19,13 @@ import {
   accuredYearnInterest,
   previewWithdraw,
   getVaultAsset,
-} from "baluni-api";
+} from "baluni-api"; */
 import { INFRA } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
 
 // TEST ONLY
 
-/* import {
+import {
   depositToYearn,
   redeemFromYearn,
   accuredYearnInterest,
@@ -33,7 +33,8 @@ import routerAbi from "baluni-api/dist/abis/infra/Router.json";
   depositToYearnBatched,
   previewWithdraw,
   getVaultAsset,
-} from "../../../../baluni-api/dist"; */
+} from "../../../../baluni-api/dist";
+
 // import {} from "../../../../baluni-api/dist/yearn/deposit-redeem";
 // import { INFRA } from "../../../../baluni-api/dist";
 // import routerAbi from "../../../../baluni-api/dist/abis/infra/Router.json";
@@ -81,9 +82,11 @@ async function getTokenValueEnhanced(
   config?: any,
 ) {
   let effectiveBalance = tokenBalance;
+
   if (config?.YEARN_ENABLED && yearnBalance) {
     effectiveBalance = yearnBalance.add(interestAccrued).add(tokenBalance);
   }
+
   return tokenSymbol === "USDC.E" || tokenSymbol === "USDC"
     ? effectiveBalance.mul(1e12)
     : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, config);
@@ -98,7 +101,6 @@ export async function rebalancePortfolio(
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
-
   config = customConfig;
 
   // Recharges Fees
@@ -219,21 +221,23 @@ export async function rebalancePortfolio(
 
   // Sell Tokens
   // --------------------------------------------------------------------------------
-
+  pc.log("🔄 Sell Tokens");
   const yearnRedeems = [];
 
-  pc.log("🔄 Sell Tokens");
   for (let { token, amount: amountWei } of tokensToSell) {
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
     const tokenDecimal = await tokenContract.decimals();
     const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
+
     let intAmount = Number(formatUnits(amountWei, tokenDecimal));
 
     pc.info(`🔴 Selling ${formatUnits(amountWei, tokenDecimal)} worth of ${tokenSymbol}`);
+
     if (yearnVaultDetails) {
       const balance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
       const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
+      const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
 
       if (Number(amountWei) > Number(await balance.balance)) {
         pc.log("Redeem from Yearn");
@@ -241,7 +245,7 @@ export async function rebalancePortfolio(
         const data: TRedeem = {
           wallet: dexWallet.wallet,
           pool: yearnVaultDetails,
-          amount: balance.balance,
+          amount: yearnBalance,
           receiver: dexWallet.walletAddress,
           chainId: String(chainId),
         };
@@ -252,51 +256,52 @@ export async function rebalancePortfolio(
     }
 
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
+    const balance = (await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token)).balance;
 
-    if (
-      stochasticRSIResult.stochRSI > config?.STOCKRSI_OVERBOUGHT &&
-      rsiResult.rsiVal > config?.RSI_OVERBOUGHT &&
-      config?.TECNICAL_ANALYSIS
-    ) {
-      const tokenSymbol = await tokenContract.symbol();
-      const swap: Tswap = {
-        dexWallet,
-        token0: tokenSymbol,
-        token1: "USDC.E",
-        reverse: false,
-        protocol: config?.SELECTED_PROTOCOL,
-        chainId: config?.SELECTED_CHAINID,
-        amount: String(intAmount),
-        slippage: Number(config?.SLIPPAGE),
-      };
+    if (Number(amountWei) < balance) {
+      if (
+        stochasticRSIResult.stochRSI > config?.STOCKRSI_OVERBOUGHT &&
+        rsiResult.rsiVal > config?.RSI_OVERBOUGHT &&
+        config?.TECNICAL_ANALYSIS
+      ) {
+        const tokenSymbol = await tokenContract.symbol();
+        const swap: Tswap = {
+          dexWallet,
+          token0: tokenSymbol,
+          token1: "USDC.E",
+          reverse: false,
+          protocol: config?.SELECTED_PROTOCOL,
+          chainId: config?.SELECTED_CHAINID,
+          amount: String(intAmount),
+          slippage: Number(config?.SLIPPAGE),
+        };
 
-      swaps.push(swap);
-    } else if (!config?.TECNICAL_ANALYSIS) {
-      const swap: Tswap = {
-        dexWallet: dexWallet,
-        token0: tokenSymbol,
-        token1: "USDC.E",
-        reverse: false,
-        protocol: config?.SELECTED_PROTOCOL,
-        chainId: config?.SELECTED_CHAINID,
-        amount: String(intAmount),
-        slippage: Number(config?.SLIPPAGE),
-      };
+        swaps.push(swap);
+      } else if (!config?.TECNICAL_ANALYSIS) {
+        const swap: Tswap = {
+          dexWallet: dexWallet,
+          token0: tokenSymbol,
+          token1: "USDC.E",
+          reverse: false,
+          protocol: config?.SELECTED_PROTOCOL,
+          chainId: config?.SELECTED_CHAINID,
+          amount: String(intAmount),
+          slippage: Number(config?.SLIPPAGE),
+        };
 
-      swaps.push(swap);
-    } else {
-      pc.warn("⚠️ Waiting for StochRSI overBought");
+        swaps.push(swap);
+      } else {
+        pc.warn("⚠️ Waiting for StochRSI overBought");
+      }
     }
   }
 
   // Buy Tokens
   // --------------------------------------------------------------------------------
   pc.log("🔄 Buy Tokens");
-
-  const yearnVaultDetails = config?.YEARN_VAULTS.USDC;
-  const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
-  const balanceYearnUSDC = await yearnContract?.balanceOf(dexWallet.walletAddress);
-
+  const poolAddress = config?.YEARN_VAULTS.USDC;
+  const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet);
+  const yBalUSDC = await poolCtx?.balanceOf(dexWallet.walletAddress);
   for (let { token, amount: amountWei } of tokensToBuy) {
     if (token === usdcAddress) {
       pc.log("SKIP USDC BUY");
@@ -304,22 +309,22 @@ export async function rebalancePortfolio(
     }
 
     pc.info(`🟩 Buying ${Number(amountWei) / 1e6} USDC worth of ${token}`);
-    const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
-    const tokenSymbol = await tokenContract.symbol();
+    const tokenCtx = new Contract(token, erc20Abi, dexWallet.wallet);
+    const tokenSym = await tokenCtx.symbol();
     const intAmount = Number(formatUnits(amountWei, 6));
-    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
-    const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC);
-
-    usdBalance = _usdBalance.balance;
+    const [rsiResult, stochasticRSIResult] = await getRSI(tokenSym, config);
+    const balUSD = await (
+      await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC)
+    )?.balance;
 
     const isTechnicalAnalysisConditionMet =
       stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD && rsiResult.rsiVal < config?.RSI_OVERSOLD;
 
-    if (usdBalance.lt(amountWei)) {
+    if (balUSD.lt(amountWei)) {
       const data: TRedeem = {
         wallet: dexWallet.wallet,
-        pool: yearnVaultDetails,
-        amount: balanceYearnUSDC,
+        pool: poolAddress,
+        amount: yBalUSDC,
         receiver: dexWallet.walletAddress,
         chainId: String(chainId),
       };
@@ -327,12 +332,28 @@ export async function rebalancePortfolio(
       break;
     }
 
-    if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
-      if (usdBalance.gte(amountWei)) {
-        const tokenSymbol = await tokenContract.symbol();
+    if (balUSD.balance.gt(amountWei)) {
+      if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
+        if (balUSD.gte(amountWei)) {
+          const tokenSym = await tokenCtx.symbol();
+          const swap: Tswap = {
+            dexWallet: dexWallet,
+            token0: tokenSym,
+            token1: "USDC.E",
+            reverse: true,
+            protocol: config?.SELECTED_PROTOCOL,
+            chainId: config?.SELECTED_CHAINID,
+            amount: String(intAmount),
+            slippage: Number(config?.SLIPPAGE),
+          };
+
+          swaps.push(swap);
+        }
+      } else if (balUSD.gte(amountWei)) {
+        const tokenSym = await tokenCtx.symbol();
         const swap: Tswap = {
           dexWallet: dexWallet,
-          token0: tokenSymbol,
+          token0: tokenSym,
           token1: "USDC.E",
           reverse: true,
           protocol: config?.SELECTED_PROTOCOL,
@@ -343,20 +364,6 @@ export async function rebalancePortfolio(
 
         swaps.push(swap);
       }
-    } else if (usdBalance.gte(amountWei)) {
-      const tokenSymbol = await tokenContract.symbol();
-      const swap: Tswap = {
-        dexWallet: dexWallet,
-        token0: tokenSymbol,
-        token1: "USDC.E",
-        reverse: true,
-        protocol: config?.SELECTED_PROTOCOL,
-        chainId: config?.SELECTED_CHAINID,
-        amount: String(intAmount),
-        slippage: Number(config?.SLIPPAGE),
-      };
-
-      swaps.push(swap);
     } else {
       pc.warn("⚠️ Waiting for StochRSI overSold");
     }
@@ -365,9 +372,11 @@ export async function rebalancePortfolio(
   // Redeem from Yearn Vaults
   // --------------------------------------------------------------------------------
   try {
+    console.log("📡 Yearn Redeem Data");
     const data = await redeemFromYearnBatched(yearnRedeems);
 
     if (data?.Approvals.length > 0) {
+      pc.log("📡 Approvals");
       const approvals = data.Approvals;
       for (const approval of approvals) {
         const approvalTx = await dexWallet.wallet.sendTransaction(approval);
@@ -377,12 +386,13 @@ export async function rebalancePortfolio(
     }
 
     if (data?.Calldatas.length > 0) {
+      pc.log("📡 Calldatas");
       const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn, {
         gasLimit: gasLimit,
         gasPrice: await dexWallet.walletProvider.getGasPrice(),
       });
-      pc.log("📡 Simulation successful:", simulate);
 
+      pc.log("📡 Simulation successful:", simulate);
       if (simulate) {
         const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
           gasLimit: gasLimit,
@@ -390,6 +400,7 @@ export async function rebalancePortfolio(
         });
 
         const broadcaster = await waitForTx(dexWallet.walletProvider, tx?.hash, dexWallet.walletAddress);
+
         pc.log("📡 Tx broadcasted:", broadcaster);
       }
     }
@@ -415,8 +426,6 @@ export async function rebalancePortfolio(
       if (tokensToBuy.length == 0 && tokensToSell.length == 0) {
         pc.log("Deposit to Yearn Vaults", "Amount: ", Number(balance), "Vault: ", vaultAsset);
 
-        // create a type tokenAddr: string, pool: string, amount: BigNumber, receiver: string, chainId: string):
-
         const data: TDeposit = {
           wallet: dexWallet.wallet,
           tokenAddr: vaultAsset,
@@ -435,7 +444,10 @@ export async function rebalancePortfolio(
     const data = await depositToYearnBatched(yearnDeposits);
 
     if (data?.Approvals.length > 0) {
+      pc.log("📡 Approvals");
+
       const approvals = data.Approvals;
+
       for (const approval of approvals) {
         const approvalTx = await dexWallet.wallet.sendTransaction(approval);
         const broadcaster = await waitForTx(dexWallet.walletProvider, approvalTx?.hash, dexWallet.walletAddress);
@@ -444,6 +456,8 @@ export async function rebalancePortfolio(
     }
 
     if (data?.Calldatas.length > 0) {
+      pc.log("📡 Calldatas");
+
       const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn, {
         gasLimit: gasLimit,
         gasPrice: await dexWallet.walletProvider.getGasPrice(),
