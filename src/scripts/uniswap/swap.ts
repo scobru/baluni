@@ -3,24 +3,13 @@ import { ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
 import { waitForTx } from "../../utils/networkUtils";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
+//import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // TEST ONLY
-// import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
+import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
 
 const pc = loadPrettyConsole();
 
-/**
- * Swaps tokens on a decentralized exchange.
- * @param dexWallet - The wallet used for the swap.
- * @param token0 - The address of the first token.
- * @param token1 - The address of the second token.
- * @param reverse - Indicates whether to reverse the swap.
- * @param protocol - The protocol used for the swap.
- * @param chainId - The chain ID of the network.
- * @param amount - The amount of tokens to swap.
- * @param slippage - The slippage tolerance for the swap.
- */
 export async function swap(
   dexWallet: DexWallet,
   token0: string,
@@ -36,7 +25,9 @@ export async function swap(
   const wallet = dexWallet.wallet;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, dexWallet.wallet);
 
-  const gasLimit = 8000000;
+  const gasLimit = 3000000;
+  const gasPrice = await provider?.getGasPrice();
+  const gas = gasPrice;
 
   // METHOD 1
   //-------------------------------------------------------------------------------------
@@ -53,7 +44,6 @@ export async function swap(
   // METHOD 2
   //-------------------------------------------------------------------------------------
   const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
-
   let response = await fetch(token0AddressUrl, {
     method: "GET",
   });
@@ -61,8 +51,8 @@ export async function swap(
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  const token0Info = await response.json().then(data => data);
 
+  const token0Info = await response.json().then(data => data);
   const token1AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token1}`;
 
   response = await fetch(token1AddressUrl, {
@@ -72,6 +62,7 @@ export async function swap(
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
+
   const token1Info = await response.json().then(data => data);
 
   const data = await buildSwap(
@@ -112,11 +103,8 @@ export async function swap(
   if (calldatasArray?.length === 0) return pc.error("No calldatas found");
 
   try {
-    console.log("Sending calldatasArray");
-    const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
-      gasLimit: gasLimit,
-      gasPrice: await provider.getGasPrice(),
-    });
+    pc.log("Sending calldatasArray");
+    const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn);
     pc.log("Simulation successful:", await simulationResult);
 
     if (simulationResult === false) {
@@ -125,13 +113,12 @@ export async function swap(
     }
 
     pc.log("Executing transaction...");
-    const tx = await router?.execute(calldatasArray, TokensReturn, {
-      gasLimit: gasLimit,
-      gasPrice: await provider.getGasPrice(),
-    });
-    const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
+    if (simulationResult) {
+      const tx = await router.execute(calldatasArray, TokensReturn);
+      const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
 
-    pc.log("Transaction executed, receipt:", txReceipt);
+      pc.log("Transaction executed, receipt:", txReceipt);
+    }
   } catch (error) {
     console.error("Simulation failed:", error);
     return;
@@ -156,6 +143,10 @@ export async function batchSwap(
   const wallet = swaps[0].dexWallet.wallet;
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet);
+
+  const gasLimit = 9000000;
+  const gasPrice = await provider?.getGasPrice();
+  const gas = gasPrice.add(gasPrice.div(10));
 
   let allApprovals: unknown[] = [];
   let allCalldatas: unknown[] = [];
@@ -232,8 +223,8 @@ export async function batchSwap(
         to: (approval as { to: string }).to,
         value: (approval as { value: number }).value,
         data: (approval as { data: any }).data,
-        gasLimit: 8000000,
-        gasPrice: await provider.getGasPrice(),
+        // // gasLimit: gasLimit,
+        // // gasPrice: gas,
       };
 
       try {
@@ -254,14 +245,17 @@ export async function batchSwap(
   }
 
   try {
-    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn);
+    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
+      // gasLimit: gasLimit,
+      // gasPrice: gas,
+    });
 
     pc.log("Simulation successful:", simulationResult);
 
     if (simulationResult) {
       const tx = await router.execute(allCalldatas, allTokensReturn, {
-        gasLimit: 8000000,
-        gasPrice: await provider.getGasPrice(),
+        // gasLimit: gasLimit,
+        // gasPrice: gas,
       });
 
       const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);

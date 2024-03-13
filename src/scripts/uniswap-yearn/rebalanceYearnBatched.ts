@@ -20,6 +20,7 @@ import { waitForTx } from "../../utils/networkUtils";
   previewWithdraw,
   getVaultAsset,
 } from "baluni-api"; */
+
 import { INFRA } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
 
@@ -105,6 +106,7 @@ export async function rebalancePortfolio(
 
   // Recharges Fees
   // --------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------
 
   await rechargeFees(dexWallet, config);
   const swaps: Tswap[] = [];
@@ -120,6 +122,7 @@ export async function rebalancePortfolio(
   pc.log("🏦 Total Portfolio Value (in USDT) at Start: ", formatEther(totalPortfolioValue));
 
   // Calculate Total Portfolio Value
+  // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
 
   for (const token of desiredTokens) {
@@ -164,6 +167,7 @@ export async function rebalancePortfolio(
   });
 
   // Rebalance
+  // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
 
   for (const token of desiredTokens) {
@@ -221,6 +225,8 @@ export async function rebalancePortfolio(
 
   // Sell Tokens
   // --------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------
+
   pc.log("🔄 Sell Tokens");
   const yearnRedeems = [];
 
@@ -228,30 +234,29 @@ export async function rebalancePortfolio(
     const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
     const tokenSymbol = await tokenContract.symbol();
     const tokenDecimal = await tokenContract.decimals();
-    const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
+    const pool = config?.YEARN_VAULTS[tokenSymbol];
 
     let intAmount = Number(formatUnits(amountWei, tokenDecimal));
 
     pc.info(`🔴 Selling ${formatUnits(amountWei, tokenDecimal)} worth of ${tokenSymbol}`);
 
-    if (yearnVaultDetails) {
+    if (pool) {
       const balance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
-      const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
-      const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
+      const yearnCtx = new ethers.Contract(pool, erc20Abi, dexWallet.wallet);
+      const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress);
 
       if (Number(amountWei) > Number(await balance.balance)) {
         pc.log("Redeem from Yearn");
 
         const data: TRedeem = {
           wallet: dexWallet.wallet,
-          pool: yearnVaultDetails,
-          amount: yearnBalance,
+          pool: pool,
+          amount: yearnCtxBal,
           receiver: dexWallet.walletAddress,
           chainId: String(chainId),
         };
 
         yearnRedeems.push(data);
-        break;
       }
     }
 
@@ -298,6 +303,8 @@ export async function rebalancePortfolio(
 
   // Buy Tokens
   // --------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------
+
   pc.log("🔄 Buy Tokens");
   const poolAddress = config?.YEARN_VAULTS.USDC;
   const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet);
@@ -329,27 +336,10 @@ export async function rebalancePortfolio(
         chainId: String(chainId),
       };
       yearnRedeems.push(data);
-      break;
     }
 
-    if (balUSD.balance.gt(amountWei)) {
+    if (balUSD.gt(amountWei)) {
       if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
-        if (balUSD.gte(amountWei)) {
-          const tokenSym = await tokenCtx.symbol();
-          const swap: Tswap = {
-            dexWallet: dexWallet,
-            token0: tokenSym,
-            token1: "USDC.E",
-            reverse: true,
-            protocol: config?.SELECTED_PROTOCOL,
-            chainId: config?.SELECTED_CHAINID,
-            amount: String(intAmount),
-            slippage: Number(config?.SLIPPAGE),
-          };
-
-          swaps.push(swap);
-        }
-      } else if (balUSD.gte(amountWei)) {
         const tokenSym = await tokenCtx.symbol();
         const swap: Tswap = {
           dexWallet: dexWallet,
@@ -371,6 +361,8 @@ export async function rebalancePortfolio(
 
   // Redeem from Yearn Vaults
   // --------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------
+
   try {
     console.log("📡 Yearn Redeem Data");
     const data = await redeemFromYearnBatched(yearnRedeems);
@@ -413,6 +405,7 @@ export async function rebalancePortfolio(
   }
 
   // Deposit to Yearn Vaults
+  // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
 
   const yearnDeposits = [];
