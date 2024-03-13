@@ -116,7 +116,6 @@ export async function swap(
     if (simulationResult) {
       const tx = await router.execute(calldatasArray, TokensReturn);
       const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
-
       pc.log("Transaction executed, receipt:", txReceipt);
     }
   } catch (error) {
@@ -144,9 +143,9 @@ export async function batchSwap(
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet);
 
-  const gasLimit = 9000000;
-  const gasPrice = await provider?.getGasPrice();
-  const gas = gasPrice.add(gasPrice.div(10));
+  // const gasLimit = 9000000;
+  // const gasPrice = await provider?.getGasPrice();
+  // const gas = gasPrice.add(gasPrice.div(10));
 
   let allApprovals: unknown[] = [];
   let allCalldatas: unknown[] = [];
@@ -223,8 +222,6 @@ export async function batchSwap(
         to: (approval as { to: string }).to,
         value: (approval as { value: number }).value,
         data: (approval as { data: any }).data,
-        // // gasLimit: gasLimit,
-        // // gasPrice: gas,
       };
 
       try {
@@ -245,18 +242,12 @@ export async function batchSwap(
   }
 
   try {
-    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
-      // gasLimit: gasLimit,
-      // gasPrice: gas,
-    });
+    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn);
 
     pc.log("Simulation successful:", simulationResult);
 
     if (simulationResult) {
-      const tx = await router.execute(allCalldatas, allTokensReturn, {
-        // gasLimit: gasLimit,
-        // gasPrice: gas,
-      });
+      const tx = await router.execute(allCalldatas, allTokensReturn);
 
       const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
       pc.log("Transaction executed", broadcaster);
