@@ -99,7 +99,8 @@ export async function batchSwap(
         to: (approval as { to: string }).to,
         value: (approval as { value: number }).value,
         data: (approval as { data: any }).data,
-        gasPrice: gas,
+        gasPrice: await provider.getGasPrice(),
+        gasLimit: 8000000,
       };
 
       try {
@@ -121,14 +122,16 @@ export async function batchSwap(
 
   try {
     const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
-      gasPrice: gas,
+      gasPrice: await provider.getGasPrice(),
+      gasLimit: 8000000,
     });
     pc.log("Simulation successful:", simulationResult);
 
     if (!simulationResult) return pc.error("Simulation failed");
 
     const tx = await router.execute(allCalldatas, allTokensReturn, {
-      gasPrice: gas,
+      gasPrice: await provider.getGasPrice(),
+      gasLimit: 8000000,
     });
     const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
     pc.log("Transaction executed", broadcaster);

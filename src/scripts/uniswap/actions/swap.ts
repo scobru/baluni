@@ -3,10 +3,10 @@ import { ethers } from "ethers";
 import { DexWallet } from "../../../utils/dexWallet";
 import { waitForTx } from "../../../utils/networkUtils";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
-//import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
+import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // DEV ONLY
-import { buildSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
+// import { buildSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
 
 const pc = loadPrettyConsole();
 
@@ -39,27 +39,22 @@ export async function swap(
 
   // METHOD 2
   //-------------------------------------------------------------------------------------
+  async function fetchTokenInfo(url: string) {
+    const response = await fetch(url, { method: "GET" });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}, url: ${url}`);
+    }
+
+    return await response.json();
+  }
+
   const token0AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token0}`;
-  let response = await fetch(token0AddressUrl, {
-    method: "GET",
-  });
+  const token0Info = await fetchTokenInfo(token0AddressUrl);
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const token0Info = await response.json().then(data => data);
   const token1AddressUrl = `${BASEURL}/${chainId}/${protocol}/tokens/${token1}`;
+  const token1Info = await fetchTokenInfo(token1AddressUrl);
 
-  response = await fetch(token1AddressUrl, {
-    method: "GET",
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const token1Info = await response.json().then(data => data);
   const data = await buildSwap(
     dexWallet?.wallet,
     dexWallet?.walletAddress,
@@ -97,7 +92,10 @@ export async function swap(
 
   try {
     pc.log("Sending calldatasArray");
-    const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn);
+    const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
+      gasPrice: await provider?.getGasPrice(),
+      gasLimit: 8000000,
+    });
     pc.log("Simulation successful:", await simulationResult);
 
     if (simulationResult === false) {
@@ -105,7 +103,10 @@ export async function swap(
       return;
     }
 
-    const tx = await router.execute(calldatasArray, TokensReturn);
+    const tx = await router.execute(calldatasArray, TokensReturn, {
+      gasPrice: await provider?.getGasPrice(),
+      gasLimit: 8000000,
+    });
     const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
     pc.log("Transaction executed, receipt:", txReceipt);
   } catch (error) {

@@ -11,18 +11,18 @@ import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { swap } from "../uniswap/actions/swap";
 import { waitForTx } from "../../utils/networkUtils";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
-// import { INFRA } from "baluni-api";
-// import { depositToYearn, redeemFromYearn, accuredYearnInterest, previewWithdraw, getVaultAsset } from "baluni-api";
+import { INFRA } from "baluni-api";
+import { depositToYearn, redeemFromYearn, accuredYearnInterest, previewWithdraw, getVaultAsset } from "baluni-api";
 
 // DEV ONLY
-import { INFRA } from "../../../../baluni-api/dist";
+/* import { INFRA } from "../../../../baluni-api/dist";
 import {
   depositToYearn,
   redeemFromYearn,
   accuredYearnInterest,
   previewWithdraw,
   getVaultAsset,
-} from "../../../../baluni-api/dist";
+} from "../../../../baluni-api/dist"; */
 
 const pc = loadPrettyConsole();
 let config: any;
@@ -209,9 +209,7 @@ export async function rebalancePortfolio(
             pc.log("📡 Approval broadcasted:", broadcaster);
           }
         }
-
         const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn);
-
         pc.log("📡 Simulation successful:", await simulate);
 
         if (simulate) {
@@ -333,23 +331,7 @@ export async function rebalancePortfolio(
           slippage: Number(config?.SLIPPAGE),
         };
       } else if (usdBalance.lt(amount)) {
-        pc.log("Use all USDT to buy");
-        const tokenDecimals = await tokenContract.decimals();
-        const adjustedAmount = usdBalance.balance;
-        const tokenSymbol = await tokenContract.symbol();
-
-        _swap = {
-          dexWallet: dexWallet,
-          token0: tokenSymbol,
-          token1: "USDC.E",
-          reverse: true,
-          protocol: config?.SELECTED_PROTOCOL,
-          chainId: config?.SELECTED_CHAINID,
-          amount: adjustedAmount,
-          slippage: Number(config?.SLIPPAGE),
-        };
-      } else {
-        pc.error("✖️ Not enough USDT to buy, balance under 60% of required USD");
+        pc.log("✖️ Insufficient USDC balance. Skipping buy.");
       }
     } else {
       pc.warn("Waiting for StochRSI OverSold");
@@ -400,13 +382,17 @@ export async function rebalancePortfolio(
           }
         }
 
-        const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn);
+        const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn, {
+          gasPrice: await dexWallet.walletProvider.getGasPrice(),
+        });
 
         if (simulate === false) return console.log("Simulation Failed");
 
         pc.log("📡 Simulation successful:", await simulate);
         pc.assert("Execute tx");
-        const tx = await router.execute(data.Calldatas, data.TokensReturn);
+        const tx = await router.execute(data.Calldatas, data.TokensReturn, {
+          gasPrice: await dexWallet.walletProvider.getGasPrice(),
+        });
         const broadcaster = await waitForTx(dexWallet.walletProvider, tx?.hash, dexWallet.walletAddress);
         pc.log("📡 Tx broadcasted:", broadcaster);
       }

@@ -141,7 +141,7 @@ async function main() {
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }
-    }, config?.INTERVAL * 1000);
+    }, config.INTERVAL ?? 1000); // Add nullish coalescing operator to provide a default value
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
   }
