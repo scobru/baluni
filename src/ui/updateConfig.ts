@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import * as Config from "../config/config-api";
+import * as Config from "../config/config";
 import { writeConfig } from "../config/writeConfig";
 
 // Definizione del tipo per la risposta attesa

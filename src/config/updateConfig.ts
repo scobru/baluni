@@ -1,5 +1,5 @@
 import { writeConfig } from "./writeConfig";
-import * as Config from "./config-api";
+import * as Config from "./config";
 
 export async function updateConfig() {
   try {

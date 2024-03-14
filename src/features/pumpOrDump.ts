@@ -1,4 +1,4 @@
-import { swap } from "../scripts/uniswap/swap";
+import { swap } from "../scripts/uniswap/actions/swap";
 import { initializeWallet } from "../utils/dexWallet";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../config/updateConfig";

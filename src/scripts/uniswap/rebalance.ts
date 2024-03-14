@@ -9,7 +9,7 @@ import { getTokenBalance } from "../../utils/getTokenBalance";
 import { getTokenValue } from "../../utils/getTokenValue";
 import { getRSI } from "../../utils/getRSI";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { swap } from "./swap";
+import { swap } from "./actions/swap";
 
 const pc = loadPrettyConsole();
 

@@ -44,7 +44,7 @@ export const WEIGHTS_DOWN = {
   "USDC.E": 7000,
 };
 
-// YEARN
+// YEARN CONFIG
 export const YEARN_ENABLED = true;
 export const YEARN_VAULTS: ConfigTypeYearn = {
   137: {
@@ -63,10 +63,10 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
   },
 };
 
-// REBALANCE SETTINGS
+// REBALANCE STRATEGY
 export const LIMIT = 20; // 10/10000 = 0.1%
-export const SLIPPAGE = 100; // 1%
-export const INTERVAL = 300; // 1 minute
+export const SLIPPAGE = 300; // 3% 300 / 10000
+export const INTERVAL = 300; // 5 minute
 export const MAX_APPROVAL = true;
 
 // DCA

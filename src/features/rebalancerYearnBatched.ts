@@ -1,5 +1,5 @@
 import { initializeWallet } from "../utils/dexWallet";
-import { rebalancePortfolio } from "../scripts/uniswap-yearn/rebalanceYearnBatched";
+import { rebalancePortfolio } from "../scripts/uniswap-yearn/rebalanceBatched";
 import { predict } from "../prediction/predict";
 import { PrettyConsole } from "../utils/prettyConsole";
 import { welcomeMessage } from "../welcome";
@@ -10,24 +10,6 @@ const prettyConsole = new PrettyConsole();
 prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
-
-async function rebalancer(config: any) {
-  welcomeMessage();
-
-  await executeRebalance(config);
-
-  try {
-    setInterval(async () => {
-      try {
-        await executeRebalance(config);
-      } catch (error) {
-        prettyConsole.error("Error during rebalancing:", error);
-      }
-    }, config?.INTERVAL * 1000);
-  } catch (error) {
-    prettyConsole.error("Error during initialization:", error);
-  }
-}
 
 async function executeRebalance(config: any) {
   // Log the initiation of portfolio checking
@@ -148,7 +130,21 @@ async function executeRebalance(config: any) {
 
 async function main() {
   const config = await updateConfig();
-  await rebalancer(config);
+  welcomeMessage();
+
+  await executeRebalance(config);
+
+  try {
+    setInterval(async () => {
+      try {
+        await executeRebalance(config);
+      } catch (error) {
+        prettyConsole.error("Error during rebalancing:", error);
+      }
+    }, config?.INTERVAL * 1000);
+  } catch (error) {
+    prettyConsole.error("Error during initialization:", error);
+  }
 }
 
 main().catch(error => {
