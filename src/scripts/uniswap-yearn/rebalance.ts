@@ -3,7 +3,6 @@ import { DexWallet } from "../../utils/dexWallet";
 import erc20Abi from "../../abis/common/ERC20.json";
 import { formatEther, formatUnits } from "ethers/lib/utils";
 import { fetchPrices } from "../../utils/quote1Inch";
-import { rechargeFees } from "../../utils/rechargeFees";
 import { getTokenMetadata } from "../../utils/getTokenMetadata";
 import { getTokenBalance } from "../../utils/getTokenBalance";
 import { getTokenValue } from "../../utils/getTokenValue";
@@ -58,7 +57,6 @@ export async function rebalancePortfolio(
   // Recharge Fees
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
-  await rechargeFees(dexWallet, config);
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
   pc.log("🏦 Total Portfolio Value (in USDT) at Start: ", formatEther(totalPortfolioValue));

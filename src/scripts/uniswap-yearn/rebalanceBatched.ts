@@ -3,7 +3,6 @@ import { DexWallet } from "../../utils/dexWallet";
 import erc20Abi from "../../abis/common/ERC20.json";
 import { formatEther, formatUnits } from "ethers/lib/utils";
 import { fetchPrices } from "../../utils/quote1Inch";
-import { rechargeFees } from "../../utils/rechargeFees";
 import { getTokenMetadata } from "../../utils/getTokenMetadata";
 import { getTokenBalance } from "../../utils/getTokenBalance";
 import { getTokenValue } from "../../utils/getTokenValue";
@@ -106,8 +105,6 @@ export async function rebalancePortfolio(
   // Recharges Fees
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
-
-  await rechargeFees(dexWallet, config);
 
   const swaps: Tswap[] = [];
   const chainId = dexWallet.walletProvider.network.chainId;
