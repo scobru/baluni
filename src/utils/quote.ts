@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import uniswapV3FactoryAbi from "../abis/uniswap/UniswapV3Factory.json";
-import uniswapV3PoolAbi from "../abis/uniswap/UniswapV3Pool.json";
-import erc20Abi from "../abis/common/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
+import uniswapV3FactoryAbi from "baluni-api/dist/abis/uniswap/UniswapV3Factory.json";
+import uniswapV3PoolAbi from "baluni-api/dist/abis/uniswap/UniswapV3Pool.json";
+import erc20Abi from "baluni-api/dist/abis/common/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
 import { loadPrettyConsole } from "./prettyConsole";
 
 const prettyConsole = loadPrettyConsole();

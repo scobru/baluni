@@ -1,6 +1,6 @@
-import erc20Abi from "../abis/common/ERC20.json";
-import quoterAbi from "../abis/uniswap/Quoter.json";
-import swapRouterAbi from "../abis/uniswap/SwapRouter.json";
+import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
+import quoterAbi from "baluni-api/dist/abis/uniswap/Quoter.json";
+import swapRouterAbi from "baluni-api/dist/abis/uniswap/SwapRouter.json";
 import { approveToken } from "../utils/approveToken";
 import { callContractMethod } from "../utils/contractUtils";
 import { DexWallet } from "../utils/dexWallet";

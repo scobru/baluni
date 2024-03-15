@@ -1,12 +1,12 @@
 import { BigNumber, Contract, ethers } from "ethers";
 import { DexWallet } from "../../utils/dexWallet";
-import erc20Abi from "../../abis/common/ERC20.json";
+import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
 import { formatEther, formatUnits } from "ethers/lib/utils";
 import { fetchPrices } from "../../utils/quote1Inch";
 import { getTokenMetadata } from "../../utils/getTokenMetadata";
 import { getTokenBalance } from "../../utils/getTokenBalance";
 import { getTokenValue } from "../../utils/getTokenValue";
-import { getRSI } from "../../utils/getRSI";
+import { getRSI } from "../../utils/ta/getRSI";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { swap } from "./actions/swap";
 

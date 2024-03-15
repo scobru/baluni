@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { DexWallet } from "../../../utils/dexWallet";
 import { waitForTx } from "../../../utils/networkUtils";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
-import { buildSwap, buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
+import { buildSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // DEV ONLY
 // import { buildSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
@@ -24,7 +24,8 @@ export async function swap(
   const routerAddress = INFRA[chainId].ROUTER;
   const wallet = dexWallet.wallet;
   const router = new ethers.Contract(routerAddress, infraRouterAbi, dexWallet.wallet);
-
+  const gasLimit = 8000000;
+  const gas = await provider?.getGasPrice();
   // METHOD 1
   //-------------------------------------------------------------------------------------
   // const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
@@ -88,13 +89,14 @@ export async function swap(
 
   const calldatasArray = await Promise.all(data?.Calldatas);
   const TokensReturn = data?.TokensReturn;
+
   if (calldatasArray?.length === 0) return pc.error("No calldatas found");
 
   try {
     pc.log("Sending calldatasArray");
     const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
-      gasPrice: await provider?.getGasPrice(),
-      gasLimit: 8000000,
+      gasLimit: gasLimit,
+      gasPrice: gas,
     });
     pc.log("Simulation successful:", await simulationResult);
 
@@ -104,8 +106,8 @@ export async function swap(
     }
 
     const tx = await router.execute(calldatasArray, TokensReturn, {
-      gasPrice: await provider?.getGasPrice(),
-      gasLimit: 8000000,
+      gasLimit: gasLimit,
+      gasPrice: gas,
     });
     const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
     pc.log("Transaction executed, receipt:", txReceipt);

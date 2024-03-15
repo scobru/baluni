@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import OffChainOracleAbi from "../abis/1inch/OffChainOracle.json";
+import OffChainOracleAbi from "baluni-api/dist/abis/1inch/OffChainOracle.json";
 
 interface Token {
   address: string;

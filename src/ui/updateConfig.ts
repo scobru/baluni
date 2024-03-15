@@ -1,99 +1,200 @@
-import axios from "axios";
-
 import * as Config from "../config/config";
-import { writeConfig } from "../config/writeConfig";
+import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS, TOKENS_URL } from "baluni-api";
 
-// Definizione del tipo per la risposta attesa
-interface ConfigResponse {
-  TOKENS: string[];
-  WEIGHTS_UP: Record<string, number>;
-  WEIGHTS_DOWN: Record<string, number>;
-  USDC: string;
-  NATIVE: string;
-  WRAPPED: string;
-  WETH: string;
-  ORACLE: string;
-  ROUTER: string;
-  QUOTER: string;
-  FACTORY: string;
-  NETWORKS: string;
-  LIMIT: number;
-  SLIPPAGE: number;
-  INTERVAL: number;
-  MAX_APPROVAL: boolean;
-  INVESTMENT_INTERVAL: number;
-  INVESTMENT_AMOUNT: number;
-  TREND_FOLLOWING: boolean;
-  KST_TIMEFRAME: string;
-  PREDICTION: boolean;
-  PREDICTION_PERIOD: number;
-  PREDICTION_EPOCHS: number;
-  PREDICTION_SYMBOL: string;
-  PREDICTION_ALGO: string;
-  TECNICAL_ANALYSIS: boolean;
-  RSI_PERIOD: number;
-  RSI_OVERBOUGHT: number;
-  RSI_OVERSOLD: number;
-  RSI_TIMEFRAME: string;
-  STOCKRSI_PERIOD: number;
-  STOCKRSI_OVERBOUGHT: number;
-  STOCKRSI_OVERSOLD: number;
-  EMA_TIMEFRAME: string;
-  EMA_PERIOD: number;
-  EMA_SYMBOL: string;
-  EMA_FAST: number;
-  EMA_SLOW: number;
-  VWAP_PERIOD: number;
+interface YearnVault {
+  address: string;
+  name: string;
+  symbol: string;
+  token: {
+    address: string;
+    name: string;
+    symbol: string;
+  };
+  strategies?: any[];
+  migration?: {
+    available: boolean;
+    address: string;
+    contract: string;
+  };
+  staking?: {
+    available: boolean;
+    address: string;
+    tvl: number;
+    risk: number;
+  };
+  kind: string;
+  version?: string;
+  boosted: boolean;
 }
 
-export async function updateConfig(tokens: string[], _weights: { [token: string]: number }, chainId: number) {
+export async function updateConfig(
+  desiredTokens: string[],
+  desiredAllocations: { [token: string]: number },
+  chainId: number,
+) {
+  // Dati da inviare all'API
+  const payload = {
+    tokens: desiredTokens,
+    weightsUp: desiredAllocations,
+    weightsDown: desiredAllocations,
+    chainId: chainId,
+    yearnEnabled: Config.YEARN_ENABLED,
+    yearnVaults: Config.YEARN_VAULTS,
+    limit: Config.LIMIT,
+    slippage: Config.SLIPPAGE,
+    interval: Config.INTERVAL,
+    maxApproval: Config.MAX_APPROVAL,
+    investmentInterval: Config.INVESTMENT_INTERVAL,
+    investmentAmount: Config.INVESTMENT_AMOUNT,
+    trendFollowing: Config.TREND_FOLLOWING,
+    kstTimeframe: Config.KST_TIMEFRAME,
+    prediction: Config.PREDICTION,
+    predictionPeriod: Config.PREDICTION_PERIOD,
+    predictionEpochs: Config.PREDICTION_EPOCHS,
+    predictionSymbol: Config.PREDICTION_SYMBOL,
+    predictionAlgo: Config.PREDICTION_ALGO,
+    tecnicalAnalysis: Config.TECNICAL_ANALYSIS,
+    rsiPeriod: Config.RSI_PERIOD,
+    rsiOverbought: Config.RSI_OVERBOUGHT,
+    rsiOversold: Config.RSI_OVERSOLD,
+    rsiTimeframe: Config.RSI_TIMEFRAME,
+    stockRsiPeriod: Config.STOCKRSI_PERIOD,
+    stockRsiOverbought: Config.STOCKRSI_OVERBOUGHT,
+    stockRsiOversold: Config.STOCKRSI_OVERSOLD,
+    emaTimeframe: Config.EMA_TIMEFRAME,
+    emaPeriod: Config.EMA_PERIOD,
+    emaSymbol: Config.EMA_SYMBOL,
+    emaFast: Config.EMA_FAST,
+    emaSlow: Config.EMA_SLOW,
+    vwapPeriod: Config.VWAP_PERIOD,
+    selectedProtocol: Config.SELECTED_PROTOCOL,
+  };
+
+  const updatedWeightsDown: Record<string, number> = {};
+  const updatedWeightsUp: Record<string, number> = {};
+  const updatedYearnVaults: Record<string, string> = {};
+  const tokenAddresses = await Promise.all(
+    payload.tokens.map((tokenSymbol: string) => fetchTokenAddressByName(tokenSymbol, payload.chainId)),
+  );
+
+  tokenAddresses.forEach((address, index) => {
+    if (address) {
+      updatedWeightsUp[address] = payload.weightsUp[payload.tokens[index] as keyof typeof payload.weightsUp] ?? 0;
+      updatedWeightsDown[address] = payload.weightsDown[payload.tokens[index] as keyof typeof payload.weightsDown] ?? 0;
+    }
+  });
+
+  // Se yearnEnabled è true, recupera i dati dei vault di Yearn
+  if (payload.yearnEnabled) {
+    const yearnVaultsData = await fetchYearnVaultsData(payload.chainId);
+
+    // Itera sui token per cui sono configurati i vault di Yearn
+    for (const [tokenSymbol, _config] of Object.entries(payload.yearnVaults[payload.chainId])) {
+      // Ora `config` è del tipo corretto
+      const tokenConfig: any = _config;
+
+      const filteredVaults = yearnVaultsData
+        .filter(vault => {
+          const matchesSymbol = vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase();
+          const isVersion3 =
+            vault.version?.startsWith("3.0") || vault.name.includes("3.0") || vault.symbol.includes("3.0");
+          let matchesStrategyType = true;
+          let matchesBoosted = true;
+
+          if (tokenConfig.strategy === "multi") {
+            matchesStrategyType = vault.kind === "Multi Strategy";
+          } else if (tokenConfig.strategy === "single") {
+            matchesStrategyType = vault.kind !== "Multi Strategy";
+          }
+
+          // Check if boosted filter is applied
+          if (tokenConfig.boosted === "true") {
+            matchesBoosted = vault.boosted === true;
+          }
+
+          return matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted;
+        })
+        .map(vault => vault.address);
+
+      if (filteredVaults.length > 0) {
+        updatedYearnVaults[tokenSymbol] = filteredVaults[0];
+      }
+    }
+  }
+
+  return {
+    TOKENS: tokenAddresses, // Indirizzi dei token
+    WEIGHTS_UP: updatedWeightsUp, // Pesi aggiornati per l'aumento di prezzo
+    WEIGHTS_DOWN: updatedWeightsDown, // Pesi aggiornati per il calo di prezzo
+    USDC: await fetchTokenAddressByName("USDC.E", payload.chainId),
+    NATIVE: NATIVETOKENS[payload.chainId]?.NATIVE,
+    WRAPPED: NATIVETOKENS[payload.chainId]?.WRAPPED,
+    ORACLE: ORACLE[payload.chainId]?.["1inch-spot-agg"]?.OFFCHAINORACLE,
+    ROUTER: PROTOCOLS[payload.chainId]?.["uni-v3"]?.ROUTER,
+    QUOTER: PROTOCOLS[payload.chainId]?.["uni-v3"]?.QUOTER,
+    FACTORY: PROTOCOLS[payload.chainId]?.["uni-v3"]?.FACTORY,
+    NETWORKS: NETWORKS[payload.chainId],
+    YEARN_ENABLED: payload.yearnEnabled,
+    YEARN_VAULTS: updatedYearnVaults,
+    LIMIT: payload.limit,
+    SLIPPAGE: payload.slippage,
+    INTERVAL: payload.interval,
+    MAX_APPROVAL: payload.maxApproval,
+    INVESTMENT_INTERVAL: payload.investmentInterval,
+    INVESTMENT_AMOUNT: payload.investmentAmount,
+    TREND_FOLLOWING: payload.trendFollowing,
+    KST_TIMEFRAME: payload.kstTimeframe,
+    PREDICTION: payload.prediction,
+    PREDICTION_PERIOD: payload.predictionPeriod,
+    PREDICTION_EPOCHS: payload.predictionEpochs,
+    PREDICTION_SYMBOL: payload.predictionSymbol,
+    PREDICTION_ALGO: payload.predictionAlgo,
+    TECNICAL_ANALYSIS: payload.tecnicalAnalysis,
+    RSI_PERIOD: payload.rsiPeriod,
+    RSI_OVERBOUGHT: payload.rsiOverbought,
+    RSI_OVERSOLD: payload.rsiOversold,
+    RSI_TIMEFRAME: payload.rsiTimeframe,
+    STOCKRSI_PERIOD: payload.stockRsiPeriod,
+    STOCKRSI_OVERBOUGHT: payload.stockRsiOverbought,
+    STOCKRSI_OVERSOLD: payload.stockRsiOversold,
+    EMA_TIMEFRAME: payload.emaTimeframe,
+    EMA_PERIOD: payload.emaPeriod,
+    EMA_SYMBOL: payload.emaSymbol,
+    EMA_FAST: payload.emaFast,
+    EMA_SLOW: payload.emaSlow,
+    VWAP_PERIOD: payload.vwapPeriod,
+    SELECTED_CHAINID: payload.chainId,
+    SELECTED_PROTOCOL: payload.selectedProtocol,
+  };
+}
+
+async function fetchYearnVaultsData(chainId: number): Promise<YearnVault[]> {
   try {
-    // Dati da inviare all'API
-    const payload = {
-      tokens: tokens,
-      weightsUp: _weights,
-      weightsDown: _weights,
-      chainId: chainId,
-      yearnEnabled: Config.YEARN_ENABLED,
-      yearnVaults: Config.YEARN_VAULTS,
-      limit: Config.LIMIT,
-      slippage: Config.SLIPPAGE,
-      interval: Config.INTERVAL,
-      maxApproval: Config.MAX_APPROVAL,
-      investmentInterval: Config.INVESTMENT_INTERVAL,
-      investmentAmount: Config.INVESTMENT_AMOUNT,
-      trendFollowing: Config.TREND_FOLLOWING,
-      kstTimeframe: Config.KST_TIMEFRAME,
-      prediction: Config.PREDICTION,
-      predictionPeriod: Config.PREDICTION_PERIOD,
-      predictionEpochs: Config.PREDICTION_EPOCHS,
-      predictionSymbol: Config.PREDICTION_SYMBOL,
-      predictionAlgo: Config.PREDICTION_ALGO,
-      tecnicalAnalysis: Config.TECNICAL_ANALYSIS,
-      rsiPeriod: Config.RSI_PERIOD,
-      rsiOverbought: Config.RSI_OVERBOUGHT,
-      rsiOversold: Config.RSI_OVERSOLD,
-      rsiTimeframe: Config.RSI_TIMEFRAME,
-      stockRsiPeriod: Config.STOCKRSI_PERIOD,
-      stockRsiOverbought: Config.STOCKRSI_OVERBOUGHT,
-      stockRsiOversold: Config.STOCKRSI_OVERSOLD,
-      emaTimeframe: Config.EMA_TIMEFRAME,
-      emaPeriod: Config.EMA_PERIOD,
-      emaSymbol: Config.EMA_SYMBOL,
-      emaFast: Config.EMA_FAST,
-      emaSlow: Config.EMA_SLOW,
-      vwapPeriod: Config.VWAP_PERIOD,
-    };
-
-    // Esegui la richiesta POST
-    //const response = await axios.post<ConfigResponse>("https://baluni-api.scobrudot.dev/write-config", payload);
-    const response = await writeConfig(payload);
-
-    // Gestisci la risposta
-    console.log("Configurazione aggiornata:", response.data);
-
-    return response.data;
+    const apiURL = `https://ydaemon.yearn.fi/${chainId}/vaults/all`;
+    const response = await fetch(apiURL);
+    const data: YearnVault[] = await response.json();
+    return data;
   } catch (error) {
-    console.error("Si è verificato un errore durante l'aggiornamento della configurazione:", error);
+    console.error("Failed to fetch Yearn Finance vaults:", error);
+    return [];
+  }
+}
+
+async function fetchTokenAddressByName(tokenSymbol: string, chainId: number): Promise<string | null> {
+  try {
+    const response = await fetch(TOKENS_URL);
+    const data = await response.json();
+
+    // Filtra i token per chainId e cerca un token che corrisponda al tokenSymbol fornito
+    const matchingToken = data.tokens.find(
+      (token: { chainId: number; symbol: string }) =>
+        token.chainId === chainId && token.symbol.toLowerCase() === tokenSymbol.toLowerCase(),
+    );
+
+    // Se il token esiste, restituisci il suo indirizzo
+    return matchingToken ? matchingToken.address : null;
+  } catch (error) {
+    console.error("Failed to fetch token address:", error);
+    return null;
   }
 }

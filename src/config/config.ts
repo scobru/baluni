@@ -20,15 +20,15 @@ export const TOKENS = [
   "USDC.E", // USDC
 ];
 export const WEIGHTS_UP = {
-  LINK: 1000,
-  WETH: 1500,
-  WBTC: 3000,
-  UNI: 2000,
-  AAVE: 500,
+  LINK: 0,
+  WETH: 4500,
+  WBTC: 5000,
+  UNI: 500,
+  AAVE: 0,
   WMATIC: 500,
-  "1INCH": 500,
-  CRV: 250,
-  LDO: 250,
+  "1INCH": 0,
+  CRV: 0,
+  LDO: 0,
   "USDC.E": 250,
 };
 export const WEIGHTS_DOWN = {

@@ -1,4 +1,4 @@
-import { batchSwap } from "../scripts/uniswap/actions/swap";
+import { batchSwap } from "../scripts/uniswap/actions/batchSwap";
 import { DexWallet, initializeWallet } from "../utils/dexWallet";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../config/updateConfig";

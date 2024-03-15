@@ -1,5 +1,5 @@
 import { initializeWallet } from "../utils/dexWallet";
-import { rebalancePortfolio } from "../scripts/uniswap-yearn/rebalance";
+import { rebalancePortfolio } from "../scripts/uniswap/yearn/rebalance";
 import { predict } from "../prediction/predict";
 import { PrettyConsole } from "../utils/prettyConsole";
 import { welcomeMessage } from "../welcome";
@@ -86,7 +86,7 @@ async function executeRebalance(config: any) {
   let TREND: Boolean = true;
   let LAST_TREND: Boolean = true;
 
-  if (config?.TREND_FOLLOWING) {
+  if (config?.TREND_FOLLOWING && signalAI !== "none") {
     if (kstResult.direction === "up" && signalAI === "up" && kstResult.cross) {
       TREND = true;
       LAST_TREND = true;
@@ -99,13 +99,16 @@ async function executeRebalance(config: any) {
   } else if (config?.TREND_FOLLOWING && signalAI == "none") {
     if (kstResult.direction === "up" && kstResult.cross) {
       TREND = true;
+      LAST_TREND = true;
     } else if (kstResult.direction === "down" && kstResult.cross) {
       TREND = false;
+      LAST_TREND = false;
     } else if (kstResult.direction === "none" && !kstResult.cross) {
       TREND = LAST_TREND;
     }
   } else if (!config?.TREND_FOLLOWING && signalAI == "none") {
     TREND = true;
+    LAST_TREND = true;
   }
 
   prettyConsole.debug("🔭 Trend:", TREND);
