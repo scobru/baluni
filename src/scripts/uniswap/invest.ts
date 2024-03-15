@@ -1,5 +1,5 @@
 import { BigNumber, Contract } from "ethers";
-import { DexWallet } from "../../utils/dexWallet";
+import { DexWallet } from "../../utils/web3/dexWallet";
 import { swap } from "./actions/swap";
 import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
 import { formatEther } from "ethers/lib/utils";

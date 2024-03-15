@@ -1,7 +1,7 @@
 import infraRouterAbi from "baluni-api/dist/abis/infra/Router.json";
 import { ethers } from "ethers";
-import { DexWallet } from "../../../utils/dexWallet";
-import { waitForTx } from "../../../utils/networkUtils";
+import { DexWallet } from "../../../utils/web3/dexWallet";
+import { waitForTx } from "../../../utils/web3/networkUtils";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
 import { buildSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 

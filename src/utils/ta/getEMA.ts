@@ -1,4 +1,4 @@
-import { loadPrettyConsole } from "./prettyConsole";
+import { loadPrettyConsole } from "../prettyConsole";
 const pc = loadPrettyConsole();
 
 export async function getEMA(symbol: string, config: any) {

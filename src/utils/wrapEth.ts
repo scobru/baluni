@@ -1,8 +1,8 @@
 import chalk from "chalk";
-import { DexWallet } from "./dexWallet";
+import { DexWallet } from "./web3/dexWallet";
 import { ethers } from "ethers";
 import { loadPrettyConsole } from "./prettyConsole";
-import { waitForTx } from "./networkUtils";
+import { waitForTx } from "./web3/networkUtils";
 
 const prettyConsole = loadPrettyConsole();
 const WETH_ABI = [

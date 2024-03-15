@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { loadPrettyConsole } from "./prettyConsole";
+import { loadPrettyConsole } from "../prettyConsole";
 
 const pc = loadPrettyConsole();
 const MAX_ATTEMPTS = 50;

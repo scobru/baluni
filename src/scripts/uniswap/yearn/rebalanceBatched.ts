@@ -1,5 +1,5 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../../../utils/dexWallet";
+import { DexWallet } from "../../../utils/web3/dexWallet";
 import { formatEther, formatUnits, parseUnits } from "ethers/lib/utils";
 import { fetchPrices } from "../../../utils/quote1Inch";
 import { getTokenMetadata } from "../../../utils/getTokenMetadata";
@@ -8,7 +8,7 @@ import { getTokenValue } from "../../../utils/getTokenValue";
 import { getRSI } from "../../../utils/ta/getRSI";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
 import { batchSwap } from "../actions/batchSwap";
-import { waitForTx } from "../../../utils/networkUtils";
+import { waitForTx } from "../../../utils/web3/networkUtils";
 import { depositToYearnBatched, redeemFromYearnBatched, accuredYearnInterest, getVaultAsset } from "baluni-api";
 import { INFRA } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
@@ -91,15 +91,18 @@ export async function rebalancePortfolio(
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
   config = customConfig;
-
   const gasLimit = 8000000;
   const gas = await dexWallet.walletProvider.getGasPrice();
+
   const swaps: Tswap[] = [];
   const chainId = dexWallet.walletProvider.network.chainId;
+
   const infraRouter = INFRA[chainId].ROUTER;
   const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet);
+
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
+
   pc.log("🏦 Total Portfolio Value (in USDT) at Start: ", formatEther(totalPortfolioValue));
 
   // Calculate Total Portfolio Value
@@ -145,6 +148,7 @@ export async function rebalancePortfolio(
 
   let currentAllocations: { [token: string]: number } = {};
   let tokensToSell = [];
+
   let tokensToBuy = [];
 
   Object.keys(tokenValues).forEach(token => {
@@ -185,7 +189,7 @@ export async function rebalancePortfolio(
     );
 
     if (difference < 0 && Math.abs(difference) > config?.LIMIT) {
-      //const tokenPriceInUSDT = await quotePair(token, usdcAddress);
+      // const tokenPriceInUSDT = await quotePair(token, usdcAddress);
       const tokenMetadata = await getTokenMetadata(token, dexWallet?.walletProvider);
       const decimals = tokenMetadata.decimals;
 

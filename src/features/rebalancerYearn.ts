@@ -1,4 +1,4 @@
-import { initializeWallet } from "../utils/dexWallet";
+import { initializeWallet } from "../utils/web3/dexWallet";
 import { rebalancePortfolio } from "../scripts/uniswap/yearn/rebalance";
 import { predict } from "../prediction/predict";
 import { PrettyConsole } from "../utils/prettyConsole";

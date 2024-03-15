@@ -1,4 +1,4 @@
-import { initializeWallet } from "../utils/dexWallet";
+import { initializeWallet } from "../utils/web3/dexWallet";
 import { invest } from "../scripts/uniswap/invest";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../config/updateConfig";

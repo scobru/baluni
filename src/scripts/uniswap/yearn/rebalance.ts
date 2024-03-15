@@ -1,5 +1,5 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../../../utils/dexWallet";
+import { DexWallet } from "../../../utils/web3/dexWallet";
 import { formatEther, formatUnits, parseUnits } from "ethers/lib/utils";
 import { fetchPrices } from "../../../utils/quote1Inch";
 import { getTokenMetadata } from "../../../utils/getTokenMetadata";
@@ -8,7 +8,7 @@ import { getTokenValue } from "../../../utils/getTokenValue";
 import { getRSI } from "../../../utils/ta/getRSI";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
 import { swap } from "../actions/swap";
-import { waitForTx } from "../../../utils/networkUtils";
+import { waitForTx } from "../../../utils/web3/networkUtils";
 import { INFRA } from "baluni-api";
 import { depositToYearn, redeemFromYearn, accuredYearnInterest, getVaultAsset } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";

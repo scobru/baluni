@@ -1,5 +1,5 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { loadPrettyConsole } from "./prettyConsole";
+import { loadPrettyConsole } from "../prettyConsole";
 
 const pc = loadPrettyConsole();
 
