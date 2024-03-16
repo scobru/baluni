@@ -3,7 +3,6 @@ import { promisify } from "util";
 import { updateConfig } from "../../config/updateConfig";
 
 const txHash = process.argv[2];
-
 const main = promisify(async () => {
   const config = await updateConfig();
   const dexWallet = await initializeWallet(config?.NETWORKS as string);

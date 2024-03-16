@@ -22,6 +22,7 @@ export const initializeWallet = async (rpcUrl: string): Promise<DexWallet> => {
   // Sign the transaction with the contract owner's private key
   const wallet = new ethers.Wallet(PRIVATE_KEY, walletProvider);
   const walletAddress = await wallet.getAddress();
+
   const walletBalance = await wallet.getBalance();
   const providerGasPrice = await walletProvider.getGasPrice();
 

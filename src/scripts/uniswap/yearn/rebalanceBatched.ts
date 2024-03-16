@@ -24,7 +24,7 @@ import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
   depositToYearnBatched,
   previewWithdraw,
   getVaultAsset,
-} from "../../../../baluni-api/dist"; */
+} from "../../../../../baluni-api/dist"; */
 // import { INFRA } from "../../../../baluni-api/dist";
 // import routerAbi from "../../../../baluni-api/dist/abis/infra/Router.json";
 
@@ -401,7 +401,7 @@ export async function rebalancePortfolio(
 
       pc.log("📡 Simulation successful:", simulate);
 
-      if (simulate == false) return pc.log("📡 Simulation failed");
+      if (!simulate) return pc.log("📡 Simulation failed");
 
       const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
         gasLimit: gasLimit,
@@ -476,7 +476,7 @@ export async function rebalancePortfolio(
       if ((await simulate) === false) return pc.log("📡 Simulation failed");
       pc.log("📡 Simulation successful:", await simulate);
 
-      if (simulate === false) return pc.log("📡 Simulation failed");
+      if (!simulate) return pc.log("📡 Simulation failed");
 
       const calldata = router.interface.encodeFunctionData("execute", [data.Calldatas, data.TokensReturn]);
 
