@@ -1,22 +1,22 @@
 import { ethers } from "ethers";
 import OffChainOracleAbi from "baluni-api/dist/abis/1inch/OffChainOracle.json";
+import { NETWORKS, ORACLE, NATIVETOKENS, USDC } from "baluni-api";
 
 interface Token {
   address: string;
   decimals: number;
 }
 
-export async function fetchPrices(token: Token, config: any): Promise<number> {
-  const rpcUrl = config?.NETWORKS;
-  const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+export async function fetchPrices(token: Token, chainId: string): Promise<number> {
+  const provider = new ethers.providers.JsonRpcProvider(NETWORKS[chainId]);
 
-  const offChainOracleAddress = config?.ORACLE;
+  const offChainOracleAddress = ORACLE[chainId]["1inch-spot-agg"].OFFCHAINORACLE;
 
   const offchainOracle = new ethers.Contract(offChainOracleAddress, OffChainOracleAbi, provider);
 
   const rateUSD = await offchainOracle.getRate(
-    config?.WRAPPED, // destination token
-    config?.USDC, // source token
+    NATIVETOKENS[chainId].WRAPPED, // destination token
+    USDC[chainId], // source token
     true, // use source wrappers
   );
 

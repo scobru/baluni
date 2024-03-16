@@ -15,6 +15,7 @@ import { fetchPrices } from "../utils/quote1Inch";
 import { BigNumber, Contract, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
 import { updateConfig } from "./updateConfig";
+
 const pc = loadPrettyConsole();
 
 let config: any;
@@ -189,7 +190,7 @@ export async function rebalancePortfolio(
       tokenBalance,
       decimals,
       usdcAddress,
-      dexWallet.walletProvider.network.chainId,
+      String(dexWallet.walletProvider.network.chainId),
     );
     tokenSymbol == "USDC" ? tokenValue.mul(1e12) : tokenValue;
     tokenValues[token] = tokenValue;
@@ -248,7 +249,7 @@ export async function rebalancePortfolio(
         decimals: decimals,
       };
 
-      const tokenPriceInUSDT: any = await fetchPrices(_token, walletProvider.network.chainId); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(_token, String(walletProvider.network.chainId)); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
 
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
@@ -310,7 +311,6 @@ export async function calculateRebalanceStats(
   try {
     pc.log("**************************************************************************");
     pc.log("📊 Calculating Rebalance Statistics");
-    console.log(dexWallet, walletProvider);
 
     let totalPortfolioValue = BigNumber.from(0);
     let tokenValues: { [token: string]: BigNumber } = {};
@@ -319,13 +319,15 @@ export async function calculateRebalanceStats(
       const tokenMetadata = await getTokenMetadata(token, walletProvider);
       const _tokenbalance = await getTokenBalance(walletProvider, dexWallet.walletAddress, token);
       const tokenBalance = _tokenbalance.balance;
+      console.log(tokenBalance);
+
       const tokenValue = await getTokenValue(
         tokenMetadata.symbol as string,
         token,
         tokenBalance,
         tokenMetadata.decimals,
         usdcAddress,
-        walletProvider.network.chainId,
+        String(walletProvider.network.chainId),
       );
       tokenValues[token] = tokenValue;
       totalPortfolioValue = totalPortfolioValue.add(tokenValue);
@@ -352,7 +354,7 @@ export async function calculateRebalanceStats(
       const difference = desiredAllocation - currentAllocation;
       const valueToRebalance = totalPortfolioValue.mul(BigNumber.from(Math.abs(difference))).div(10000); // USDT value to rebalance
 
-      if (Math.abs(difference) > config?.LIMIT) {
+      if (Math.abs(difference) > 0) {
         rebalanceStats.adjustments.push({
           token: token,
           action: difference > 0 ? "Buy" : "Sell",
