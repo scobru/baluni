@@ -9,8 +9,8 @@ import { getRSI } from "../../../utils/ta/getRSI";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
 import { batchSwap } from "../actions/batchSwap";
 import { waitForTx } from "../../../utils/web3/networkUtils";
-import { depositToYearnBatched, redeemFromYearnBatched, accuredYearnInterest, getVaultAsset } from "baluni-api";
 import { INFRA } from "baluni-api";
+import { depositToYearnBatched, redeemFromYearnBatched, accuredYearnInterest, getVaultAsset } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
 import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
 
@@ -313,7 +313,7 @@ export async function rebalancePortfolio(
     const intAmount = Number(formatUnits(amountWei, 6));
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSym, config);
 
-    const balUSD = await (
+    const balUSD: BigNumber = await (
       await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC)
     )?.balance;
 
@@ -348,7 +348,7 @@ export async function rebalancePortfolio(
       } else {
         pc.warn("⚠️ Waiting for StochRSI overSold");
       }
-    } else if (balUSD != 0) {
+    } else if (balUSD.gte(0)) {
       pc.warn("⚠️ Not enough USDC to buy", token);
       const adjustedAmount = parseUnits(String(balUSD), 6);
       const tokenSym = await tokenCtx.symbol();
@@ -416,7 +416,12 @@ export async function rebalancePortfolio(
   }
 
   if (swaps.length !== 0) {
-    await batchSwap(swaps);
+    try {
+      pc.success("🔄 Swaps");
+      await batchSwap(swaps);
+    } catch (e) {
+      pc.log(e);
+    }
   }
 
   // Deposit to Yearn Vaults
