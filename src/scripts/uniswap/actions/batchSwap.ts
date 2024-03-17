@@ -3,10 +3,11 @@ import { ethers } from "ethers";
 import { DexWallet } from "../../../utils/web3/dexWallet";
 import { waitForTx } from "../../../utils/web3/networkUtils";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
-//import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
+import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // TEST ONLY
-import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
+//import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
+
 const pc = loadPrettyConsole();
 
 export async function batchSwap(
