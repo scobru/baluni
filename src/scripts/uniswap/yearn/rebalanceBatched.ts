@@ -60,7 +60,7 @@ type TRedeem = {
   chainId: string;
 };
 
-async function getTokenValueEnhanced(
+export async function getTokenValueEnhanced(
   tokenSymbol: string,
   token: string,
   tokenBalance: BigNumber,
@@ -68,7 +68,7 @@ async function getTokenValueEnhanced(
   usdcAddress: string,
   yearnBalance?: BigNumber,
   interestAccrued?: any,
-  config?: any,
+  chainId?: any,
 ) {
   let effectiveBalance = tokenBalance;
 
@@ -78,7 +78,7 @@ async function getTokenValueEnhanced(
 
   return tokenSymbol === "USDC.E" || tokenSymbol === "USDC"
     ? effectiveBalance.mul(1e12)
-    : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, config);
+    : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, chainId);
 }
 
 export async function rebalancePortfolio(
@@ -109,6 +109,7 @@ export async function rebalancePortfolio(
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
   pc.success("📊 Calculate Total Portfolio Value");
+
   for (const token of desiredTokens) {
     let tokenValue;
     const tokenContract = new ethers.Contract(token, erc20Abi, dexWallet.wallet);
@@ -120,11 +121,9 @@ export async function rebalancePortfolio(
     const decimals = tokenMetadata.decimals;
     const tokenSymbol = await tokenContract?.symbol();
     const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
-
     if (yearnVaultDetails !== undefined) {
       const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
-
       const interestAccrued = await accuredYearnInterest(yearnVaultDetails, dexWallet.walletAddress, chainId);
       tokenValue = await getTokenValueEnhanced(
         tokenSymbol,
@@ -134,16 +133,17 @@ export async function rebalancePortfolio(
         usdcAddress,
         yearnBalance,
         interestAccrued,
-        config,
+        chainId,
       );
 
       tokenValues[token] = tokenValue;
     } else {
-      tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, config?.USDC, config);
+      tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, config?.USDC, String(chainId));
     }
     tokenValues[token] = tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
   }
+
   pc.log("🏦 Total Portfolio Value (in USDT): ", formatEther(totalPortfolioValue));
 
   let currentAllocations: { [token: string]: number } = {};
@@ -197,7 +197,7 @@ export async function rebalancePortfolio(
         address: token,
         decimals: decimals,
       };
-      const tokenPriceInUSDT: any = await fetchPrices(_token, config); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(_token, String(chainId)); // Ensure this returns a value
 
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
@@ -235,7 +235,6 @@ export async function rebalancePortfolio(
     if (pool) {
       const balance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
       const yearnCtx = new ethers.Contract(pool, erc20Abi, dexWallet.wallet);
-
       const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress);
 
       if (Number(amountWei) > Number(await balance.balance) && Number(yearnCtxBal) >= Number(amountWei)) {
@@ -295,9 +294,12 @@ export async function rebalancePortfolio(
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
   pc.success("🔄 Buy Tokens");
+
   const poolAddress = config?.YEARN_VAULTS.USDC;
   const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet);
   const yBalUSDC = await poolCtx?.balanceOf(dexWallet.walletAddress);
+
+  let totalAmount = BigNumber.from(0);
 
   for (let { token, amount: amountWei } of tokensToBuy) {
     if (token === usdcAddress) {
@@ -317,21 +319,26 @@ export async function rebalancePortfolio(
       await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC)
     )?.balance;
 
-    const isTechnicalAnalysisConditionMet =
-      stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD && rsiResult.rsiVal < config?.RSI_OVERSOLD;
+    pc.log("🟩 USDC Balance: ", formatUnits(balUSD, 6));
+    pc.log("🟩 Yearn USDC Balance: ", formatUnits(yBalUSDC, 6));
+    pc.log("🟩 Amount: ", intAmount);
 
-    if (balUSD.lt(amountWei) && yBalUSDC.gt(amountWei)) {
+    // Redeem USDC from Yearn Vaults
+    if (balUSD.lt(amountWei)) {
       const data: TRedeem = {
         wallet: dexWallet.wallet,
         pool: poolAddress,
-        amount: yBalUSDC,
+        amount: balUSD,
         receiver: dexWallet.walletAddress,
         chainId: String(chainId),
       };
       yearnRedeems.push(data);
     }
 
-    if (balUSD.gt(amountWei)) {
+    const isTechnicalAnalysisConditionMet =
+      stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD && rsiResult.rsiVal < config?.RSI_OVERSOLD;
+
+    if (balUSD.gt(amountWei) && balUSD.sub(totalAmount).gte(amountWei) && Number(amountWei) > 0) {
       if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
         const tokenSym = await tokenCtx.symbol();
         const swap: Tswap = {
@@ -345,12 +352,13 @@ export async function rebalancePortfolio(
           slippage: Number(config?.SLIPPAGE),
         };
         swaps.push(swap);
+        totalAmount = totalAmount.add(amountWei);
       } else {
         pc.warn("⚠️ Waiting for StochRSI overSold");
       }
-    } else if (balUSD.gte(0)) {
-      pc.warn("⚠️ Not enough USDC to buy", token);
-      const adjustedAmount = parseUnits(String(balUSD), 6);
+    } else if (balUSD.gte(0) && balUSD.sub(totalAmount).gte(amountWei) && Number(amountWei) > 0) {
+      pc.warn("⚠️ Use All USD balance to buy", token);
+      const adjustedAmount = formatUnits(String(balUSD), 6);
       const tokenSym = await tokenCtx.symbol();
       const swap: Tswap = {
         dexWallet: dexWallet,
@@ -363,6 +371,7 @@ export async function rebalancePortfolio(
         slippage: Number(config?.SLIPPAGE),
       };
       swaps.push(swap);
+      totalAmount = totalAmount.add(amountWei);
     } else {
       pc.warn("⚠️ Not enough USDC to buy", token);
     }
@@ -375,6 +384,7 @@ export async function rebalancePortfolio(
 
   try {
     const data = await redeemFromYearnBatched(yearnRedeems);
+
     if (data?.Approvals.length > 0) {
       pc.log("📡 Approvals");
 

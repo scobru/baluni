@@ -1,4 +1,4 @@
-import { crossover, crossunder } from "../cross";
+import { crossover, crossunder } from "./cross";
 
 export const calculateEMA = async (symbol: string, config: any) => {
   const { ema, getDetachSourceFromOHLCV } = require("trading-indicator");

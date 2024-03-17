@@ -3,10 +3,10 @@ import { ethers } from "ethers";
 import { DexWallet } from "../../../utils/web3/dexWallet";
 import { waitForTx } from "../../../utils/web3/networkUtils";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
-import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
+//import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // TEST ONLY
-// import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
+import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
 const pc = loadPrettyConsole();
 
 export async function batchSwap(
@@ -120,23 +120,25 @@ export async function batchSwap(
     pc.log("No approvals required");
   }
 
-  try {
-    const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
-      gasLimit: gasLimit,
-      gasPrice: gas,
-    });
-    pc.log("Simulation successful:", simulationResult);
+  if (allCalldatas.length != 0) {
+    try {
+      const simulationResult = await router.callStatic.execute(allCalldatas, allTokensReturn, {
+        gasLimit: gasLimit,
+        gasPrice: gas,
+      });
+      pc.log("Simulation successful:", simulationResult);
 
-    if (!simulationResult) return pc.error("Simulation failed");
+      if (!simulationResult) return pc.error("Simulation failed");
 
-    const tx = await router.execute(allCalldatas, allTokensReturn, {
-      gasLimit: gasLimit,
-      gasPrice: gas,
-    });
-    const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
-    pc.log("Transaction executed", broadcaster);
-  } catch (error) {
-    pc.error("Simulation failed:", error);
-    return;
+      const tx = await router.execute(allCalldatas, allTokensReturn, {
+        gasLimit: gasLimit,
+        gasPrice: gas,
+      });
+      const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
+      pc.log("Transaction executed", broadcaster);
+    } catch (error) {
+      pc.error("Simulation failed:", error);
+      return;
+    }
   }
 }

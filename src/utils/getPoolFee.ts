@@ -9,10 +9,10 @@ export async function getAmountOut(
   poolFee: Number,
   swapAmount: BigNumber,
   quoterContract: Contract,
-  config: any,
+  slippage: any,
 ) {
   try {
-    let slippageTolerance = config?.SLIPPAGE;
+    let slippageTolerance = slippage;
 
     let expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
       tokenA,

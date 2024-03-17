@@ -15,7 +15,8 @@ import { fetchPrices } from "../utils/quote1Inch";
 import { BigNumber, Contract, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
 import { updateConfig } from "./updateConfig";
-
+import { PROTOCOLS, INFRA } from "baluni-api";
+import { RouterABI } from "baluni-api";
 const pc = loadPrettyConsole();
 
 let config: any;
@@ -31,7 +32,7 @@ async function initializeSwap(dexWallet: DexWallet, pair: [string, string], reve
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
   const chainId = dexWallet.walletProvider.network.chainId;
-  const swapRouterAddress = config?.ROUTER as string;
+  const swapRouterAddress = PROTOCOLS[chainId]["uni-v3"].ROUTER;
   const swapRouterContract = new Contract(swapRouterAddress, swapRouterAbi, signer);
   return {
     tokenAAddress,
@@ -87,23 +88,31 @@ export async function swapCustom(
     walletAddress,
     chainId,
   } = await initializeSwap(dexWallet, pair, reverse);
-  console.log(providerGasPrice);
-  //const gasPrice = providerGasPrice.mul(12).div(10);
+
   const gasPrice = providerGasPrice;
   const quoterContract = new Contract(config?.QUOTER, quoterAbi, dexWallet.wallet);
-  const quote = await quotePair(tokenAAddress, tokenBAddress);
+  const quote = await quotePair(tokenAAddress, tokenBAddress, dexWallet.walletProvider);
+  const routerCtx = new Contract(INFRA[dexWallet.walletProvider.network.chainId].ROUTER, RouterABI, provider);
+  const agentAddress = await routerCtx.getAgentAddress(walletAddress);
 
   pc.log(`⛽ Actual gas price: ${gasPrice}`, `💲 Provider gas price: ${providerGasPrice}`);
 
   if (!quote) {
     pc.error("❌ USDC Pool Not Found");
     pc.log("↩️ Using WMATIC route");
-    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
+    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, false);
+
+    const approveCallData = tokenAContract.interface.encodeFunctionData("approve", [swapRouterAddress, swapAmount]);
+    const transferFromCallData = tokenAContract.interface.encodeFunctionData("transferFrom", [
+      walletAddress,
+      agentAddress,
+      swapAmount,
+    ]);
 
     const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, config?.WRAPPED, swapAmount);
     const poolFee2 = await findPoolAndFee(quoterContract, config?.WRAPPED, config?.USDC, swapAmount);
 
-    const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
+    const swapTxResponse = await executeMultiHopSwap(
       tokenAAddress,
       config?.WRAPPED,
       tokenBAddress,
@@ -117,33 +126,110 @@ export async function swapCustom(
       provider as ethers.providers.JsonRpcProvider,
     );
 
-    const broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash, dexWallet.walletAddress);
+    const tokensReturn = [tokenBAddress];
 
-    if (!broadcasted) throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+    const txData = {
+      to: routerCtx.address,
+      value: 0,
+      data: routerCtx.interface.encodeFunctionData("execute", [
+        [approveCallData, transferFromCallData, swapTxResponse],
+        tokensReturn,
+      ]),
+    };
+
+    const tx = await dexWallet.wallet.sendTransaction(txData);
+
+    /* let execute = await callContractMethod(
+      routerCtx,
+      "execute",
+      [[approveCallData, transferFromCallData, swapTxResponse], tokensReturn],
+      dexWallet.walletProvider,
+      gasPrice,
+    ); */
+
+    let broadcasted = await waitForTx(dexWallet.wallet.provider, tx.hash, dexWallet.walletAddress);
     pc.success(`Transaction Complete!`);
     return swapTxResponse;
   }
 
   pc.log("🎉 Pool Found!");
-  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
+  await approveToken(tokenAContract, swapAmount, agentAddress, gasPrice, dexWallet, true);
+
+  const approveCallData = tokenAContract.interface.encodeFunctionData("approve", [swapRouterAddress, swapAmount]);
+
+  const txCalldata = {
+    to: tokenAContract.address,
+    value: 0,
+    data: approveCallData,
+  };
+
+  const transferFromCallData = tokenAContract.interface.encodeFunctionData("transferFrom", [
+    walletAddress,
+    agentAddress,
+    swapAmount,
+  ]);
+
+  const txTranferFrom = {
+    to: tokenAContract.address,
+    value: 0,
+    data: transferFromCallData,
+  };
+
   pc.log(`↔️ Swap ${tokenAName} for ${tokenBName})}`);
 
   const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, tokenBAddress, swapAmount);
 
-  const [swapTxResponse, minimumAmountB] = await executeSwap(
+  /* 
+  const tokenASymbol = await tokenAContract.symbol();
+  const tokenBSymbol = await tokenBContract.symbol();
+
+  const tokenADecimals = await tokenAContract.decimals();
+  const formattedSwapAmount = ethers.utils.formatUnits(swapAmount, tokenADecimals);
+
+  const url = `https://baluni-api.scobrudot.dev/${chainId}/swap/${walletAddress}/${tokenASymbol}/${tokenBSymbol}/false/uni-v3/${formattedSwapAmount}/100`;
+  console.log(url);
+
+  const swapTxResponse = await fetch(url);
+  console.log(swapTxResponse);
+ */
+
+  const swapTxResponse = await executeSwap(
     tokenAAddress,
     tokenBAddress,
     Number(poolFee),
     swapAmount,
-    walletAddress,
+    agentAddress,
     swapRouterContract,
     quoterContract,
     gasPrice,
     provider as ethers.providers.JsonRpcProvider,
   );
 
-  let broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash, dexWallet.walletAddress);
-  if (!broadcasted) throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+  const tokensReturn = [tokenBAddress];
+
+  console.log(swapTxResponse);
+
+  const txData = {
+    to: routerCtx.address,
+    value: 0,
+    data: routerCtx.interface.encodeFunctionData("execute", [
+      [txCalldata, txTranferFrom, swapTxResponse],
+      tokensReturn,
+    ]),
+  };
+
+  const tx = await dexWallet.wallet.sendTransaction(txData);
+
+  /* let execute = await callContractMethod(
+    routerCtx,
+    "execute",
+    [[approveCallData, transferFromCallData, swapTxResponse], tokensReturn],
+    dexWallet.walletProvider,
+    gasPrice,
+  ); */
+
+  let broadcasted = await waitForTx(dexWallet.wallet.provider, tx.hash, dexWallet.walletAddress);
+  if (!broadcasted) throw new Error(`TX broadcast timeout for ${tx.hash}`);
   pc.success(`Transaction Complete!`);
 
   return swapTxResponse;
@@ -382,7 +468,7 @@ async function executeSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, 100);
   let swapTxInputs = [
     tokenA,
     tokenB,
@@ -393,15 +479,13 @@ async function executeSwap(
     minimumAmountB,
     BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(
-    swapRouterContract,
-    "exactInputSingle",
-    [swapTxInputs],
-    provider,
-    gasPrice,
-  );
+  const tx = {
+    to: swapRouterContract.address,
+    value: BigNumber.from(0),
+    data: swapRouterContract.interface.encodeFunctionData("exactInputSingle", [swapTxInputs]),
+  };
 
-  return [swapTxResponse, minimumAmountB];
+  return tx;
 }
 
 async function executeMultiHopSwap(
@@ -418,8 +502,8 @@ async function executeMultiHopSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
-  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, config);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, 100);
+  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, 100);
   const path = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
     [tokenA, poolFee, tokenB, poolFee2, tokenC],
@@ -431,7 +515,12 @@ async function executeMultiHopSwap(
     swapAmount,
     0, // BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInput", [swapTxInputs], provider, gasPrice);
 
-  return [swapTxResponse, minimumAmountB2];
+  const tx = {
+    to: walletAddress,
+    value: BigNumber.from(0),
+    data: swapRouterContract.interface.encodeFunctionData("exactInput", [swapTxInputs]),
+  };
+
+  return tx;
 }

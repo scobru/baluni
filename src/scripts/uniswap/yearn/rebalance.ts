@@ -60,12 +60,14 @@ export async function rebalancePortfolio(
 
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
+
   pc.log("🏦 Total Portfolio Value (in USDT) at Start: ", formatEther(totalPortfolioValue));
 
   // Calculate the total value of the portfolio
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
   pc.success("📊 Calculating Portfolio Value");
+
   for (const token of desiredTokens) {
     let tokenValue;
     const tokenContract = new ethers.Contract(token, erc20Abi, dexWallet.wallet);
@@ -75,6 +77,7 @@ export async function rebalancePortfolio(
     const decimals = tokenMetadata.decimals;
     const tokenSymbol = await tokenContract?.symbol();
     const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
+
     if (yearnVaultDetails !== undefined) {
       const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
@@ -92,12 +95,12 @@ export async function rebalancePortfolio(
         usdcAddress,
         yearnBalance,
         interestAccrued,
-        config,
+        chainId,
       );
 
       tokenValues[token] = tokenValue;
     } else {
-      tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, config?.USDC, config);
+      tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, config?.USDC, String(chainId));
     }
     tokenValues[token] = tokenValue;
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
@@ -161,7 +164,7 @@ export async function rebalancePortfolio(
         decimals: decimals,
       };
 
-      const tokenPriceInUSDT: any = await fetchPrices(_token, config); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(_token, String(chainId)); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
       if (token === usdcAddress) {
@@ -230,13 +233,13 @@ export async function rebalancePortfolio(
       return amount;
     };
 
-    const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
+    const vaultAddress = config?.YEARN_VAULTS[tokenSymbol];
 
-    if (yearnVaultDetails) {
+    if (vaultAddress) {
       const balance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
-      const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
+      const yearnContract = new ethers.Contract(vaultAddress, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
-      amount = await handleTokenRedemption(balance.balance, yearnBalance, dexWallet, yearnVaultDetails);
+      amount = await handleTokenRedemption(balance.balance, yearnBalance, dexWallet, vaultAddress);
     }
 
     const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
@@ -466,7 +469,7 @@ export async function rebalancePortfolio(
   pc.success("✔️ Rebalance completed.");
 }
 
-async function getTokenValueEnhanced(
+export async function getTokenValueEnhanced(
   tokenSymbol: string,
   token: string,
   tokenBalance: BigNumber,
@@ -474,13 +477,15 @@ async function getTokenValueEnhanced(
   usdcAddress: string,
   yearnBalance?: BigNumber,
   interestAccrued?: any,
-  config?: any,
+  chainId?: any,
 ) {
   let effectiveBalance = tokenBalance;
+
   if (config?.YEARN_ENABLED && yearnBalance) {
     effectiveBalance = yearnBalance.add(interestAccrued).add(tokenBalance);
   }
+
   return tokenSymbol === "USDC.E" || tokenSymbol === "USDC"
     ? effectiveBalance.mul(1e12)
-    : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, config);
+    : await getTokenValue(tokenSymbol, token, effectiveBalance, decimals, usdcAddress, chainId);
 }

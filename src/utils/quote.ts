@@ -3,39 +3,27 @@ import uniswapV3FactoryAbi from "baluni-api/dist/abis/uniswap/UniswapV3Factory.j
 import uniswapV3PoolAbi from "baluni-api/dist/abis/uniswap/UniswapV3Pool.json";
 import erc20Abi from "baluni-api/dist/abis/common/ERC20.json"; // Assuming you have ERC20 ABI for fetching decimals
 import { loadPrettyConsole } from "./prettyConsole";
+import { PROTOCOLS } from "baluni-api";
 
 const prettyConsole = loadPrettyConsole();
 
-export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
-  const uniswapV3FactoryAddress = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-  const { PRIVATE_KEY } = process.env;
-
-  if (!PRIVATE_KEY) {
-    prettyConsole.log("Private key missing from env variables");
-    return;
-  }
-
-  // Connect to the BSC mainnet
-  // const provider = ethers.getDefaultProvider();
-  const provider = new ethers.providers.JsonRpcProvider("https://polygon-rpc.com/");
-
-  // Sign the transaction with the contract owner's private key
-  const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
+export async function quotePair(
+  tokenAAddress: string,
+  tokenBAddress: string,
+  provider: ethers.providers.JsonRpcProvider,
+) {
+  const chainId = provider.network.chainId;
+  const uniswapV3FactoryAddress = PROTOCOLS[chainId]["uni-v3"].FACTORY;
 
   // Get the contract instance
-  const factoryContract = new ethers.Contract(uniswapV3FactoryAddress, uniswapV3FactoryAbi, wallet);
+  const factoryContract = new ethers.Contract(uniswapV3FactoryAddress, uniswapV3FactoryAbi, provider);
 
-  const walletAddress = await wallet.getAddress();
-  const walletBalance = await wallet.getBalance();
-
-  const tokenAContract = new ethers.Contract(tokenAAddress, erc20Abi, wallet);
-  const tokenBContract = new ethers.Contract(tokenBAddress, erc20Abi, wallet);
+  const tokenAContract = new ethers.Contract(tokenAAddress, erc20Abi, provider);
+  // const tokenBContract = new ethers.Contract(tokenBAddress, erc20Abi, provider);
 
   // Fetch decimals for both tokens
   const tokenADecimals = await tokenAContract.decimals();
-  const tokenBDecimals = await tokenBContract.decimals();
-
-  prettyConsole.log(walletAddress + ":", walletBalance.toBigInt());
+  // const tokenBDecimals = await tokenBContract.decimals();
 
   const txInputs = [tokenAAddress, tokenBAddress, 3000];
 
@@ -43,7 +31,7 @@ export async function quotePair(tokenAAddress: string, tokenBAddress: string) {
     const poolAddress = await factoryContract.getPool(...txInputs);
     prettyConsole.log("Pool address:", poolAddress);
 
-    const poolContract = new ethers.Contract(poolAddress, uniswapV3PoolAbi, wallet);
+    const poolContract = new ethers.Contract(poolAddress, uniswapV3PoolAbi, provider);
     const slot0 = await poolContract.slot0();
 
     const { tick } = slot0;
