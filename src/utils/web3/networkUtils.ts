@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { loadPrettyConsole } from "../prettyConsole";
 
 const pc = loadPrettyConsole();
-const MAX_ATTEMPTS = 50;
+const MAX_ATTEMPTS = 20;
 const POLLING_INTERVAL = 5000;
 
 export async function waitForTx(provider: ethers.providers.Provider, hash: string, sender: string): Promise<boolean> {

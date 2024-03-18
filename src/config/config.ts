@@ -20,15 +20,15 @@ export const TOKENS = [
   "USDC.E", // USDC
 ];
 export const WEIGHTS_UP = {
-  LINK: 0,
-  WETH: 4500,
-  WBTC: 5000,
-  UNI: 500,
-  AAVE: 0,
+  LINK: 1000,
+  WETH: 1000,
+  WBTC: 3750,
+  UNI: 1000,
+  AAVE: 500,
   WMATIC: 500,
-  "1INCH": 0,
-  CRV: 0,
-  LDO: 0,
+  "1INCH": 500,
+  CRV: 500,
+  LDO: 1000,
   "USDC.E": 250,
 };
 export const WEIGHTS_DOWN = {
@@ -46,6 +46,7 @@ export const WEIGHTS_DOWN = {
 
 // YEARN CONFIG
 export const YEARN_ENABLED = true;
+
 export const YEARN_VAULTS: ConfigTypeYearn = {
   137: {
     USDC: {
@@ -85,7 +86,7 @@ export const PREDICTION_SYMBOL = "bitcoin";
 export const PREDICTION_ALGO = "REGR";
 
 // TECHNICAL ANALYSIS
-export const TECNICAL_ANALYSIS = false;
+export const TECNICAL_ANALYSIS = true;
 //RSI
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
