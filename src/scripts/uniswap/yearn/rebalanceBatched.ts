@@ -71,7 +71,7 @@ export async function getTokenValueEnhanced(
   chainId?: any,
 ) {
   let effectiveBalance = tokenBalance;
-
+  console.log("IM HEREEE", config?.YEARN_ENABLED, yearnBalance, interestAccrued);
   if (config?.YEARN_ENABLED && yearnBalance) {
     effectiveBalance = yearnBalance.add(interestAccrued).add(tokenBalance);
   }
@@ -121,6 +121,8 @@ export async function rebalancePortfolio(
     const decimals = tokenMetadata.decimals;
     const tokenSymbol = await tokenContract?.symbol();
     const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
+    console.log("yearnVaultDetails", yearnVaultDetails);
+
     if (yearnVaultDetails !== undefined) {
       const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
@@ -298,7 +300,9 @@ export async function rebalancePortfolio(
   const poolAddress = config?.YEARN_VAULTS.USDC;
   const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet);
   const yBalUSDC = await poolCtx?.balanceOf(dexWallet.walletAddress);
-
+  const balUSD: BigNumber = await (
+    await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC)
+  )?.balance;
   let totalAmount = BigNumber.from(0);
 
   for (let { token, amount: amountWei } of tokensToBuy) {
@@ -318,22 +322,6 @@ export async function rebalancePortfolio(
     const balUSD: BigNumber = await (
       await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, config?.USDC)
     )?.balance;
-
-    pc.log("🟩 USDC Balance: ", formatUnits(balUSD, 6));
-    pc.log("🟩 Yearn USDC Balance: ", formatUnits(yBalUSDC, 6));
-    pc.log("🟩 Amount: ", intAmount);
-
-    // Redeem USDC from Yearn Vaults
-    if (balUSD.lt(amountWei)) {
-      const data: TRedeem = {
-        wallet: dexWallet.wallet,
-        pool: poolAddress,
-        amount: balUSD,
-        receiver: dexWallet.walletAddress,
-        chainId: String(chainId),
-      };
-      yearnRedeems.push(data);
-    }
 
     const isTechnicalAnalysisConditionMet =
       stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD && rsiResult.rsiVal < config?.RSI_OVERSOLD;
@@ -375,6 +363,22 @@ export async function rebalancePortfolio(
     } else {
       pc.warn("⚠️ Not enough USDC to buy", token);
     }
+  }
+
+  pc.log("🟩 USDC Balance: ", formatUnits(balUSD, 6));
+  pc.log("🟩 Yearn USDC Balance: ", formatUnits(yBalUSDC, 6));
+
+  // Redeem USDC from Yearn Vaults
+  if (tokensToBuy.length > 0 && yBalUSDC.gt(0)) {
+    pc.log("Redeem from Yearn Vaults");
+    const data: TRedeem = {
+      wallet: dexWallet.wallet,
+      pool: poolAddress,
+      amount: balUSD,
+      receiver: dexWallet.walletAddress,
+      chainId: String(chainId),
+    };
+    yearnRedeems.push(data);
   }
 
   // Redeem from Yearn Vaults

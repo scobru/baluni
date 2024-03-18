@@ -100,7 +100,7 @@ export async function swapCustom(
   if (!quote) {
     pc.error("❌ USDC Pool Not Found");
     pc.log("↩️ Using WMATIC route");
-    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, false);
+    await approveToken(tokenAContract, swapAmount, agentAddress, gasPrice, dexWallet, true);
 
     const approveCallData = tokenAContract.interface.encodeFunctionData("approve", [swapRouterAddress, swapAmount]);
     const transferFromCallData = tokenAContract.interface.encodeFunctionData("transferFrom", [
