@@ -1,5 +1,5 @@
-import { batchSwap } from "../scripts/uniswap/swap";
-import { DexWallet, initializeWallet } from "../utils/dexWallet";
+import { batchSwap } from "../scripts/uniswap/actions/batchSwap";
+import { DexWallet, initializeWallet } from "../utils/web3/dexWallet";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../config/updateConfig";
 const prettyConsole = loadPrettyConsole();

@@ -681,10 +681,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-baluni-api@^1.3.5:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-1.3.5.tgz#d0b83bccf65710bb7195c8be5b933fa345c23a3b"
-  integrity sha512-BwoYyBwaOkl0LfZjlgAJTzXzlZNv0CdJ+2n3gCULiFQjhivq2bcaWKPmk3zc+v14M4tR9E+94hhOAUtCj9dm4Q==
+baluni-api@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-1.5.0.tgz#0f91e1ae49b43195d606015437a0f5359c1846b9"
+  integrity sha512-3fv9CzUik0nnSbksHBGsLYMQ4hKMXxE4XhA4wS4pcG9gZM28qRjoiSpHTU2FKzIv6rbIhEENPtdzi84dbkGWvw==
   dependencies:
     "@uniswap/permit2-sdk" "^1.2.0"
     axios "^1.6.5"

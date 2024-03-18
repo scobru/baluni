@@ -1,6 +1,5 @@
-import { initializeWallet } from "../utils/dexWallet";
+import { initializeWallet } from "../utils/web3/dexWallet";
 import { invest } from "../scripts/uniswap/invest";
-import { rechargeFees } from "../utils/rechargeFees";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../config/updateConfig";
 
@@ -14,7 +13,6 @@ async function dca() {
 
   try {
     const dexWallet = await initializeWallet(String(config?.NETWORKS));
-    await rechargeFees(dexWallet, config);
     // Initialize your DexWallet here
 
     // DCA Mechanism - periodically invest
@@ -26,7 +24,7 @@ async function dca() {
           String(config?.USDC),
           config?.TOKENS as any,
           false,
-          config?.INVESTMENT_AMOUNT,
+          String(config?.INVESTMENT_AMOUNT),
           config?.SELECTED_PROTOCOL,
           config?.NETWORKS,
           Number(config?.SLIPPAGE),

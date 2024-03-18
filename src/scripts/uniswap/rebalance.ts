@@ -1,15 +1,14 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../../utils/dexWallet";
-import erc20Abi from "../../abis/common/ERC20.json";
+import { DexWallet } from "../../utils/web3/dexWallet";
+import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
 import { formatEther, formatUnits } from "ethers/lib/utils";
-import { fetchPrices } from "../../protocols/1inch/quote1Inch";
-import { rechargeFees } from "../../utils/rechargeFees";
+import { fetchPrices } from "../../utils/quote1Inch";
 import { getTokenMetadata } from "../../utils/getTokenMetadata";
 import { getTokenBalance } from "../../utils/getTokenBalance";
 import { getTokenValue } from "../../utils/getTokenValue";
-import { getRSI } from "../../utils/getRSI";
+import { getRSI } from "../../utils/ta/getRSI";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { swap } from "./swap";
+import { swap } from "./actions/swap";
 
 const pc = loadPrettyConsole();
 
@@ -24,20 +23,9 @@ export async function rebalancePortfolio(
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
-
   config = customConfig;
-
-  await rechargeFees(dexWallet, config);
-  // const chainId = dexWallet.walletProvider.network.chainId;
-
-  const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, usdcAddress);
-  let usdBalance = _usdBalance.balance;
-
-  // let totalPortfolioValue = BigNumber.from(usdBalance.mul(1e12).toString());
   let totalPortfolioValue = BigNumber.from(0);
-
   pc.log("🏦 Total Portfolio Value (in USDT) at Start: ", formatEther(totalPortfolioValue));
-
   let tokenValues: { [token: string]: BigNumber } = {};
 
   for (const token of desiredTokens) {

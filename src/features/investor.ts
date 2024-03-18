@@ -1,6 +1,5 @@
-import { initializeWallet } from "../utils/dexWallet"; // Import the initializeWallet function
+import { initializeWallet } from "../utils/web3/dexWallet"; // Import the initializeWallet function
 import { invest } from "../scripts/uniswap/invest";
-import { rechargeFees } from "../utils/rechargeFees";
 import { loadPrettyConsole } from "../utils/prettyConsole";
 import { updateConfig } from "../config/updateConfig";
 
@@ -15,7 +14,6 @@ async function investor() {
   prettyConsole.log("Sell All?", sellAll);
   try {
     const dexWallet = await initializeWallet(String(config?.NETWORKS));
-    await rechargeFees(dexWallet, config);
 
     await invest(
       dexWallet,

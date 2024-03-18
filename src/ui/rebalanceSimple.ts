@@ -1,20 +1,22 @@
-import erc20Abi from "../abis/common/ERC20.json";
-import quoterAbi from "../abis/uniswap/Quoter.json";
-import swapRouterAbi from "../abis/uniswap/SwapRouter.json";
+import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
+import quoterAbi from "baluni-api/dist/abis/uniswap/Quoter.json";
+import swapRouterAbi from "baluni-api/dist/abis/uniswap/SwapRouter.json";
 import { approveToken } from "../utils/approveToken";
-import { callContractMethod } from "../utils/contractUtils";
-import { DexWallet } from "../utils/dexWallet";
+import { callContractMethod } from "../utils/web3/contractUtils";
+import { DexWallet } from "../utils/web3/dexWallet";
 import { getAmountOut, getPoolFee } from "../utils/getPoolFee";
 import { getTokenBalance } from "../utils/getTokenBalance";
 import { getTokenMetadata } from "../utils/getTokenMetadata";
 import { getTokenValue } from "../utils/getTokenValue";
-import { waitForTx } from "../utils/networkUtils";
+import { waitForTx } from "../utils/web3/networkUtils";
 import { loadPrettyConsole } from "../utils/prettyConsole";
-import { quotePair } from "../protocols/uniswap/quote";
-import { fetchPrices } from "../protocols/1inch/quote1Inch";
+import { quotePair } from "../utils/quote";
+import { fetchPrices } from "../utils/quote1Inch";
 import { BigNumber, Contract, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
 import { updateConfig } from "./updateConfig";
+import { PROTOCOLS, INFRA } from "baluni-api";
+import { RouterABI } from "baluni-api";
 const pc = loadPrettyConsole();
 
 let config: any;
@@ -30,7 +32,7 @@ async function initializeSwap(dexWallet: DexWallet, pair: [string, string], reve
   const tokenAName = await tokenAContract.symbol();
   const tokenBName = await tokenBContract.symbol();
   const chainId = dexWallet.walletProvider.network.chainId;
-  const swapRouterAddress = config?.ROUTER as string;
+  const swapRouterAddress = PROTOCOLS[chainId]["uni-v3"].ROUTER;
   const swapRouterContract = new Contract(swapRouterAddress, swapRouterAbi, signer);
   return {
     tokenAAddress,
@@ -86,23 +88,31 @@ export async function swapCustom(
     walletAddress,
     chainId,
   } = await initializeSwap(dexWallet, pair, reverse);
-  console.log(providerGasPrice);
-  //const gasPrice = providerGasPrice.mul(12).div(10);
+
   const gasPrice = providerGasPrice;
   const quoterContract = new Contract(config?.QUOTER, quoterAbi, dexWallet.wallet);
-  const quote = await quotePair(tokenAAddress, tokenBAddress);
+  const quote = await quotePair(tokenAAddress, tokenBAddress, dexWallet.walletProvider);
+  const routerCtx = new Contract(INFRA[dexWallet.walletProvider.network.chainId].ROUTER, RouterABI, provider);
+  const agentAddress = await routerCtx.getAgentAddress(walletAddress);
 
   pc.log(`⛽ Actual gas price: ${gasPrice}`, `💲 Provider gas price: ${providerGasPrice}`);
 
   if (!quote) {
     pc.error("❌ USDC Pool Not Found");
     pc.log("↩️ Using WMATIC route");
-    await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
+    await approveToken(tokenAContract, swapAmount, agentAddress, gasPrice, dexWallet, true);
+
+    const approveCallData = tokenAContract.interface.encodeFunctionData("approve", [swapRouterAddress, swapAmount]);
+    const transferFromCallData = tokenAContract.interface.encodeFunctionData("transferFrom", [
+      walletAddress,
+      agentAddress,
+      swapAmount,
+    ]);
 
     const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, config?.WRAPPED, swapAmount);
     const poolFee2 = await findPoolAndFee(quoterContract, config?.WRAPPED, config?.USDC, swapAmount);
 
-    const [swapTxResponse, minimumAmountB] = await executeMultiHopSwap(
+    const swapTxResponse = await executeMultiHopSwap(
       tokenAAddress,
       config?.WRAPPED,
       tokenBAddress,
@@ -116,33 +126,110 @@ export async function swapCustom(
       provider as ethers.providers.JsonRpcProvider,
     );
 
-    const broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash);
+    const tokensReturn = [tokenBAddress];
 
-    if (!broadcasted) throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+    const txData = {
+      to: routerCtx.address,
+      value: 0,
+      data: routerCtx.interface.encodeFunctionData("execute", [
+        [approveCallData, transferFromCallData, swapTxResponse],
+        tokensReturn,
+      ]),
+    };
+
+    const tx = await dexWallet.wallet.sendTransaction(txData);
+
+    /* let execute = await callContractMethod(
+      routerCtx,
+      "execute",
+      [[approveCallData, transferFromCallData, swapTxResponse], tokensReturn],
+      dexWallet.walletProvider,
+      gasPrice,
+    ); */
+
+    let broadcasted = await waitForTx(dexWallet.wallet.provider, tx.hash, dexWallet.walletAddress);
     pc.success(`Transaction Complete!`);
     return swapTxResponse;
   }
 
   pc.log("🎉 Pool Found!");
-  await approveToken(tokenAContract, swapAmount, swapRouterAddress, gasPrice, dexWallet, config);
+  await approveToken(tokenAContract, swapAmount, agentAddress, gasPrice, dexWallet, true);
+
+  const approveCallData = tokenAContract.interface.encodeFunctionData("approve", [swapRouterAddress, swapAmount]);
+
+  const txCalldata = {
+    to: tokenAContract.address,
+    value: 0,
+    data: approveCallData,
+  };
+
+  const transferFromCallData = tokenAContract.interface.encodeFunctionData("transferFrom", [
+    walletAddress,
+    agentAddress,
+    swapAmount,
+  ]);
+
+  const txTranferFrom = {
+    to: tokenAContract.address,
+    value: 0,
+    data: transferFromCallData,
+  };
+
   pc.log(`↔️ Swap ${tokenAName} for ${tokenBName})}`);
 
   const poolFee = await findPoolAndFee(quoterContract, tokenAAddress, tokenBAddress, swapAmount);
 
-  const [swapTxResponse, minimumAmountB] = await executeSwap(
+  /* 
+  const tokenASymbol = await tokenAContract.symbol();
+  const tokenBSymbol = await tokenBContract.symbol();
+
+  const tokenADecimals = await tokenAContract.decimals();
+  const formattedSwapAmount = ethers.utils.formatUnits(swapAmount, tokenADecimals);
+
+  const url = `https://baluni-api.scobrudot.dev/${chainId}/swap/${walletAddress}/${tokenASymbol}/${tokenBSymbol}/false/uni-v3/${formattedSwapAmount}/100`;
+  console.log(url);
+
+  const swapTxResponse = await fetch(url);
+  console.log(swapTxResponse);
+ */
+
+  const swapTxResponse = await executeSwap(
     tokenAAddress,
     tokenBAddress,
     Number(poolFee),
     swapAmount,
-    walletAddress,
+    agentAddress,
     swapRouterContract,
     quoterContract,
     gasPrice,
     provider as ethers.providers.JsonRpcProvider,
   );
 
-  let broadcasted = await waitForTx(dexWallet.wallet.provider, swapTxResponse.hash);
-  if (!broadcasted) throw new Error(`TX broadcast timeout for ${swapTxResponse.hash}`);
+  const tokensReturn = [tokenBAddress];
+
+  console.log(swapTxResponse);
+
+  const txData = {
+    to: routerCtx.address,
+    value: 0,
+    data: routerCtx.interface.encodeFunctionData("execute", [
+      [txCalldata, txTranferFrom, swapTxResponse],
+      tokensReturn,
+    ]),
+  };
+
+  const tx = await dexWallet.wallet.sendTransaction(txData);
+
+  /* let execute = await callContractMethod(
+    routerCtx,
+    "execute",
+    [[approveCallData, transferFromCallData, swapTxResponse], tokensReturn],
+    dexWallet.walletProvider,
+    gasPrice,
+  ); */
+
+  let broadcasted = await waitForTx(dexWallet.wallet.provider, tx.hash, dexWallet.walletAddress);
+  if (!broadcasted) throw new Error(`TX broadcast timeout for ${tx.hash}`);
   pc.success(`Transaction Complete!`);
 
   return swapTxResponse;
@@ -189,7 +276,7 @@ export async function rebalancePortfolio(
       tokenBalance,
       decimals,
       usdcAddress,
-      dexWallet.walletProvider.network.chainId,
+      String(dexWallet.walletProvider.network.chainId),
     );
     tokenSymbol == "USDC" ? tokenValue.mul(1e12) : tokenValue;
     tokenValues[token] = tokenValue;
@@ -248,7 +335,7 @@ export async function rebalancePortfolio(
         decimals: decimals,
       };
 
-      const tokenPriceInUSDT: any = await fetchPrices(_token, walletProvider.network.chainId); // Ensure this returns a value
+      const tokenPriceInUSDT: any = await fetchPrices(_token, String(walletProvider.network.chainId)); // Ensure this returns a value
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
 
       const tokenAmountToSell = valueToRebalance.mul(BigNumber.from(10).pow(decimals)).div(pricePerToken);
@@ -282,10 +369,6 @@ export async function rebalancePortfolio(
       break;
     }
     pc.info(`🟩 Buying ${Number(amount) / 1e6} USDC worth of ${token}`);
-
-    const tokenContract = new Contract(token, erc20Abi, provider);
-    const tokenSymbol = await tokenContract.symbol();
-
     // Call swapCustom or equivalent function to buy the token
     // Here we're assuming that swapCustom is flexible enough to handle both buying and selling
     const _usdBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, usdcAddress);
@@ -314,7 +397,6 @@ export async function calculateRebalanceStats(
   try {
     pc.log("**************************************************************************");
     pc.log("📊 Calculating Rebalance Statistics");
-    console.log(dexWallet, walletProvider);
 
     let totalPortfolioValue = BigNumber.from(0);
     let tokenValues: { [token: string]: BigNumber } = {};
@@ -323,13 +405,15 @@ export async function calculateRebalanceStats(
       const tokenMetadata = await getTokenMetadata(token, walletProvider);
       const _tokenbalance = await getTokenBalance(walletProvider, dexWallet.walletAddress, token);
       const tokenBalance = _tokenbalance.balance;
+      console.log(tokenBalance);
+
       const tokenValue = await getTokenValue(
         tokenMetadata.symbol as string,
         token,
         tokenBalance,
         tokenMetadata.decimals,
         usdcAddress,
-        walletProvider.network.chainId,
+        String(walletProvider.network.chainId),
       );
       tokenValues[token] = tokenValue;
       totalPortfolioValue = totalPortfolioValue.add(tokenValue);
@@ -356,7 +440,7 @@ export async function calculateRebalanceStats(
       const difference = desiredAllocation - currentAllocation;
       const valueToRebalance = totalPortfolioValue.mul(BigNumber.from(Math.abs(difference))).div(10000); // USDT value to rebalance
 
-      if (Math.abs(difference) > config?.LIMIT) {
+      if (Math.abs(difference) > 0) {
         rebalanceStats.adjustments.push({
           token: token,
           action: difference > 0 ? "Buy" : "Sell",
@@ -384,7 +468,7 @@ async function executeSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, 100);
   let swapTxInputs = [
     tokenA,
     tokenB,
@@ -395,15 +479,13 @@ async function executeSwap(
     minimumAmountB,
     BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(
-    swapRouterContract,
-    "exactInputSingle",
-    [swapTxInputs],
-    provider,
-    gasPrice,
-  );
+  const tx = {
+    to: swapRouterContract.address,
+    value: BigNumber.from(0),
+    data: swapRouterContract.interface.encodeFunctionData("exactInputSingle", [swapTxInputs]),
+  };
 
-  return [swapTxResponse, minimumAmountB];
+  return tx;
 }
 
 async function executeMultiHopSwap(
@@ -420,8 +502,8 @@ async function executeMultiHopSwap(
   provider: ethers.providers.JsonRpcProvider,
 ) {
   let swapDeadline = Math.floor(Date.now() / 1000 + 60 * 60); // 1 hour from now
-  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, config);
-  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, config);
+  let minimumAmountB = await getAmountOut(tokenA, tokenB, poolFee, swapAmount, quoterContract, 100);
+  let minimumAmountB2 = await getAmountOut(tokenB, tokenC, poolFee2, minimumAmountB, quoterContract, 100);
   const path = ethers.utils.solidityPack(
     ["address", "uint24", "address", "uint24", "address"],
     [tokenA, poolFee, tokenB, poolFee2, tokenC],
@@ -433,7 +515,12 @@ async function executeMultiHopSwap(
     swapAmount,
     0, // BigNumber.from(0),
   ];
-  let swapTxResponse = await callContractMethod(swapRouterContract, "exactInput", [swapTxInputs], provider, gasPrice);
 
-  return [swapTxResponse, minimumAmountB2];
+  const tx = {
+    to: walletAddress,
+    value: BigNumber.from(0),
+    data: swapRouterContract.interface.encodeFunctionData("exactInput", [swapTxInputs]),
+  };
+
+  return tx;
 }
