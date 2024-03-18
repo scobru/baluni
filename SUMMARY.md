@@ -1,4 +1,7 @@
 # Table of contents
 
-* [BALUNI 🎈](README.md)
-  * [GNU AFFERO GENERAL PUBLIC LICENSE](readme/license.md)
+* [GNU AFFERO GENERAL PUBLIC LICENSE](README.md)
+* [baluni-cli](readme.md)
+* [baluni-contracts](baluni-contracts.md)
+* [baluni-ui](baluni-ui.md)
+* [baluni-api](baluni-api.md)
