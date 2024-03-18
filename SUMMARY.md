@@ -1,4 +1,4 @@
 # Table of contents
 
-* [GNU AFFERO GENERAL PUBLIC LICENSE](README.md)
-* [BALUNI 🎈](<README (1).md>)
+* [BALUNI 🎈](README.md)
+  * [GNU AFFERO GENERAL PUBLIC LICENSE](readme/license.md)
