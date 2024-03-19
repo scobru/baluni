@@ -1,8 +1,8 @@
-# baluni-cli
+# BALUNI CLI
 
-<div align="left" data-full-width="true">
+<div align="left" data-full-width="false">
 
-<img src="assets/baluni3.png" alt="Alt text" width="330">
+<img src="assets/baluni3.png" alt="Alt te">
 
 </div>
 
@@ -12,7 +12,7 @@ Take a look to the new [UI](https://github.com/scobru/baluni-ui) repository.
 
 {% embed url="https://baluni.vercel.app" %}
 
-## <mark style="color:red;background-color:yellow;">Baluni Stack</mark>
+## Baluni Stack
 
 [baluni-api](https://github.com/scobru/baluni-api)
 
@@ -20,11 +20,11 @@ Take a look to the new [UI](https://github.com/scobru/baluni-ui) repository.
 
 [baluni-ui](https://github.com/scobru/baluni-ui)
 
-## <mark style="color:red;background-color:yellow;">Prerequisites</mark>
+## Prerequisites
 
 Before installing BALUNI, ensure you have Node.js and npm installed on your system. You have to hold USDC into your wallet and MATIC to pay txt fees.
 
-## <mark style="color:red;background-color:yellow;">Installation</mark>
+## Installation
 
 To install BALUNI as package follow these simple steps:
 
@@ -45,7 +45,7 @@ run
 yarn install
 ```
 
-## <mark style="color:red;background-color:yellow;">Usage</mark>
+## Usage
 
 ### Main Process
 
@@ -78,7 +78,7 @@ BALUNI offers a versatile trading strategy that allows for customization by acti
 
 These modular features elevate the trading experience on BALUNI, offering flexibility and empowering traders with advanced tools for success.
 
-## <mark style="color:red;background-color:yellow;">Additional Tools</mark>
+## Additional Tools
 
 ### Investor for Uniswap
 
@@ -149,9 +149,9 @@ A tool for getting a transaction receipt:
 npx ts-node src/getTxReceipt.ts 0xf90efa044b4a5c5a0da0ba1c9dc3c7a5e53962818c6a7a0d496abcab759736fb
 ```
 
-## <mark style="color:red;background-color:yellow;">Configuration Details</mark>
+## Configuration Details
 
-In `src/config.ts`, you can set various parameters for trading strategies. This includes token selections, weights, and whether to sell all tokens before reinvesting. Modify .env file with your PRIVATE\_KEY.
+In `src/config/config.ts`, you can set various parameters for trading strategies. This includes token selections, weights, and whether to sell all tokens before reinvesting. Modify .env file with your PRIVATE\_KEY.
 
 ### Tokens and Weights
 
