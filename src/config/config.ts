@@ -65,7 +65,7 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
 };
 
 // REBALANCE STRATEGY
-export const LIMIT = 5; // 10/10000 = 0.1%
+export const LIMIT = 10; // 10/10000 = 0.1%
 export const SLIPPAGE = 5000; // 3% 300 / 10000
 export const INTERVAL = 300000; // 5 minute
 export const MAX_APPROVAL = true;
@@ -86,7 +86,7 @@ export const PREDICTION_SYMBOL = "bitcoin";
 export const PREDICTION_ALGO = "REGR";
 
 // TECHNICAL ANALYSIS
-export const TECNICAL_ANALYSIS = true;
+export const TECNICAL_ANALYSIS = false;
 //RSI
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
