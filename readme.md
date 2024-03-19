@@ -8,9 +8,9 @@
 
 BALUNI is an innovative application designed for trading on decentralized exchanges. It offers a range of tools to facilitate trading activities on platforms like Uniswap. BALUNI is tailored to assist both new and experienced traders in managing their cryptocurrency portfolios with ease.
 
-Take a look to the new [UI](https://github.com/scobru/baluni-ui) repository.
 
-{% embed url="https://baluni.vercel.app" %}
+
+{% embed url="https://youtu.be/86ht5jadF0c?si=iXiU3TLw_U8jzTmG" %}
 
 ## Baluni Stack
 
