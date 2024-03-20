@@ -6,7 +6,8 @@ import { welcomeMessage } from "../../../welcome";
 
 import * as config from "./config";
 import { NETWORKS, USDC } from "baluni-api";
-
+import { formatConfig } from "../../../utils/formatConfig";
+import * as _config from "./config";
 const prettyConsole = new PrettyConsole();
 
 prettyConsole.clear();
@@ -16,12 +17,14 @@ prettyConsole.useIcons = true;
 async function rebalancer() {
   welcomeMessage();
 
-  await executeRebalance();
+  const config = await formatConfig(_config);
+
+  await executeRebalance(config);
 
   try {
     setInterval(async () => {
       try {
-        await executeRebalance();
+        await executeRebalance(config);
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }
@@ -31,7 +34,7 @@ async function rebalancer() {
   }
 }
 
-async function executeRebalance() {
+async function executeRebalance(config: any) {
   // Log the initiation of portfolio checking
   prettyConsole.log("Checking portfolio");
 
@@ -120,15 +123,18 @@ async function executeRebalance() {
   if (TREND) {
     selectedWeights = config?.WEIGHTS_UP;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
+
     await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, USDC[config?.SELECTED_CHAINID], config);
   } else if (!TREND) {
     selectedWeights = config?.WEIGHTS_DOWN;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
+
     await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, USDC[config?.SELECTED_CHAINID], config);
   }
 
   const fs = require("fs");
   const path = require("path");
+
   const date = new Date();
   const kstResultPath = path.join(__dirname, "kstResult.json");
 

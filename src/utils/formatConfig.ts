@@ -1,4 +1,3 @@
-import * as Config from "./config";
 import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS, TOKENS_URL } from "baluni-api";
 
 interface YearnVault {
@@ -27,7 +26,7 @@ interface YearnVault {
   boosted: boolean;
 }
 
-export async function updateConfig() {
+export async function formatConfig(Config: any) {
   // Dati da inviare all'API
   const payload = {
     tokens: Config.TOKENS,

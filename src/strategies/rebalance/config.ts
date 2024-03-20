@@ -80,3 +80,15 @@ export const RSI_TIMEFRAME = "5m";
 export const STOCKRSI_PERIOD = 14;
 export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
+
+// EMA
+export const EMA_TIMEFRAME = "5m";
+export const EMA_PERIOD = 20;
+export const EMA_SYMBOL = "bitcoin";
+
+//EMA CROSSOVER
+export const EMA_FAST = 50;
+export const EMA_SLOW = 200;
+
+//VWAP
+export const VWAP_PERIOD = 20;

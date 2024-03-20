@@ -3,9 +3,9 @@ import { rebalancePortfolio } from "./execute";
 import { predict } from "../../../features/ml/predict";
 import { PrettyConsole } from "../../../utils/prettyConsole";
 import { welcomeMessage } from "../../../welcome";
+import { formatConfig } from "../../../utils/formatConfig";
 
-import * as config from "./config";
-
+import * as _config from "./config";
 import { NETWORKS, USDC } from "baluni-api";
 
 const prettyConsole = new PrettyConsole();
@@ -14,7 +14,50 @@ prettyConsole.clear();
 prettyConsole.closeByNewLine = true;
 prettyConsole.useIcons = true;
 
-async function executeRebalance() {
+async function executeRebalance(config: {
+  TOKENS: any;
+  WEIGHTS_UP: any;
+  WEIGHTS_DOWN: any;
+  USDC?: string | null;
+  NATIVE?: any;
+  WRAPPED?: any;
+  ORACLE?: any;
+  ROUTER?: any;
+  QUOTER?: any;
+  FACTORY?: any;
+  NETWORKS?: any;
+  YEARN_ENABLED?: any;
+  YEARN_VAULTS?: Record<string, string>;
+  LIMIT?: any;
+  SLIPPAGE?: any;
+  INTERVAL?: any;
+  MAX_APPROVAL?: any;
+  INVESTMENT_INTERVAL?: any;
+  INVESTMENT_AMOUNT?: any;
+  TREND_FOLLOWING: any;
+  KST_TIMEFRAME: any;
+  PREDICTION: any;
+  PREDICTION_PERIOD: any;
+  PREDICTION_EPOCHS: any;
+  PREDICTION_SYMBOL: any;
+  PREDICTION_ALGO: any;
+  TECNICAL_ANALYSIS?: any;
+  RSI_PERIOD?: any;
+  RSI_OVERBOUGHT?: any;
+  RSI_OVERSOLD?: any;
+  RSI_TIMEFRAME?: any;
+  STOCKRSI_PERIOD?: any;
+  STOCKRSI_OVERBOUGHT?: any;
+  STOCKRSI_OVERSOLD?: any;
+  EMA_TIMEFRAME?: any;
+  EMA_PERIOD?: any;
+  EMA_SYMBOL?: any;
+  EMA_FAST?: any;
+  EMA_SLOW?: any;
+  VWAP_PERIOD?: any;
+  SELECTED_CHAINID: any;
+  SELECTED_PROTOCOL?: any;
+}) {
   // Log the initiation of portfolio checking
   prettyConsole.log("Checking portfolio");
   // Initialize the wallet with the first Polygon network node
@@ -132,13 +175,14 @@ async function executeRebalance() {
 
 async function main() {
   welcomeMessage();
+  const config = await formatConfig(_config);
 
-  await executeRebalance();
+  await executeRebalance(config);
 
   try {
     setInterval(async () => {
       try {
-        await executeRebalance();
+        await executeRebalance(config);
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }

@@ -3,6 +3,7 @@ import { invest } from "./execute";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
 import { NETWORKS, USDC } from "baluni-api";
 import * as config from "./config";
+
 const prettyConsole = loadPrettyConsole();
 
 // DCA configuration
@@ -10,7 +11,7 @@ const prettyConsole = loadPrettyConsole();
 
 async function dca() {
   try {
-    const dexWallet = await initializeWallet(String(config?.NETWORKS));
+    const dexWallet = await initializeWallet(String(NETWORKS[config?.SELECTED_CHAINID]));
     // Initialize your DexWallet here
 
     // DCA Mechanism - periodically invest

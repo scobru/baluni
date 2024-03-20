@@ -26,6 +26,7 @@ import {
 } from "../../../../baluni-api/dist"; */
 
 const pc = loadPrettyConsole();
+
 let config: any;
 
 type Tswap = {
@@ -44,12 +45,10 @@ export async function rebalancePortfolio(
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
   usdcAddress: string,
-  customConfig: any,
+  config: any,
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
-
-  config = customConfig;
 
   const gasLimit = 8000000;
   const gas = await dexWallet.walletProvider.getGasPrice();

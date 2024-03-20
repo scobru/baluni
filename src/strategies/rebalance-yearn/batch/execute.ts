@@ -13,6 +13,7 @@ import { INFRA } from "baluni-api";
 import { depositToYearnBatched, redeemFromYearnBatched, accuredYearnInterest, getVaultAsset } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
 import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
+import * as config from "./config";
 
 // TEST ONLY
 
@@ -25,12 +26,8 @@ import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
   previewWithdraw,
   getVaultAsset,
 } from "../../../../../baluni-api/dist"; */
-// import { INFRA } from "../../../../baluni-api/dist";
-// import routerAbi from "../../../../baluni-api/dist/abis/infra/Router.json";
 
 const pc = loadPrettyConsole();
-
-let config: any;
 
 type Tswap = {
   dexWallet: DexWallet;
@@ -38,7 +35,7 @@ type Tswap = {
   token1: string;
   reverse: boolean;
   protocol: string;
-  chainId: string;
+  chainId: number;
   amount: string;
   slippage: number;
 };
@@ -85,13 +82,12 @@ export async function rebalancePortfolio(
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
   usdcAddress: string,
-  customConfig: any,
+  config: any,
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
-  config = customConfig;
-  const gasLimit = 8000000;
-  const gas = await dexWallet.walletProvider.getGasPrice();
+  const gasLimit = 9000000;
+  const gas = await dexWallet?.walletProvider?.getGasPrice();
 
   const swapsSell: Tswap[] = [];
   const swapsBuy: Tswap[] = [];
@@ -112,6 +108,7 @@ export async function rebalancePortfolio(
 
   for (const token of desiredTokens) {
     let tokenValue;
+
     const tokenContract = new ethers.Contract(token, erc20Abi, dexWallet.wallet);
     const tokenMetadata = await getTokenMetadata(token, dexWallet.walletProvider);
 
@@ -120,12 +117,13 @@ export async function rebalancePortfolio(
 
     const decimals = tokenMetadata.decimals;
     const tokenSymbol = await tokenContract?.symbol();
-    const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
 
-    if (yearnVaultDetails !== undefined) {
-      const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
+    const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol];
+
+    if (yearnVaultAddress !== undefined) {
+      const yearnContract = new ethers.Contract(yearnVaultAddress, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
-      const interestAccrued = await accuredYearnInterest(yearnVaultDetails, dexWallet.walletAddress, chainId);
+      const interestAccrued = await accuredYearnInterest(yearnVaultAddress, dexWallet.walletAddress, chainId);
       tokenValue = await getTokenValueEnhanced(
         tokenSymbol,
         token,
@@ -137,7 +135,7 @@ export async function rebalancePortfolio(
         chainId,
       );
 
-      tokenValues[token] = tokenValue;
+      //tokenValues[token] = tokenValue;
     } else {
       tokenValue = await getTokenValue(tokenSymbol, token, tokenBalance, decimals, config?.USDC, String(chainId));
     }
@@ -170,11 +168,11 @@ export async function rebalancePortfolio(
     const _tokenBalance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
     const tokenSymbol: string = tokenMetadata.symbol as string;
 
-    const yearnVaultDetails = config?.YEARN_VAULTS[tokenSymbol];
+    const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol];
     let tokenBalance = _tokenBalance.balance;
 
-    if (yearnVaultDetails) {
-      const yearnContract = new ethers.Contract(yearnVaultDetails, erc20Abi, dexWallet.wallet);
+    if (yearnVaultAddress !== undefined) {
+      const yearnContract = new ethers.Contract(yearnVaultAddress, erc20Abi, dexWallet.wallet);
       const yearnBalance = await yearnContract?.balanceOf(dexWallet.walletAddress);
       tokenBalance = _tokenBalance.balance.add(yearnBalance);
     }
@@ -198,6 +196,7 @@ export async function rebalancePortfolio(
         address: token,
         decimals: decimals,
       };
+
       const tokenPriceInUSDT: any = await fetchPrices(_token, String(chainId)); // Ensure this returns a value
 
       const pricePerToken = ethers.utils.parseUnits(tokenPriceInUSDT!.toString(), "ether");
@@ -207,12 +206,14 @@ export async function rebalancePortfolio(
         pc.log("SKIP USDC SELL");
         break;
       }
+
       tokensToSell.push({ token, amount: tokenAmountToSell });
     } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
       if (token === usdcAddress) {
         pc.log("SKIP USDC SELL");
         break;
       }
+
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) });
     }
   }
@@ -233,7 +234,7 @@ export async function rebalancePortfolio(
 
     pc.info(`🔴 Selling ${formatUnits(amountWei, tokenDecimal)} worth of ${tokenSymbol}`);
 
-    if (pool) {
+    if (pool !== undefined && pool !== config?.YEARN_VAULTS.USDC) {
       const balance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
       const yearnCtx = new ethers.Contract(pool, erc20Abi, dexWallet.wallet);
       const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress);
@@ -352,7 +353,7 @@ export async function rebalancePortfolio(
       } else {
         pc.warn("⚠️ Waiting for StochRSI overSold");
       }
-    } else if (balUSD.gte(0) && balUSD.sub(totalAmount).gt(amountWei.div(2))) {
+    } else if (balUSD.gte(0) && balUSD.sub(totalAmount).gt(amountWei)) {
       if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
         pc.warn("⚠️ Use Half USD", String(intAmount / 2));
         const adjustedAmount = formatUnits(String(balUSD), 6);
@@ -365,7 +366,7 @@ export async function rebalancePortfolio(
           reverse: true,
           protocol: config?.SELECTED_PROTOCOL,
           chainId: config?.SELECTED_CHAINID,
-          amount: String(intAmount / 2),
+          amount: String(intAmount),
           slippage: Number(config?.SLIPPAGE),
         };
 
@@ -381,7 +382,6 @@ export async function rebalancePortfolio(
   }
 
   pc.log("🟩 USDC Balance: ", formatUnits(balUSD, 6));
-
   pc.log("🟩 Yearn USDC Balance: ", formatUnits(yBalUSDC, 6));
 
   // Redeem USDC from Yearn Vaults

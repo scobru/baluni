@@ -6,7 +6,7 @@ import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // TEST ONLY
-//import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../../baluni-api/dist";
+// import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
 
 const pc = loadPrettyConsole();
 
@@ -25,8 +25,9 @@ export async function batchSwap(
   pc.log("Execute Batch Swap");
 
   const provider = new ethers.providers.JsonRpcProvider(NETWORKS[swaps[0].chainId]);
+
   const gas = await provider?.getGasPrice();
-  const gasLimit = 8000000;
+  const gasLimit = 30000000;
 
   const wallet = swaps[0].dexWallet.wallet;
   const routerAddress = INFRA[swaps[0].chainId].ROUTER;
@@ -135,7 +136,9 @@ export async function batchSwap(
         gasLimit: gasLimit,
         gasPrice: gas,
       });
+
       const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
+
       pc.log("Transaction executed", broadcaster);
     } catch (error) {
       pc.error("Simulation failed:", error);
