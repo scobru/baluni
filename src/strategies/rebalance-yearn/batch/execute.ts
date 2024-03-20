@@ -86,7 +86,7 @@ export async function rebalancePortfolio(
 ) {
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
-  const gasLimit = 9000000;
+  const gasLimit = 8000000;
   const gas = await dexWallet?.walletProvider?.getGasPrice();
 
   const swapsSell: Tswap[] = [];
@@ -411,8 +411,8 @@ export async function rebalancePortfolio(
       const approvals = data.Approvals;
 
       for (const approval of approvals) {
-        approval.gasLimit = gasLimit;
-        approval.gasPrice = gas;
+        /* approval.gasLimit = gasLimit;
+        approval.gasPrice = gas; */
 
         const approvalTx = await dexWallet.wallet.sendTransaction(approval);
         const broadcaster = await waitForTx(dexWallet.walletProvider, approvalTx?.hash, dexWallet.walletAddress);
@@ -425,8 +425,8 @@ export async function rebalancePortfolio(
       pc.log("📡 Calldatas");
 
       const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn, {
-        gasLimit: gasLimit,
-        gasPrice: gas,
+        /* gasLimit: gasLimit,
+        gasPrice: gas, */
       });
 
       pc.log("📡 Simulation successful:", simulate);
@@ -434,8 +434,8 @@ export async function rebalancePortfolio(
       if (!simulate) return pc.log("📡 Simulation failed");
 
       const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
-        gasLimit: gasLimit,
-        gasPrice: gas,
+        /* gasLimit: gasLimit,
+        gasPrice: gas, */
       });
       const broadcaster = await waitForTx(dexWallet.walletProvider, tx?.hash, dexWallet.walletAddress);
 
@@ -501,8 +501,8 @@ export async function rebalancePortfolio(
       const approvals = data.Approvals;
 
       for (const approval of approvals) {
-        approval.gasLimit = gasLimit;
-        approval.gasPrice = gas;
+        /* approval.gasLimit = gasLimit;
+        approval.gasPrice = gas; */
         const approvalTx = await dexWallet.wallet.sendTransaction(approval);
         const broadcaster = await waitForTx(dexWallet.walletProvider, approvalTx?.hash, dexWallet.walletAddress);
         pc.log("📡 Approval broadcasted:", broadcaster);
@@ -513,8 +513,8 @@ export async function rebalancePortfolio(
       pc.log("📡 Calldatas");
 
       const simulate = await router.callStatic.execute(data?.Calldatas, data?.TokensReturn, {
-        gasLimit: gasLimit,
-        gasPrice: gas,
+        /* gasLimit: gasLimit,
+        gasPrice: gas, */
       });
 
       if ((await simulate) === false) return pc.log("📡 Simulation failed");
@@ -528,8 +528,8 @@ export async function rebalancePortfolio(
         to: router.address,
         value: 0,
         data: calldata,
-        gasLimit: gasLimit,
-        gasPrice: gas,
+        /* gasLimit: gasLimit,
+        gasPrice: gas, */
       };
 
       const executeTx = await dexWallet.wallet.sendTransaction(tx);
