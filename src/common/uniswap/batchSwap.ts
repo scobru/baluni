@@ -2,13 +2,10 @@ import infraRouterAbi from "baluni-api/dist/abis/infra/Router.json";
 import { ethers } from "ethers";
 import { DexWallet } from "../../utils/web3/dexWallet";
 import { waitForTx } from "../../utils/web3/networkUtils";
-import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // TEST ONLY
 // import { buildBatchSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
-
-const pc = loadPrettyConsole();
 
 export async function batchSwap(
   swaps: Array<{
@@ -22,7 +19,7 @@ export async function batchSwap(
     slippage: number;
   }>,
 ) {
-  pc.log("Execute Batch Swap");
+  console.log("Execute Batch Swap");
 
   const provider = new ethers.providers.JsonRpcProvider(NETWORKS[swaps[0].chainId]);
 
@@ -106,20 +103,20 @@ export async function batchSwap(
       };
 
       try {
-        pc.log("Sending approvals");
+        console.log("Sending approvals");
         const tx = await wallet.sendTransaction(approveTx);
         const broadcaster = await waitForTx(
           swaps[0].dexWallet.walletProvider,
           tx.hash,
           swaps[0].dexWallet.walletAddress,
         );
-        pc.log("Approval Transaction Result: ", broadcaster);
+        console.log("Approval Transaction Result: ", broadcaster);
       } catch (error) {
         console.error("Approval Transaction Error: ", error);
       }
     }
   } else {
-    pc.log("No approvals required");
+    console.log("No approvals required");
   }
 
   if (allCalldatas.length != 0) {
@@ -128,9 +125,9 @@ export async function batchSwap(
         gasLimit: gasLimit,
         gasPrice: gas,
       });
-      pc.log("Simulation successful:", simulationResult);
+      console.log("Simulation successful:", simulationResult);
 
-      if (!simulationResult) return pc.error("Simulation failed");
+      if (!simulationResult) return console.error("Simulation failed");
 
       const tx = await router.execute(allCalldatas, allTokensReturn, {
         gasLimit: gasLimit,
@@ -139,9 +136,9 @@ export async function batchSwap(
 
       const broadcaster = await waitForTx(wallet.provider, tx.hash, swaps[0].dexWallet.walletAddress);
 
-      pc.log("Transaction executed", broadcaster);
+      console.log("Transaction executed", broadcaster);
     } catch (error) {
-      pc.error("Simulation failed:", error);
+      console.error("Simulation failed:", error);
       return;
     }
   }

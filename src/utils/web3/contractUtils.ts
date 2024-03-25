@@ -11,7 +11,7 @@ export async function callContractMethod(
   gasPrice?: BigNumber,
   value?: BigNumber,
 ) {
-  pc.info(`${method}(${inputs})`);
+  console.log(`${method}(${inputs})`);
 
   let gasLimit = BigNumber.from(500000);
 
@@ -20,8 +20,8 @@ export async function callContractMethod(
   try {
     const gasEstimate: BigNumber = await contract.estimateGas[method](...inputs);
     gasLimit = gasEstimate.mul(2);
-    pc.log("Gas estimate:", gasEstimate.toBigInt());
-    pc.log("Gas limit:", gasLimit.toBigInt());
+    console.log("Gas estimate:", gasEstimate.toBigInt());
+    console.log("Gas limit:", gasLimit.toBigInt());
   } catch (error) {
     console.log("Default gas limit:", gasLimit.toBigInt());
   }
@@ -35,9 +35,9 @@ export async function callContractMethod(
       gasLimit: gasLimit,
       value: value,
     });
-    pc.log("Simulation successful:", simulationResult);
+    console.log("Simulation successful:", simulationResult);
   } catch (error) {
-    pc.error("Simulation failed:", error);
+    console.error("Simulation failed:", error);
     return; // Abort if simulation fails
   }
 

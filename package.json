@@ -1,6 +1,6 @@
 {
   "name": "baluni",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "Uniswap v3 rebalance and forecast CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

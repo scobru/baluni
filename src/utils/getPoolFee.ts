@@ -22,12 +22,12 @@ export async function getAmountOut(
       0,
     );
 
-    prettyConsole.log(
-      `Amount A: ${swapAmount.toString()}`,
-      `Expected amount B: ${expectedAmountB.toString()}`,
-      `Pool Fee: ${poolFee}`,
-      `Slippage Tolerance: ${slippageTolerance}`,
-    );
+    console.group("Swap Details");
+    console.log(`Amount A: ${swapAmount.toString()}`);
+    console.log(`Expected amount B: ${expectedAmountB.toString()}`);
+    console.log(`Pool Fee: ${poolFee}`);
+    console.log(`Slippage Tolerance: ${slippageTolerance}`);
+    console.groupEnd();
 
     let minimumAmountB = expectedAmountB.mul(10000 - slippageTolerance).div(10000);
 

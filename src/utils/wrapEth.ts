@@ -1,10 +1,8 @@
 import chalk from "chalk";
 import { DexWallet } from "./web3/dexWallet";
 import { ethers } from "ethers";
-import { loadPrettyConsole } from "./prettyConsole";
 import { waitForTx } from "./web3/networkUtils";
 
-const prettyConsole = loadPrettyConsole();
 const WETH_ABI = [
   // Wrap ETH
   "function deposit() payable",
@@ -22,7 +20,7 @@ export async function wrapETH(dexWallet: DexWallet, amount: string, config: any)
   const depositTx = await wethContract.deposit({
     value: ethers.utils.parseEther(amount),
   });
-  prettyConsole.success("Done! Tx Hash:", depositTx.hash);
+  console.log("Done! Tx Hash:", depositTx.hash);
   await waitForTx(dexWallet.wallet.provider, depositTx.hash, dexWallet.wallet.address);
   const wethBalance = await wethContract.balanceOf(signer.address);
 
@@ -35,7 +33,7 @@ export async function unwrapETH(dexWallet: DexWallet, amount: string, config: an
 
   console.log(`Unwrapping ${amount} WNATIVE...`);
   const withdrawTx = await wethContract.withdraw(ethers.utils.parseEther(amount));
-  prettyConsole.success("Done! Tx Hash:", withdrawTx.hash);
+  console.log("Done! Tx Hash:", withdrawTx.hash);
   await waitForTx(dexWallet.wallet.provider, withdrawTx.hash, dexWallet.wallet.address);
   const wethBalance = await wethContract.balanceOf(signer.address);
 

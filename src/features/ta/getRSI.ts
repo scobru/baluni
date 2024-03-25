@@ -19,11 +19,11 @@ export async function getRSI(symbol: string, config: any) {
     input,
   );
 
-  console.log(
-    `⚙️ Getting RSI for:${symbol}`,
-    `RSI:${rsiResult.rsiVal}`,
-    `StochasticRSI:${stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI}`,
-  );
+  console.group("RSI Details");
+  console.log(`⚙️ Getting RSI for:${symbol}`);
+  console.log(`RSI:${rsiResult.rsiVal}`);
+  console.log(`StochasticRSI:${stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI}`);
+  console.groupEnd();
 
   return [rsiResult, stochasticRSIResult[stochasticRSIResult.length - 1]];
 }

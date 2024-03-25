@@ -14,6 +14,7 @@ import { depositToYearnBatched, redeemFromYearnBatched, accuredYearnInterest, ge
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
 import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
 import * as config from "../../../ui/config";
+import * as blocks from "../../../utils/logBlocks";
 
 // TEST ONLY
 
@@ -84,8 +85,8 @@ export async function rebalancePortfolio(
   usdcAddress: string,
   config: any,
 ) {
-  console.log("**************************************************************************");
-  console.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");
+  blocks.print2block();
+  console.log("⚖️  Rebalance Portfolio\n");
   const gasLimit = 10000000;
   const gas = await dexWallet?.walletProvider?.getGasPrice();
 
@@ -99,11 +100,13 @@ export async function rebalancePortfolio(
   let totalPortfolioValue = BigNumber.from(0);
   let tokenValues: { [token: string]: BigNumber } = {};
 
-  console.log("🏦 Total Portfolio Value (in USDT) at Start: ", String(formatEther(totalPortfolioValue)));
+  console.log(`🏦 Total Portfolio Value (in USDT) at Start: ${String(formatEther(totalPortfolioValue))}`);
 
   // Calculate Total Portfolio Value
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+  blocks.print1block();
+
   console.log("📊 Calculate Total Portfolio Value");
 
   for (const token of desiredTokens) {
@@ -142,7 +145,7 @@ export async function rebalancePortfolio(
     totalPortfolioValue = totalPortfolioValue.add(tokenValue);
   }
 
-  console.log("🏦 Total Portfolio Value (in USDT): ", String(formatEther(totalPortfolioValue)));
+  console.log(`🏦 Total Portfolio Value (in USDT): ", ${String(formatEther(totalPortfolioValue))}`);
 
   let currentAllocations: { [token: string]: number } = {};
 
@@ -156,6 +159,7 @@ export async function rebalancePortfolio(
   // Rebalance
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+  blocks.print1block();
   console.log("📊 Rebalance Portfolio");
 
   for (const token of desiredTokens) {
@@ -217,11 +221,14 @@ export async function rebalancePortfolio(
 
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) });
     }
+
+    blocks.printline();
   }
 
   // Sell Tokens
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+  blocks.print1block();
   console.log("🔄 Sell Tokens");
   const yearnRedeems = [];
   for (let { token, amount: amountWei } of tokensToSell) {
@@ -241,6 +248,18 @@ export async function rebalancePortfolio(
       const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress);
 
       if (Number(amountWei) < Number(await balance.balance) && Number(yearnCtxBal) >= Number(amountWei)) {
+        console.log("Redeem from Yearn");
+
+        const data: TRedeem = {
+          wallet: dexWallet.wallet,
+          pool: pool,
+          amount: yearnCtxBal,
+          receiver: dexWallet.walletAddress,
+          chainId: String(chainId),
+        };
+
+        yearnRedeems.push(data);
+      } else if (Number(yearnCtxBal) >= Number(0)) {
         console.log("Redeem from Yearn");
 
         const data: TRedeem = {
@@ -295,11 +314,14 @@ export async function rebalancePortfolio(
         console.warn("⚠️ Waiting for StochRSI overBought");
       }
     }
+
+    blocks.printline();
   }
 
   // Buy Tokens
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+  blocks.print1block();
   console.log("🔄 Buy Tokens");
 
   const poolAddress = config?.YEARN_VAULTS.USDC;
@@ -380,6 +402,8 @@ export async function rebalancePortfolio(
     } else {
       console.warn("⚠️ Not enough USDC to buy", token);
     }
+
+    blocks.printline();
   }
 
   console.log("🟩 USDC Balance: ", formatUnits(balUSD, 6));
@@ -401,6 +425,7 @@ export async function rebalancePortfolio(
   // Redeem from Yearn Vaults
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+  blocks.print1block();
   console.log("📡 Yearn Redeem Data");
 
   try {
@@ -418,7 +443,7 @@ export async function rebalancePortfolio(
         const approvalTx = await dexWallet.wallet.sendTransaction(approval);
         const broadcaster = await waitForTx(dexWallet.walletProvider, approvalTx?.hash, dexWallet.walletAddress);
 
-        console.log("📡 Approval broadcasted:", broadcaster);
+        console.log(`📡 Approval broadcasted: ${broadcaster}`);
       }
     }
 
@@ -430,7 +455,7 @@ export async function rebalancePortfolio(
         gasPrice: gas,
       });
 
-      console.log("📡 Simulation successful:", simulate);
+      console.log(`📡  Simulation successful:: ${simulate}`);
 
       if (!simulate) return console.log("📡 Simulation failed");
 
@@ -440,7 +465,7 @@ export async function rebalancePortfolio(
       });
       const broadcaster = await waitForTx(dexWallet.walletProvider, tx?.hash, dexWallet.walletAddress);
 
-      console.log("📡 Tx broadcasted:", broadcaster);
+      console.log(`📡  Tx broadcasted:: ${broadcaster}`);
     }
   } catch (e) {
     console.log(e);
@@ -468,6 +493,7 @@ export async function rebalancePortfolio(
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
   console.log("⚖️ Yearn Deposit Data\n");
+  blocks.print1block();
 
   const yearnDeposits = [];
 
@@ -479,7 +505,7 @@ export async function rebalancePortfolio(
 
     if (balance.gt(0)) {
       if (tokensToBuy.length == 0 && tokensToSell.length == 0) {
-        console.log("Deposit to Yearn Vaults", "Amount: ", Number(balance), "Vault: ", vaultAsset);
+        console.log(`Deposit to Yearn Vaults Amount: ${Number(balance)}, Vault:  ${vaultAsset}`);
         const data: TDeposit = {
           wallet: dexWallet.wallet,
           tokenAddr: vaultAsset,
@@ -507,7 +533,7 @@ export async function rebalancePortfolio(
         const approvalTx = await dexWallet.wallet.sendTransaction(approval);
         const broadcaster = await waitForTx(dexWallet.walletProvider, approvalTx?.hash, dexWallet.walletAddress);
 
-        console.log("📡 Approval broadcasted:", broadcaster);
+        console.log(`📡 Approval broadcasted: ${broadcaster}`);
       }
     }
 
@@ -521,7 +547,7 @@ export async function rebalancePortfolio(
 
       if ((await simulate) === false) return console.log("📡 Simulation failed");
 
-      console.log("📡 Simulation successful:", await simulate);
+      console.log(`📡  Simulation successful:: ${simulate}`);
 
       if (!simulate) return console.log("📡 Simulation failed");
 
@@ -537,11 +563,12 @@ export async function rebalancePortfolio(
 
       const executeTx = await dexWallet.wallet.sendTransaction(tx);
       const broadcaster = await waitForTx(dexWallet.walletProvider, executeTx?.hash, dexWallet.walletAddress);
-      console.log("📡 Tx broadcasted:", broadcaster);
+      console.log(`📡 Tx broadcasted:: ${broadcaster}`);
     }
   } catch (e) {
     console.log(e);
   }
 
+  blocks.print1starry();
   console.log("✔️ Rebalance completed.");
 }

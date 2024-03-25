@@ -32,6 +32,7 @@ export async function updateConfig(
   allocations: { [token: string]: number },
   chainId: number,
   yearnEnabled: boolean,
+  yearnVaults: Record<string, any>,
   limit: number,
   trendFollowing: boolean,
   technicalAnalysis: boolean,
@@ -43,7 +44,7 @@ export async function updateConfig(
     weightsDown: allocations,
     chainId: chainId,
     yearnEnabled: yearnEnabled,
-    yearnVaults: Config.YEARN_VAULTS,
+    yearnVaults: yearnVaults,
     limit: limit,
     slippage: Config.SLIPPAGE,
     interval: Config.INTERVAL,
@@ -71,6 +72,7 @@ export async function updateConfig(
   const updatedWeightsDown: Record<string, number> = {};
   const updatedWeightsUp: Record<string, number> = {};
   const updatedYearnVaults: Record<string, string> = {};
+
   const tokenAddresses = await Promise.all(
     payload.tokens.map((tokenSymbol: string) => fetchTokenAddressByName(tokenSymbol, payload.chainId)),
   );

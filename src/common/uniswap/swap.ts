@@ -2,13 +2,10 @@ import infraRouterAbi from "baluni-api/dist/abis/infra/Router.json";
 import { ethers } from "ethers";
 import { DexWallet } from "../../utils/web3/dexWallet";
 import { waitForTx } from "../../utils/web3/networkUtils";
-import { loadPrettyConsole } from "../../utils/prettyConsole";
 import { buildSwap, NETWORKS, INFRA, BASEURL } from "baluni-api";
 
 // DEV ONLY
 // import { buildSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
-
-const pc = loadPrettyConsole();
 
 export async function swap(
   dexWallet: DexWallet,
@@ -71,38 +68,38 @@ export async function swap(
 
   await Promise.resolve(data?.Approvals).then(async approvals => {
     if (approvals.length > 0) {
-      pc.log("Sending approvals");
+      console.log("Sending approvals");
       for (const approval of approvals) {
         if (approval && Object.keys(approval).length > 0) {
           try {
             const txApprove = await wallet.sendTransaction(approval);
             const resultApprove = await waitForTx(provider, txApprove?.hash, dexWallet.walletAddress);
-            pc.log("Approval Transaction Result: ", resultApprove);
+            console.log("Approval Transaction Result: ", resultApprove);
           } catch (error) {
-            pc.error("Approval Transaction Error: ", error);
+            console.error("Approval Transaction Error: ", error);
           }
         }
       }
     } else {
-      pc.log("No approvals required");
+      console.log("No approvals required");
     }
   });
 
   const calldatasArray = await Promise.all(data?.Calldatas);
   const TokensReturn = data?.TokensReturn;
 
-  if (calldatasArray?.length === 0) return pc.error("No calldatas found");
+  if (calldatasArray?.length === 0) return console.error("No calldatas found");
 
   try {
-    pc.log("Sending calldatasArray");
+    console.log("Sending calldatasArray");
     const simulationResult: unknown = await router?.callStatic?.execute(calldatasArray, TokensReturn, {
       gasLimit: gasLimit,
       gasPrice: gas,
     });
-    pc.log("Simulation successful:", await simulationResult);
+    console.log("Simulation successful:", await simulationResult);
 
     if (simulationResult === false) {
-      pc.error("Simulation failed");
+      console.error("Simulation failed");
       return;
     }
 
@@ -111,7 +108,7 @@ export async function swap(
       gasPrice: gas,
     });
     const txReceipt = await waitForTx(provider, await tx?.hash, dexWallet.walletAddress);
-    pc.log("Transaction executed, receipt:", txReceipt);
+    console.log("Transaction executed, receipt:", txReceipt);
   } catch (error) {
     console.error("Simulation failed:", error);
     return;

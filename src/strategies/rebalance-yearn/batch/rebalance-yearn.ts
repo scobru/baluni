@@ -3,6 +3,7 @@ import { rebalancePortfolio } from "./execute";
 import { predict } from "../../../features/ml/predict";
 import { welcomeMessage } from "../../../welcome";
 import { formatConfig } from "../../../utils/formatConfig";
+import * as blocks from "../../../utils/logBlocks";
 
 import * as _config from "./config";
 import { NETWORKS, USDC } from "baluni-api";
@@ -56,7 +57,10 @@ export async function executeRebalance(
   pk?: string,
 ) {
   // Log the initiation of portfolio checking
+  blocks.print1starry();
+
   console.log("Checking portfolio");
+
   // Initialize the wallet with the first Polygon network node
   const dexWallet = await initializeWallet(NETWORKS[config?.SELECTED_CHAINID], pk);
   // Set the default weight
@@ -132,6 +136,8 @@ export async function executeRebalance(
   }
 
   if (!log) return;
+
+  blocks.print1starry();
 
   const fs = require("fs");
   const path = require("path");

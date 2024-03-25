@@ -38,10 +38,10 @@ export async function waitForTx(provider: ethers.providers.Provider, hash: strin
   }
 
   if (txReceipt) {
-    pc.success(`TX ${hash} broadcasted`);
+    console.log(`✔️ TX ${hash} broadcasted`);
     return true;
   } else {
-    pc.error(`TX ${hash} not broadcasted after ${MAX_ATTEMPTS} attempts`);
+    console.error(`TX ${hash} not broadcasted after ${MAX_ATTEMPTS} attempts`);
     return false;
   }
 }

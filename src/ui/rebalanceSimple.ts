@@ -247,6 +247,7 @@ export async function rebalancePortfolio(
     desiredAllocations,
     walletProvider.network.chainId,
     false,
+    {},
     0,
     false,
     false,
