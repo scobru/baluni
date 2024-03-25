@@ -242,7 +242,15 @@ export async function rebalancePortfolio(
   usdcAddress: string,
   walletProvider: ethers.providers.JsonRpcProvider,
 ) {
-  config = await updateConfig(desiredTokens, desiredAllocations, walletProvider.network.chainId);
+  config = await updateConfig(
+    desiredTokens,
+    desiredAllocations,
+    walletProvider.network.chainId,
+    false,
+    0,
+    false,
+    false,
+  );
 
   pc.log("**************************************************************************");
   pc.log("⚖️  Rebalance Portfolio\n", "🔋 Check Gas and Recharge\n");

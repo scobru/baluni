@@ -1,9 +1,6 @@
 import { BigNumber, ethers } from "ethers";
 import { formatEther } from "ethers/lib/utils";
 import { fetchPrices } from "./quote1Inch";
-import { loadPrettyConsole } from "./prettyConsole";
-
-const prettyConsole = loadPrettyConsole();
 
 export async function getTokenValue(
   tokenSymbol: string,
@@ -21,10 +18,10 @@ export async function getTokenValue(
       address: token,
       decimals: decimals,
     };
+
     const price: any = await fetchPrices(_token, chainId);
 
     if (!price) throw new Error("Price is undefined");
-    // Here, ensure that the price is parsed with respect to the token's decimals
 
     let pricePerToken = ethers.utils.parseUnits(price.toString(), 18); // Assume price is in 18 decimals
     let value;
@@ -37,13 +34,13 @@ export async function getTokenValue(
 
     const _balance = decimals == 8 ? formatEther(String(Number(balance) * 1e10)) : formatEther(balance.toString());
 
-    prettyConsole.log(
-      `🔤 Token Symbol: ${tokenSymbol}`,
-      `📄 Token: ${token}`,
-      `👛 Balance: ${_balance}`,
-      `📈 Price: ${price?.toString()}`,
-      `💵 Value: ${formatEther(value.toString())}`,
-    );
+    console.group(`🔤 Token Symbol: ${tokenSymbol}`);
+    console.log(`📄 Token: ${token}`);
+    console.log(`👛 Balance: ${_balance}`);
+    console.log(`📈 Price: ${price?.toString()}`);
+    console.log(`💵 Value: ${formatEther(value.toString())}`);
+    console.groupEnd();
+
     return value;
   }
 }

@@ -1,0 +1,67 @@
+{
+  "SELECTED_PROTOCOL": "uni-v3",
+  "SELECTED_CHAINID": 137,
+  "TOKENS": ["LINK", "WETH", "WBTC", "UNI", "AAVE", "WMATIC", "1INCH", "CRV", "LDO", "USDC.E"],
+  "WEIGHTS_UP": {
+    "LINK": 1000,
+    "WETH": 1000,
+    "WBTC": 3750,
+    "UNI": 1000,
+    "AAVE": 500,
+    "WMATIC": 500,
+    "1INCH": 500,
+    "CRV": 500,
+    "LDO": 1000,
+    "USDC.E": 250
+  },
+  "WEIGHTS_DOWN": {
+    "LINK": 0,
+    "WETH": 1000,
+    "WBTC": 2000,
+    "UNI": 0,
+    "AAVE": 0,
+    "WMATIC": 0,
+    "1INCH": 0,
+    "CRV": 0,
+    "LDO": 0,
+    "USDC.E": 7000
+  },
+  "YEARN_ENABLED": true,
+  "YEARN_VAULTS": {
+    "137": {
+      "USDC": {
+        "strategy": "multi",
+        "boosted": false
+      },
+      "WETH": {
+        "strategy": "multi",
+        "boosted": true
+      },
+      "WMATIC": {
+        "strategy": "multi",
+        "boosted": true
+      }
+    }
+  },
+  "LIMIT": 10,
+  "SLIPPAGE": 1000,
+  "INTERVAL": 300000,
+  "MAX_APPROVAL": true,
+  "INVESTMENT_INTERVAL": 86400000,
+  "INVESTMENT_AMOUNT": 100,
+  "TREND_FOLLOWING": true,
+  "KST_TIMEFRAME": "1h",
+  "PREDICTION": false,
+  "PREDICTION_PERIOD": 90,
+  "PREDICTION_EPOCHS": 100,
+  "PREDICTION_SYMBOL": "bitcoin",
+  "PREDICTION_ALGO": "REGR",
+  "TECNICAL_ANALYSIS": false,
+  "RSI_PERIOD": 4,
+  "RSI_OVERBOUGHT": 70,
+  "RSI_OVERSOLD": 30,
+  "RSI_TIMEFRAME": "5m",
+  "STOCKRSI_PERIOD": 14,
+  "STOCKRSI_OVERBOUGHT": 80,
+  "STOCKRSI_OVERSOLD": 20
+}

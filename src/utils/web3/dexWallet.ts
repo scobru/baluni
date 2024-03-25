@@ -10,8 +10,8 @@ export interface DexWallet {
   walletProvider: ethers.providers.JsonRpcProvider;
 }
 
-export const initializeWallet = async (rpcUrl: string): Promise<DexWallet> => {
-  const PRIVATE_KEY = String(process.env.PRIVATE_KEY);
+export const initializeWallet = async (rpcUrl: string, pk?: string): Promise<DexWallet> => {
+  const PRIVATE_KEY = String(pk ? pk : process.env.PRIVATE_KEY);
 
   if (!PRIVATE_KEY) {
     throw new Error("Private key missing from env variables");

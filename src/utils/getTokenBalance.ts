@@ -1,9 +1,6 @@
 // import chalk from "chalk";
 import ERC20_ABI from "baluni-api/dist/abis/common/ERC20.json";
-import { loadPrettyConsole } from "./prettyConsole";
 import { ethers } from "ethers";
-
-const prettyConsole = loadPrettyConsole();
 
 export async function getTokenBalance(
   walletProvider: ethers.providers.JsonRpcProvider | ethers.providers.BaseProvider,
@@ -17,7 +14,7 @@ export async function getTokenBalance(
   const formattedBalance = ethers.utils.formatUnits(rawBalance, decimals);
 
   // prettier-ignore
-  prettyConsole.success((`Address: ${accountAddress} has ${formattedBalance} ${symbol}`));
+  console.log((`Address: ${accountAddress} has ${formattedBalance} ${symbol}`));
 
   return { balance: rawBalance, formatted: formattedBalance };
 }

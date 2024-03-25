@@ -1,7 +1,8 @@
 import { initializeWallet } from "../../utils/web3/dexWallet"; // Import the initializeWallet function
 import { invest } from "./execute";
 import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { updateConfig } from "../../config/updateConfig";
+import * as config from "./config";
+import { USDC, NETWORKS } from "baluni-api";
 
 const prettyConsole = loadPrettyConsole();
 
@@ -9,16 +10,14 @@ const amount = String(process.argv[3]);
 const sellAll = Boolean(process.argv[4]);
 
 async function investor() {
-  const config = await updateConfig();
-
   prettyConsole.log("Sell All?", sellAll);
   try {
-    const dexWallet = await initializeWallet(String(config?.NETWORKS));
+    const dexWallet = await initializeWallet(String(NETWORKS[config?.SELECTED_CHAINID] as any));
 
     await invest(
       dexWallet,
       config?.WEIGHTS_UP as any,
-      String(config?.USDC),
+      String(USDC[config?.SELECTED_CHAINID]),
       config?.TOKENS as any,
       sellAll,
       amount,

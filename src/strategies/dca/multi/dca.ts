@@ -1,5 +1,5 @@
 import { initializeWallet } from "../../../utils/web3/dexWallet";
-import { invest } from "./execute";
+import { invest } from "../../investor/execute";
 import { loadPrettyConsole } from "../../../utils/prettyConsole";
 import { NETWORKS, USDC } from "baluni-api";
 import * as config from "./config";

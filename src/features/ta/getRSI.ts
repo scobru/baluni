@@ -1,9 +1,5 @@
-import { loadPrettyConsole } from "../../utils/prettyConsole";
-const pc = loadPrettyConsole();
-
 export async function getRSI(symbol: string, config: any) {
   const { rsiCheck, stochasticrsi, getDetachSourceFromOHLCV } = require("trading-indicator");
-
   if (symbol.startsWith("W")) {
     symbol = symbol.substring(1);
   }
@@ -13,7 +9,6 @@ export async function getRSI(symbol: string, config: any) {
   }
 
   const { input } = await getDetachSourceFromOHLCV("binance", `${symbol}/USDT`, config?.RSI_TIMEFRAME, false); // true if you want to get future market
-
   const rsiResult = await rsiCheck(config?.RSI_PERIOD, config?.RSI_OVERBOUGHT, config?.RSI_OVERSOLD, input);
   const stochasticRSIResult = await stochasticrsi(
     3,
@@ -24,7 +19,7 @@ export async function getRSI(symbol: string, config: any) {
     input,
   );
 
-  pc.info(
+  console.log(
     `⚙️ Getting RSI for:${symbol}`,
     `RSI:${rsiResult.rsiVal}`,
     `StochasticRSI:${stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI}`,

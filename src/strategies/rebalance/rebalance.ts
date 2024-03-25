@@ -1,10 +1,11 @@
-import { initializeWallet } from "../../utils/web3/dexWallet";
+import { DexWallet, initializeWallet } from "../../utils/web3/dexWallet";
 import { rebalancePortfolio } from "./execute";
 import { predict } from "../../features/ml/predict";
 import { PrettyConsole } from "../../utils/prettyConsole";
 import { welcomeMessage } from "../../welcome";
 import { NETWORKS, USDC } from "baluni-api";
-import * as config from "./config";
+
+import * as _config from "./config";
 
 const prettyConsole = new PrettyConsole();
 
@@ -18,24 +19,25 @@ async function rebalancer() {
   try {
     setInterval(async () => {
       try {
-        await executeRebalance();
+        await executeRebalance(_config);
       } catch (error) {
         prettyConsole.error("Error during rebalancing:", error);
       }
-    }, Number(config?.INTERVAL) * 1000);
+    }, Number(_config?.INTERVAL) * 1000);
   } catch (error) {
     prettyConsole.error("Error during initialization:", error);
   }
 }
 
-async function executeRebalance() {
+export async function executeRebalance(config?: any, dexWallet?: DexWallet) {
   // Log the initiation of portfolio checking
   prettyConsole.log("Checking portfolio");
 
   const chainId = config?.SELECTED_CHAINID;
 
-  // Initialize the wallet with the first Polygon network node
-  const dexWallet = await initializeWallet(NETWORKS[chainId]);
+  if (!dexWallet) {
+    dexWallet = await initializeWallet(NETWORKS[chainId]);
+  }
 
   // Set the default weight
   let selectedWeights = config?.WEIGHTS_UP;
@@ -114,11 +116,11 @@ async function executeRebalance() {
   if (TREND) {
     selectedWeights = config?.WEIGHTS_UP;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
-    await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, USDC, config);
+    await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, USDC);
   } else if (!TREND) {
     selectedWeights = config?.WEIGHTS_DOWN;
     prettyConsole.log("🦄 Selected weights:", JSON.stringify(selectedWeights));
-    await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, USDC, config);
+    await rebalancePortfolio(dexWallet, config?.TOKENS, selectedWeights, USDC);
   }
 }
 

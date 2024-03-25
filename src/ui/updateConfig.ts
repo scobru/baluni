@@ -1,4 +1,4 @@
-import * as Config from "../config/config";
+import * as Config from "./config";
 import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS, TOKENS_URL } from "baluni-api";
 
 interface YearnVault {
@@ -28,32 +28,36 @@ interface YearnVault {
 }
 
 export async function updateConfig(
-  desiredTokens: string[],
-  desiredAllocations: { [token: string]: number },
+  tokens: string[],
+  allocations: { [token: string]: number },
   chainId: number,
+  yearnEnabled: boolean,
+  limit: number,
+  trendFollowing: boolean,
+  technicalAnalysis: boolean,
 ) {
   // Dati da inviare all'API
   const payload = {
-    tokens: desiredTokens,
-    weightsUp: desiredAllocations,
-    weightsDown: desiredAllocations,
+    tokens: tokens,
+    weightsUp: allocations,
+    weightsDown: allocations,
     chainId: chainId,
-    yearnEnabled: Config.YEARN_ENABLED,
+    yearnEnabled: yearnEnabled,
     yearnVaults: Config.YEARN_VAULTS,
-    limit: Config.LIMIT,
+    limit: limit,
     slippage: Config.SLIPPAGE,
     interval: Config.INTERVAL,
     maxApproval: Config.MAX_APPROVAL,
     investmentInterval: Config.INVESTMENT_INTERVAL,
     investmentAmount: Config.INVESTMENT_AMOUNT,
-    trendFollowing: Config.TREND_FOLLOWING,
+    trendFollowing: trendFollowing,
     kstTimeframe: Config.KST_TIMEFRAME,
     prediction: Config.PREDICTION,
     predictionPeriod: Config.PREDICTION_PERIOD,
     predictionEpochs: Config.PREDICTION_EPOCHS,
     predictionSymbol: Config.PREDICTION_SYMBOL,
     predictionAlgo: Config.PREDICTION_ALGO,
-    tecnicalAnalysis: Config.TECNICAL_ANALYSIS,
+    tecnicalAnalysis: technicalAnalysis,
     rsiPeriod: Config.RSI_PERIOD,
     rsiOverbought: Config.RSI_OVERBOUGHT,
     rsiOversold: Config.RSI_OVERSOLD,
@@ -61,12 +65,6 @@ export async function updateConfig(
     stockRsiPeriod: Config.STOCKRSI_PERIOD,
     stockRsiOverbought: Config.STOCKRSI_OVERBOUGHT,
     stockRsiOversold: Config.STOCKRSI_OVERSOLD,
-    emaTimeframe: Config.EMA_TIMEFRAME,
-    emaPeriod: Config.EMA_PERIOD,
-    emaSymbol: Config.EMA_SYMBOL,
-    emaFast: Config.EMA_FAST,
-    emaSlow: Config.EMA_SLOW,
-    vwapPeriod: Config.VWAP_PERIOD,
     selectedProtocol: Config.SELECTED_PROTOCOL,
   };
 
@@ -157,12 +155,6 @@ export async function updateConfig(
     STOCKRSI_PERIOD: payload.stockRsiPeriod,
     STOCKRSI_OVERBOUGHT: payload.stockRsiOverbought,
     STOCKRSI_OVERSOLD: payload.stockRsiOversold,
-    EMA_TIMEFRAME: payload.emaTimeframe,
-    EMA_PERIOD: payload.emaPeriod,
-    EMA_SYMBOL: payload.emaSymbol,
-    EMA_FAST: payload.emaFast,
-    EMA_SLOW: payload.emaSlow,
-    VWAP_PERIOD: payload.vwapPeriod,
     SELECTED_CHAINID: payload.chainId,
     SELECTED_PROTOCOL: payload.selectedProtocol,
   };

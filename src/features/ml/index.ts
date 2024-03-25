@@ -1,10 +1,10 @@
-import { fetchPriceData } from "./prediction/fetchPriceData";
-import { trainAndPredict } from "./prediction/trainAndPredict";
-import { trainAndPredict1CONV } from "./prediction/trainAndPredict1CONV";
-import { loadPrettyConsole } from "../utils/prettyConsole";
-import { trainAndPredictGRU } from "./prediction/trainAndPredictGRU";
-import { trainAndPredictLSTM } from "./prediction/trainAndPredictLSTM";
-import { trainAndPredictRNN } from "./prediction/trainAndPredictRNN";
+import { fetchPriceData } from "./fetchPriceData";
+import { trainAndPredict } from "./trainAndPredict";
+import { trainAndPredict1CONV } from "./trainAndPredict1CONV";
+import { loadPrettyConsole } from "../../utils/prettyConsole";
+import { trainAndPredictGRU } from "./trainAndPredictGRU";
+import { trainAndPredictLSTM } from "./trainAndPredictLSTM";
+import { trainAndPredictRNN } from "./trainAndPredictRNN";
 
 const [tokenSymbol] = process.argv.slice(2);
 const [period] = process.argv.slice(3);
