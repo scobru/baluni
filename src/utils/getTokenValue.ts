@@ -13,13 +13,25 @@ export async function getTokenValue(
   if (token === usdcAddress) {
     return balance; // USDT value is the balance itself
   } else {
+    const tokenPriceBaseUrl = "https://api.odos.xyz/pricing/token";
+
     // const price = await quotePair(token, usdcAddress);
     const _token = {
       address: token,
       decimals: decimals,
     };
 
-    const price: any = await fetchPrices(_token, chainId);
+    const response = await fetch(`${tokenPriceBaseUrl}/${chainId}/${token}`);
+    let price;
+    if (response.status === 200) {
+      const tokenPrice = await response.json();
+      price = tokenPrice.price;
+    } else {
+      console.error("Error in Transaction Assembly:", response);
+      // handle token price failure cases
+    }
+
+    //const price: any = await fetchPrices(_token, chainId);
 
     if (!price) throw new Error("Price is undefined");
 
@@ -28,6 +40,8 @@ export async function getTokenValue(
 
     if (decimals == 8) {
       value = balance.mul(1e10).mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
+    } else if (decimals == 6) {
+      value = balance.mul(1e12).mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
     } else {
       value = balance.mul(pricePerToken).div(BigNumber.from(10).pow(18)); // Adjust for token's value
     }

@@ -15,9 +15,7 @@ export const TOKENS = [
   "UNI", // UNI
   "AAVE", // AAVE
   "WMATIC", // WMATIC
-  "1INCH", // 1INCH,
   "CRV", // CRV
-  "LDO", // LDO
   "USDC.E", // USDC
 ];
 export const WEIGHTS_UP = {
@@ -25,11 +23,9 @@ export const WEIGHTS_UP = {
   WETH: 1000,
   WBTC: 3750,
   UNI: 1000,
-  AAVE: 500,
-  WMATIC: 500,
-  "1INCH": 500,
+  AAVE: 1500,
+  WMATIC: 1000,
   CRV: 500,
-  LDO: 1000,
   "USDC.E": 250,
 };
 export const WEIGHTS_DOWN = {
@@ -39,9 +35,7 @@ export const WEIGHTS_DOWN = {
   UNI: 0,
   AAVE: 0,
   WMATIC: 0,
-  "1INCH": 0,
   CRV: 0,
-  LDO: 0,
   "USDC.E": 7000,
 };
 
@@ -66,7 +60,7 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
 };
 
 // REBALANCE STRATEGY
-export const LIMIT = 10; // 10/10000 = 0.1%
+export const LIMIT = 1; // 10/10000 = 0.1%
 export const SLIPPAGE = 1000; // 3% 300 / 10000
 export const INTERVAL = 300000; // 5 minute
 export const MAX_APPROVAL = true;
