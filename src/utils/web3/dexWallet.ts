@@ -17,7 +17,9 @@ export const initializeWallet = async (rpcUrl: string, pk?: string): Promise<Dex
     throw new Error("Private key missing from env variables");
   }
 
-  const walletProvider = new ethers.providers.JsonRpcProvider(rpcUrl);
+  const walletProvider = new ethers.providers.JsonRpcProvider(
+    "https://dimensional-floral-lambo.matic.quiknode.pro/a88e447e38026a8fefcd885d500e28229dd116ca/",
+  );
 
   // Sign the transaction with the contract owner's private key
   const wallet = new ethers.Wallet(PRIVATE_KEY, walletProvider);
