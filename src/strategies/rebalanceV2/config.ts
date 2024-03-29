@@ -15,7 +15,9 @@ export const TOKENS = [
   "UNI", // UNI
   "AAVE", // AAVE
   "WMATIC", // WMATIC
-  "CRV", // CRV
+  "CRV", // CRV,
+  "SNX",
+  "GRT",
   "USDC.E", // USDC
 ];
 export const WEIGHTS_UP = {
@@ -23,9 +25,11 @@ export const WEIGHTS_UP = {
   WETH: 1000,
   WBTC: 3750,
   UNI: 1000,
-  AAVE: 1500,
-  WMATIC: 1000,
+  AAVE: 1000,
+  WMATIC: 500,
   CRV: 500,
+  SNX: 500,
+  GRT: 500,
   "USDC.E": 250,
 };
 export const WEIGHTS_DOWN = {
@@ -36,6 +40,8 @@ export const WEIGHTS_DOWN = {
   AAVE: 0,
   WMATIC: 0,
   CRV: 0,
+  SNX: 0,
+  GRT: 0,
   "USDC.E": 7000,
 };
 

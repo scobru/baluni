@@ -214,6 +214,7 @@ export async function rebalancePortfolio(
     try {
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet);
       const tokenSymbol = await tokenContract.symbol();
+
       const tokenDecimal = await tokenContract.decimals();
       const pool = config?.YEARN_VAULTS[tokenSymbol];
 
@@ -222,11 +223,13 @@ export async function rebalancePortfolio(
       // Redeem from Yearn Vaults
       if (pool !== undefined && pool !== config?.YEARN_VAULTS.USDC) {
         const balance = await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token);
+
         const yearnCtx = new ethers.Contract(pool, erc20Abi, dexWallet.wallet);
         const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress);
 
         if (Number(amountWei) < Number(await balance.balance) && Number(yearnCtxBal) >= Number(amountWei)) {
           console.log("Redeem from Yearn");
+
           const data: TRedeem = {
             wallet: dexWallet.wallet,
             pool: pool,
@@ -234,9 +237,11 @@ export async function rebalancePortfolio(
             receiver: dexWallet.walletAddress,
             chainId: String(chainId),
           };
+
           yearnRedeems.push(data);
         } else if (Number(yearnCtxBal) > Number(0)) {
           console.log("Redeem from Yearn");
+
           const data: TRedeem = {
             wallet: dexWallet.wallet,
             pool: pool,
@@ -244,12 +249,17 @@ export async function rebalancePortfolio(
             receiver: dexWallet.walletAddress,
             chainId: String(chainId),
           };
+
           yearnRedeems.push(data);
         }
       }
 
       const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config);
       const balance = (await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token)).balance;
+
+      console.log("Token Balance:", Number(balance));
+
+      console.log("AmountWei:", Number(amountWei));
 
       // Sell token if RSI and StochRSI are overbought
       if (BigNumber.from(amountWei).lt(balance) || BigNumber.from(amountWei).eq(balance)) {
@@ -259,23 +269,29 @@ export async function rebalancePortfolio(
           config?.TECNICAL_ANALYSIS
         ) {
           const tokenSymbol = await tokenContract.symbol();
+
           console.log("Condition met for selling", tokenSymbol);
+
           if (!quoteRequestBody.inputTokens) {
             quoteRequestBody.inputTokens = [];
           }
+
           quoteRequestBody.inputTokens.push({
             tokenAddress: token,
             amount: String(amountWei),
           });
+
           console.log("Input Token Added");
         } else if (!config?.TECNICAL_ANALYSIS) {
           if (!quoteRequestBody.inputTokens) {
             quoteRequestBody.inputTokens = [];
           }
+
           quoteRequestBody.inputTokens.push({
             tokenAddress: token,
             amount: String(amountWei),
           });
+
           console.log("Input Token Added");
         }
       }
