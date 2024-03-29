@@ -1,19 +1,19 @@
 import { BigNumber, Contract, ethers } from "ethers";
-import { DexWallet } from "../../../utils/web3/dexWallet";
+import { DexWallet } from "../../utils/web3/dexWallet";
 import { formatEther, formatUnits } from "ethers/lib/utils";
-import { fetchPrices } from "../../../utils/quote1Inch";
-import { getTokenMetadata } from "../../../utils/getTokenMetadata";
-import { getTokenBalance } from "../../../utils/getTokenBalance";
-import { getTokenValue } from "../../../utils/getTokenValue";
-import { getRSI } from "../../../features/ta/getRSI";
-import { batchSwap } from "../../../common/uniswap/batchSwap";
-import { waitForTx } from "../../../utils/web3/networkUtils";
+import { fetchPrices } from "../../utils/quote1Inch";
+import { getTokenMetadata } from "../../utils/getTokenMetadata";
+import { getTokenBalance } from "../../utils/getTokenBalance";
+import { getTokenValue } from "../../utils/getTokenValue";
+import { getRSI } from "../../features/ta/getRSI";
+import { batchSwap } from "../../common/uniswap/batchSwap";
+import { waitForTx } from "../../utils/web3/networkUtils";
 import { INFRA } from "baluni-api";
 import { depositToYearnBatched, redeemFromYearnBatched, accuredYearnInterest, getVaultAsset } from "baluni-api";
 import routerAbi from "baluni-api/dist/abis/infra/Router.json";
 import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
-import * as config from "../../../ui/config";
-import * as blocks from "../../../utils/logBlocks";
+import * as config from "../../ui/config";
+import * as blocks from "../../utils/logBlocks";
 
 type Tswap = {
   dexWallet: DexWallet;
@@ -291,7 +291,6 @@ export async function rebalancePortfolio(
   blocks.print1block();
   console.log("🔄 Buy Tokens");
 
-  const existTokenToSell = tokensToSell.length > 0;
   const poolAddress = config?.YEARN_VAULTS.USDC;
   const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet);
   const yBalUSDC = await poolCtx?.balanceOf(dexWallet.walletAddress);

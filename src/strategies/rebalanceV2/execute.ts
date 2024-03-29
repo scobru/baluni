@@ -14,7 +14,7 @@ import erc20Abi from "baluni-api/dist/abis/common/ERC20.json";
 import * as config from "../../ui/config";
 import * as blocks from "../../utils/logBlocks";
 
-import { buildSwapOdos } from "../../../../baluni-api/dist";
+import { buildSwapOdos } from "baluni-api/dist/odos";
 
 type TDeposit = {
   wallet: ethers.Wallet;
