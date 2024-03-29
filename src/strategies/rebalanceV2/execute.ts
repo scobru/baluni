@@ -252,7 +252,7 @@ export async function rebalancePortfolio(
       const balance = (await getTokenBalance(dexWallet.walletProvider, dexWallet.walletAddress, token)).balance;
 
       // Sell token if RSI and StochRSI are overbought
-      if (BigNumber.from(amountWei).lte(balance)) {
+      if (BigNumber.from(amountWei).lt(balance) || BigNumber.from(amountWei).eq(balance)) {
         if (
           stochasticRSIResult.stochRSI > config?.STOCKRSI_OVERBOUGHT &&
           rsiResult.rsiVal > config?.RSI_OVERBOUGHT &&
