@@ -1,3 +1,3 @@
 # Table of contents
 
-* [BALUNI CLI](README.md)
+- [BALUNI CLI](README.md)
