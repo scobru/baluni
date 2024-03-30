@@ -86,11 +86,11 @@ export interface TConfigReturn {
   USDC: string // Address of USDC.E token
   NATIVE: string // Address of native token, if applicable
   WRAPPED: string // Address of wrapped token, if applicable
-  ORACLE: string  // Address or identifier of the oracle used
-  ROUTER: string  // Address of the protocol's router
-  QUOTER: string  // Address of the protocol's quoter
-  FACTORY: string  // Address of the protocol's factory
-  NETWORKS: string  // Identifier for the network
+  ORACLE: string // Address or identifier of the oracle used
+  ROUTER: string // Address of the protocol's router
+  QUOTER: string // Address of the protocol's quoter
+  FACTORY: string // Address of the protocol's factory
+  NETWORKS: string // Identifier for the network
   YEARN_ENABLED: boolean // Whether Yearn integration is enabled
   YEARN_VAULTS: Record<string, string> // Addresses of Yearn vaults, keyed by token symbol
   LIMIT: number // Limit configuration

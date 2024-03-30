@@ -14,7 +14,7 @@ interface LinearRegressionResult {
   actual: number
 }
 
-export async function executeRebalance(
+export async function executeRebalanceV2(
   config: TConfigReturn,
   log: boolean,
   pk?: string
@@ -163,11 +163,11 @@ export async function executeRebalance(
 async function main() {
   welcomeMessage()
   const config: TConfigReturn = await formatConfig(_config)
-  await executeRebalance(config, true)
+  await executeRebalanceV2(config, true)
   try {
     setInterval(async () => {
       try {
-        await executeRebalance(config, true)
+        await executeRebalanceV2(config, true)
       } catch (error) {
         console.error('Error during rebalancing:', error)
       }

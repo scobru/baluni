@@ -4,9 +4,6 @@ import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import { buildSwap, NETWORKS, INFRA, BASEURL } from 'baluni-api'
 
-// DEV ONLY
-// import { buildSwap, NETWORKS, INFRA, BASEURL } from "../../../../baluni-api/dist";
-
 export async function swap(
   dexWallet: DexWallet,
   token0: string,
