@@ -18,7 +18,9 @@
     "prediction": "npx ts-node src/prediction.ts",
     "pumpOrDump": "npx ts-node src/pumpOrDump.ts",
     "format": "npx prettier --write . --ignore-path .gitignore",
-    "check-types": "tsc --noEmit --incremental"
+    "check-types": "tsc --noEmit --incremental",
+    "dev": "tsc --watch",
+    "lint": "eslint --ext .js,.ts"
   },
   "keywords": [
     "defi",
@@ -32,6 +34,9 @@
   "license": "AGPL-3.0",
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "eslint": "^8.57.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
@@ -41,7 +46,7 @@
     "@uniswap/sdk-core": "^4.0.10",
     "asciichart": "^1.5.25",
     "axios": "^1.6.5",
-    "baluni-api": "^1.6.0",
+    "baluni-api": "^1.6.3",
     "chakl": "^0.0.1-security",
     "cli-chart": "^0.3.1",
     "dotenv": "^16.3.1",

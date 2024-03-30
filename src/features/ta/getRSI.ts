@@ -3,27 +3,27 @@ export async function getRSI(symbol: string, config: any) {
     rsiCheck,
     stochasticrsi,
     getDetachSourceFromOHLCV,
-  } = require('trading-indicator');
+  } = require('trading-indicator')
   if (symbol.startsWith('W')) {
-    symbol = symbol.substring(1);
+    symbol = symbol.substring(1)
   }
 
   if (symbol == 'MaticX') {
-    symbol = 'MATIC';
+    symbol = 'MATIC'
   }
 
-  const {input} = await getDetachSourceFromOHLCV(
+  const { input } = await getDetachSourceFromOHLCV(
     'binance',
     `${symbol}/USDT`,
     config?.RSI_TIMEFRAME,
     false
-  ); // true if you want to get future market
+  ) // true if you want to get future market
   const rsiResult = await rsiCheck(
     config?.RSI_PERIOD,
     config?.RSI_OVERBOUGHT,
     config?.RSI_OVERSOLD,
     input
-  );
+  )
   const stochasticRSIResult = await stochasticrsi(
     3,
     3,
@@ -31,17 +31,17 @@ export async function getRSI(symbol: string, config: any) {
     config?.STOCKRSI_PERIOD,
     'close',
     input
-  );
+  )
 
-  console.group('RSI Details');
-  console.log(`⚙️ Getting RSI for:${symbol}`);
-  console.log(`RSI:${rsiResult.rsiVal}`);
+  console.group('RSI Details')
+  console.log(`⚙️ Getting RSI for:${symbol}`)
+  console.log(`RSI:${rsiResult.rsiVal}`)
   console.log(
     `StochasticRSI:${
       stochasticRSIResult[stochasticRSIResult.length - 1].stochRSI
     }`
-  );
-  console.groupEnd();
+  )
+  console.groupEnd()
 
-  return [rsiResult, stochasticRSIResult[stochasticRSIResult.length - 1]];
+  return [rsiResult, stochasticRSIResult[stochasticRSIResult.length - 1]]
 }

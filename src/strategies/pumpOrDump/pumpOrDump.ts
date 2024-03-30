@@ -1,7 +1,6 @@
-import {swap} from '../../common/uniswap/swap';
-import {initializeWallet} from '../../utils/web3/dexWallet';
-import {loadPrettyConsole} from '../../utils/prettyConsole';
-import {NETWORKS} from 'baluni-api';
+import { swap } from '../../common/uniswap/swap'
+import { initializeWallet } from '../../utils/web3/dexWallet'
+import { NETWORKS } from 'baluni-api'
 import {
   token0,
   token1,
@@ -10,11 +9,10 @@ import {
   chainId,
   amount,
   slippage,
-} from './config';
-const prettyConsole = loadPrettyConsole();
+} from './config.json'
 
 const main = async () => {
-  const dexWallet = await initializeWallet(NETWORKS[chainId]);
+  const dexWallet = await initializeWallet(NETWORKS[chainId])
   await swap(
     dexWallet,
     token0,
@@ -24,9 +22,9 @@ const main = async () => {
     chainId,
     amount,
     slippage
-  );
-};
+  )
+}
 
 main().then(() => {
-  prettyConsole.log('Async operation completed');
-});
+  console.log('Async operation completed')
+})

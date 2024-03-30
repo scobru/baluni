@@ -1,6 +1,6 @@
 // import chalk from "chalk";
-import ERC20_ABI from 'baluni-api/dist/abis/common/ERC20.json';
-import {ethers} from 'ethers';
+import ERC20_ABI from 'baluni-api/dist/abis/common/ERC20.json'
+import { ethers } from 'ethers'
 
 export async function getTokenBalance(
   walletProvider:
@@ -13,11 +13,11 @@ export async function getTokenBalance(
     tokenAddress,
     ERC20_ABI,
     walletProvider
-  );
-  const decimals = await tokenContract.decimals();
-  const symbol = await tokenContract.symbol();
-  const rawBalance = await tokenContract.balanceOf(accountAddress);
-  const formattedBalance = ethers.utils.formatUnits(rawBalance, decimals);
+  )
+  const decimals = await tokenContract.decimals()
+  const symbol = await tokenContract.symbol()
+  const rawBalance = await tokenContract.balanceOf(accountAddress)
+  const formattedBalance = ethers.utils.formatUnits(rawBalance, decimals)
 
-  return {balance: rawBalance, formatted: formattedBalance};
+  return { balance: rawBalance, formatted: formattedBalance }
 }

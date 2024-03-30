@@ -1,7 +1,7 @@
-import {BigNumber, Contract} from 'ethers';
-import {loadPrettyConsole} from './prettyConsole';
+import { BigNumber, Contract } from 'ethers'
+import { loadPrettyConsole } from './prettyConsole'
 
-const prettyConsole = loadPrettyConsole();
+const prettyConsole = loadPrettyConsole()
 
 export async function getAmountOut(
   tokenA: string,
@@ -12,7 +12,7 @@ export async function getAmountOut(
   slippage: any
 ) {
   try {
-    let slippageTolerance = slippage;
+    let slippageTolerance = slippage
 
     let expectedAmountB = await quoterContract.callStatic.quoteExactInputSingle(
       tokenA,
@@ -20,22 +20,22 @@ export async function getAmountOut(
       poolFee,
       swapAmount.toString(),
       0
-    );
+    )
 
-    console.group('Swap Details');
-    console.log(`Amount A: ${swapAmount.toString()}`);
-    console.log(`Expected amount B: ${expectedAmountB.toString()}`);
-    console.log(`Pool Fee: ${poolFee}`);
-    console.log(`Slippage Tolerance: ${slippageTolerance}`);
-    console.groupEnd();
+    console.group('Swap Details')
+    console.log(`Amount A: ${swapAmount.toString()}`)
+    console.log(`Expected amount B: ${expectedAmountB.toString()}`)
+    console.log(`Pool Fee: ${poolFee}`)
+    console.log(`Slippage Tolerance: ${slippageTolerance}`)
+    console.groupEnd()
 
     let minimumAmountB = expectedAmountB
       .mul(10000 - slippageTolerance)
-      .div(10000);
+      .div(10000)
 
-    return minimumAmountB;
+    return minimumAmountB
   } catch (e) {
-    return false;
+    return false
   }
 }
 
@@ -46,9 +46,9 @@ export async function getPoolFee(
   quoterContract: Contract,
   config: any
 ): Promise<number> {
-  const poolFees = [100, 500, 3000, 10000];
-  let bestPoolFee = 0;
-  let minimumAmountBSoFar = null;
+  const poolFees = [100, 500, 3000, 10000]
+  let bestPoolFee = 0
+  let minimumAmountBSoFar = null
 
   for (const _poolFee of poolFees) {
     let minimumAmountB = await getAmountOut(
@@ -58,16 +58,16 @@ export async function getPoolFee(
       swapAmount,
       quoterContract,
       config
-    );
+    )
 
     if (
       minimumAmountB &&
       (minimumAmountBSoFar === null || minimumAmountB.gt(minimumAmountBSoFar))
     ) {
-      bestPoolFee = _poolFee;
-      minimumAmountBSoFar = minimumAmountB;
+      bestPoolFee = _poolFee
+      minimumAmountBSoFar = minimumAmountB
     }
   }
 
-  return bestPoolFee;
+  return bestPoolFee
 }

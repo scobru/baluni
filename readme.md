@@ -176,7 +176,7 @@ export const TOKENS = [
   'CRV', // CRV
   'LDO', // LDO
   'USDC.E', // USDC
-];
+]
 ```
 
 #### 2. **WEIGHTS_UP** and **WEIGHTS_DOWN**
@@ -197,7 +197,7 @@ export const WEIGHTS_UP = {
   CRV: 500,
   LDO: 1000,
   'USDC.E': 250,
-};
+}
 
 export const WEIGHTS_DOWN = {
   LINK: 0,
@@ -210,7 +210,7 @@ export const WEIGHTS_DOWN = {
   CRV: 0,
   LDO: 0,
   'USDC.E': 7000,
-};
+}
 ```
 
 ### Operational Parameters
@@ -222,10 +222,10 @@ export const WEIGHTS_DOWN = {
 
 ```typescript
 // REBALANCE STRATEGY
-export const LIMIT = 5; // 10/10000 = 0.1%
-export const SLIPPAGE = 5000; // 3% 300 / 10000
-export const INTERVAL = 300000; // 5 minute
-export const MAX_APPROVAL = true;
+export const LIMIT = 5 // 10/10000 = 0.1%
+export const SLIPPAGE = 5000 // 3% 300 / 10000
+export const INTERVAL = 300000 // 5 minute
+export const MAX_APPROVAL = true
 ```
 
 ```typescript
@@ -260,7 +260,7 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
       boosted: true,
     },
   },
-};
+}
 ```
 
 #### 7. **Dollar-Cost Averaging (DCA)**
@@ -269,8 +269,8 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
 - **To Modify**: Adjust these to align with your DCA strategy.
 
 ```typescript
-export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
-export const INVESTMENT_AMOUNT = 100;
+export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000 // 1 day
+export const INVESTMENT_AMOUNT = 100
 ```
 
 #### 8. **Trend Following and Prediction Module**
@@ -289,15 +289,15 @@ export const INVESTMENT_AMOUNT = 100;
 
 ```typescript
 // KST
-export const TREND_FOLLOWING = true;
-export const KST_TIMEFRAME = '1h';
+export const TREND_FOLLOWING = true
+export const KST_TIMEFRAME = '1h'
 
 // AI
-export const PREDICTION = false;
-export const PREDICTION_PERIOD = 90;
-export const PREDICTION_EPOCHS = 100;
-export const PREDICTION_SYMBOL = 'bitcoin';
-export const PREDICTION_ALGO = 'REGR'; // REGR, 1CONV, GRU, RNN, LSTM.
+export const PREDICTION = false
+export const PREDICTION_PERIOD = 90
+export const PREDICTION_EPOCHS = 100
+export const PREDICTION_SYMBOL = 'bitcoin'
+export const PREDICTION_ALGO = 'REGR' // REGR, 1CONV, GRU, RNN, LSTM.
 ```
 
 #### 9. **Technical Analysis**
@@ -308,30 +308,30 @@ export const PREDICTION_ALGO = 'REGR'; // REGR, 1CONV, GRU, RNN, LSTM.
 
 ```typescript
 // TECHNICAL ANALYSIS
-export const TECNICAL_ANALYSIS = true;
+export const TECNICAL_ANALYSIS = true
 
 //RSI
-export const RSI_PERIOD = 4;
-export const RSI_OVERBOUGHT = 70;
-export const RSI_OVERSOLD = 30;
-export const RSI_TIMEFRAME = '5m';
+export const RSI_PERIOD = 4
+export const RSI_OVERBOUGHT = 70
+export const RSI_OVERSOLD = 30
+export const RSI_TIMEFRAME = '5m'
 
 //STOCKRSI
-export const STOCKRSI_PERIOD = 14;
-export const STOCKRSI_OVERBOUGHT = 80;
-export const STOCKRSI_OVERSOLD = 20;
+export const STOCKRSI_PERIOD = 14
+export const STOCKRSI_OVERBOUGHT = 80
+export const STOCKRSI_OVERSOLD = 20
 
 // EMA
-export const EMA_TIMEFRAME = '5m';
-export const EMA_PERIOD = 20;
-export const EMA_SYMBOL = 'bitcoin';
+export const EMA_TIMEFRAME = '5m'
+export const EMA_PERIOD = 20
+export const EMA_SYMBOL = 'bitcoin'
 
 //EMA CROSSOVER
-export const EMA_FAST = 50;
-export const EMA_SLOW = 200;
+export const EMA_FAST = 50
+export const EMA_SLOW = 200
 
 //VWAP
-export const VWAP_PERIOD = 20;
+export const VWAP_PERIOD = 20
 ```
 
 ## Workflow Overview with Enhanced Yearn Finance Integration

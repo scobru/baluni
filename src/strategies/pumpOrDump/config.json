@@ -1,0 +1,9 @@
+{
+  "token0": "WBTC",
+  "token1": "WETH",
+  "action": "pump",
+  "protocol": "uni-v3",
+  "chainId": 137,
+  "amount": "0.01",
+  "slippage": 100
+}

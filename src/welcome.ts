@@ -1,4 +1,4 @@
-const chalk = require('chalk');
+const chalk = require('chalk')
 
 export function welcomeMessage() {
   console.log(
@@ -15,7 +15,7 @@ export function welcomeMessage() {
         '$$$$$$$/   $$$$$$$/ $$/  $$$$$$/  $$/   $$/ $$/ \n' +
         '                                                \n'
     )
-  );
+  )
 
   console.log(
     chalk.magenta(
@@ -45,13 +45,13 @@ export function welcomeMessage() {
         "                          _.-' :      ``.\n" +
         '                          \\ r=._\\        `.\n'
     )
-  );
+  )
 
-  console.log(chalk.yellow('\nPlease wait...'));
+  console.log(chalk.yellow('\nPlease wait...'))
   console.log(
     chalk.red(
       'This is an experimental project. Use at your own risk. No financial advice is given.'
     )
-  );
-  console.log(chalk.white('\n\n'));
+  )
+  console.log(chalk.white('\n\n'))
 }
