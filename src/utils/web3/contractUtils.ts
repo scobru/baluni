@@ -1,5 +1,5 @@
-import { BigNumber, Contract, ethers } from "ethers";
-import { loadPrettyConsole } from "../prettyConsole";
+import {BigNumber, Contract, ethers} from 'ethers';
+import {loadPrettyConsole} from '../prettyConsole';
 
 const pc = loadPrettyConsole();
 
@@ -9,7 +9,7 @@ export async function callContractMethod(
   inputs: any[],
   provider: ethers.providers.JsonRpcProvider,
   gasPrice?: BigNumber,
-  value?: BigNumber,
+  value?: BigNumber
 ) {
   console.log(`${method}(${inputs})`);
 
@@ -18,12 +18,14 @@ export async function callContractMethod(
   let txResponse: any;
 
   try {
-    const gasEstimate: BigNumber = await contract.estimateGas[method](...inputs);
+    const gasEstimate: BigNumber = await contract.estimateGas[method](
+      ...inputs
+    );
     gasLimit = gasEstimate.mul(2);
-    console.log("Gas estimate:", gasEstimate.toBigInt());
-    console.log("Gas limit:", gasLimit.toBigInt());
+    console.log('Gas estimate:', gasEstimate.toBigInt());
+    console.log('Gas limit:', gasLimit.toBigInt());
   } catch (error) {
-    console.log("Default gas limit:", gasLimit.toBigInt());
+    console.log('Default gas limit:', gasLimit.toBigInt());
   }
 
   // Simulate the transaction
@@ -35,9 +37,9 @@ export async function callContractMethod(
       gasLimit: gasLimit,
       value: value,
     });
-    console.log("Simulation successful:", simulationResult);
+    console.log('Simulation successful:', simulationResult);
   } catch (error) {
-    console.error("Simulation failed:", error);
+    console.error('Simulation failed:', error);
     return; // Abort if simulation fails
   }
 
@@ -47,29 +49,36 @@ export async function callContractMethod(
     value: value,
   });
 
-  pc.success("🎉 Done! Tx Hash:", txResponse.hash);
+  pc.success('🎉 Done! Tx Hash:', txResponse.hash);
 
   return txResponse;
 }
 
-export async function simulateContractMethod(contract: Contract, method: string, inputs: any[], gasPrice: BigNumber) {
+export async function simulateContractMethod(
+  contract: Contract,
+  method: string,
+  inputs: any[],
+  gasPrice: BigNumber
+) {
   console.log(`${method}(${inputs})`);
 
   let gasLimit = BigNumber.from(500000);
 
   try {
-    const gasEstimate: BigNumber = await contract.estimateGas[method](...inputs);
+    const gasEstimate: BigNumber = await contract.estimateGas[method](
+      ...inputs
+    );
     const gasLimit = gasEstimate.mul(2);
-    console.log("Gas estimate:", gasEstimate.toBigInt());
-    console.log("   Gas limit:", gasLimit.toBigInt());
+    console.log('Gas estimate:', gasEstimate.toBigInt());
+    console.log('   Gas limit:', gasLimit.toBigInt());
   } catch (error) {
-    console.log("Default gas limit:", gasLimit.toBigInt());
+    console.log('Default gas limit:', gasLimit.toBigInt());
   }
 
   const txResponse = await contract.callStatic[method](...inputs, {
     gasPrice,
     gasLimit,
   });
-  console.log("Simulate! Tx:", txResponse);
+  console.log('Simulate! Tx:', txResponse);
   return txResponse;
 }

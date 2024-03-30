@@ -1,8 +1,8 @@
-import { initializeWallet } from "../../../utils/web3/dexWallet";
-import { invest } from "../../investor/execute";
-import { loadPrettyConsole } from "../../../utils/prettyConsole";
-import { NETWORKS, USDC } from "baluni-api";
-import * as config from "./config";
+import {initializeWallet} from '../../../utils/web3/dexWallet';
+import {invest} from '../../investor/execute';
+import {loadPrettyConsole} from '../../../utils/prettyConsole';
+import {NETWORKS, USDC} from 'baluni-api';
+import * as config from './config';
 
 const prettyConsole = loadPrettyConsole();
 
@@ -11,7 +11,9 @@ const prettyConsole = loadPrettyConsole();
 
 async function dca() {
   try {
-    const dexWallet = await initializeWallet(String(NETWORKS[config?.SELECTED_CHAINID]));
+    const dexWallet = await initializeWallet(
+      String(NETWORKS[config?.SELECTED_CHAINID])
+    );
     // Initialize your DexWallet here
 
     // DCA Mechanism - periodically invest
@@ -26,11 +28,11 @@ async function dca() {
           String(config?.INVESTMENT_AMOUNT),
           config?.SELECTED_PROTOCOL,
           NETWORKS[config?.SELECTED_CHAINID],
-          Number(config?.SLIPPAGE),
+          Number(config?.SLIPPAGE)
         );
-        prettyConsole.log("Invested part of funds, continuing DCA");
+        prettyConsole.log('Invested part of funds, continuing DCA');
       } catch (error) {
-        prettyConsole.error("Error during DCA investment:", error);
+        prettyConsole.error('Error during DCA investment:', error);
       }
     };
 
@@ -42,15 +44,15 @@ async function dca() {
       await investDCA();
     }, config?.INVESTMENT_INTERVAL);
   } catch (error) {
-    prettyConsole.error("Error during initialization:", error);
+    prettyConsole.error('Error during initialization:', error);
   }
 }
 
 async function main() {
   await dca();
-  prettyConsole.log("DCA Rebalancer operation started");
+  prettyConsole.log('DCA Rebalancer operation started');
 }
 
 main().catch(error => {
-  prettyConsole.error("An error occurred:", error);
+  prettyConsole.error('An error occurred:', error);
 });

@@ -1,10 +1,10 @@
-import { fetchPriceData } from "./fetchPriceData";
-import { trainAndPredict } from "./trainAndPredict";
-import { trainAndPredict1CONV } from "./trainAndPredict1CONV";
-import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { trainAndPredictGRU } from "./trainAndPredictGRU";
-import { trainAndPredictLSTM } from "./trainAndPredictLSTM";
-import { trainAndPredictRNN } from "./trainAndPredictRNN";
+import {fetchPriceData} from './fetchPriceData';
+import {trainAndPredict} from './trainAndPredict';
+import {trainAndPredict1CONV} from './trainAndPredict1CONV';
+import {loadPrettyConsole} from '../../utils/prettyConsole';
+import {trainAndPredictGRU} from './trainAndPredictGRU';
+import {trainAndPredictLSTM} from './trainAndPredictLSTM';
+import {trainAndPredictRNN} from './trainAndPredictRNN';
 
 const prettyConsole = loadPrettyConsole();
 
@@ -15,12 +15,12 @@ interface PredictionResult {
 
 export async function predict(
   algo: string,
-  tokenSymbol: string = "bitcoin",
+  tokenSymbol: string = 'bitcoin',
   period: number,
-  epochsNum: number,
+  epochsNum: number
 ): Promise<PredictionResult | void> {
   if (period <= 0) {
-    console.error("Period must be a positive number.");
+    console.error('Period must be a positive number.');
     return;
   }
 
@@ -28,10 +28,14 @@ export async function predict(
   const startDate: number = endDate - period * 24 * 60 * 60;
 
   try {
-    const { timePrices, predictTime, actualPrice } = await fetchPriceData(tokenSymbol, startDate, endDate);
+    const {timePrices, predictTime, actualPrice} = await fetchPriceData(
+      tokenSymbol,
+      startDate,
+      endDate
+    );
 
-    const predictionAlgorithms: { [key: string]: Function } = {
-      "1CONV": trainAndPredict1CONV,
+    const predictionAlgorithms: {[key: string]: Function} = {
+      '1CONV': trainAndPredict1CONV,
       GRU: trainAndPredictGRU,
       LSTM: trainAndPredictLSTM,
       RNN: trainAndPredictRNN,
@@ -41,17 +45,24 @@ export async function predict(
     const selectedEpochs = epochsNum;
     const selectedAlgo = algo;
 
-    const predictFunction = predictionAlgorithms[selectedAlgo] || trainAndPredict;
-    const results = await predictFunction(timePrices, predictTime, selectedEpochs);
+    const predictFunction =
+      predictionAlgorithms[selectedAlgo] || trainAndPredict;
+    const results = await predictFunction(
+      timePrices,
+      predictTime,
+      selectedEpochs
+    );
 
-    prettyConsole.log("Algo:", selectedAlgo);
-    prettyConsole.log("Epochs:", selectedEpochs);
-    prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
-    prettyConsole.log(" 🌐 Actual price:", actualPrice);
-    prettyConsole.log(" 📈 Predicted price:", results);
+    prettyConsole.log('Algo:', selectedAlgo);
+    prettyConsole.log('Epochs:', selectedEpochs);
+    prettyConsole.info(
+      `Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`
+    );
+    prettyConsole.log(' 🌐 Actual price:', actualPrice);
+    prettyConsole.log(' 📈 Predicted price:', results);
 
-    return { actual: actualPrice, predicted: results };
+    return {actual: actualPrice, predicted: results};
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
   }
 }

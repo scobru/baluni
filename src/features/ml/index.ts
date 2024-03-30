@@ -1,10 +1,10 @@
-import { fetchPriceData } from "./fetchPriceData";
-import { trainAndPredict } from "./trainAndPredict";
-import { trainAndPredict1CONV } from "./trainAndPredict1CONV";
-import { loadPrettyConsole } from "../../utils/prettyConsole";
-import { trainAndPredictGRU } from "./trainAndPredictGRU";
-import { trainAndPredictLSTM } from "./trainAndPredictLSTM";
-import { trainAndPredictRNN } from "./trainAndPredictRNN";
+import {fetchPriceData} from './fetchPriceData';
+import {trainAndPredict} from './trainAndPredict';
+import {trainAndPredict1CONV} from './trainAndPredict1CONV';
+import {loadPrettyConsole} from '../../utils/prettyConsole';
+import {trainAndPredictGRU} from './trainAndPredictGRU';
+import {trainAndPredictLSTM} from './trainAndPredictLSTM';
+import {trainAndPredictRNN} from './trainAndPredictRNN';
 
 const [tokenSymbol] = process.argv.slice(2);
 const [period] = process.argv.slice(3);
@@ -20,7 +20,7 @@ interface PredictionResult {
 
 export async function predict(): Promise<PredictionResult | void> {
   if (Number(period) <= 0) {
-    console.error("Period must be a positive number.");
+    console.error('Period must be a positive number.');
     return;
   }
 
@@ -28,10 +28,14 @@ export async function predict(): Promise<PredictionResult | void> {
   const startDate: number = endDate - Number(period) * 24 * 60 * 60;
 
   try {
-    const { timePrices, predictTime, actualPrice } = await fetchPriceData(tokenSymbol, startDate, endDate);
+    const {timePrices, predictTime, actualPrice} = await fetchPriceData(
+      tokenSymbol,
+      startDate,
+      endDate
+    );
 
-    const predictionAlgorithms: { [key: string]: Function } = {
-      "1CONV": trainAndPredict1CONV,
+    const predictionAlgorithms: {[key: string]: Function} = {
+      '1CONV': trainAndPredict1CONV,
       GRU: trainAndPredictGRU,
       LSTM: trainAndPredictLSTM,
       RNN: trainAndPredictRNN,
@@ -41,13 +45,15 @@ export async function predict(): Promise<PredictionResult | void> {
     const predictFunction = predictionAlgorithms[algo] || trainAndPredict;
     const results = await predictFunction(timePrices, predictTime, epochs);
 
-    prettyConsole.info(`Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`);
-    prettyConsole.log(" 🌐 Actual price:", actualPrice);
-    prettyConsole.log(" 📈 Predicted price:", results);
+    prettyConsole.info(
+      `Prediction for ${new Date(predictTime * 1000).toISOString()}: ${results}`
+    );
+    prettyConsole.log(' 🌐 Actual price:', actualPrice);
+    prettyConsole.log(' 📈 Predicted price:', results);
 
-    return { actual: actualPrice, predicted: results };
+    return {actual: actualPrice, predicted: results};
   } catch (error) {
-    console.error("Error:", error);
+    console.error('Error:', error);
   }
 }
 

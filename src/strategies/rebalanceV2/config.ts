@@ -1,24 +1,24 @@
 // set TOKENS and WEIGHTS
 
 type ConfigTypeYearn = {
-  [key: number]: { [key: string]: any };
+  [key: number]: {[key: string]: any};
 };
 
-export const SELECTED_PROTOCOL = "uni-v3";
+export const SELECTED_PROTOCOL = 'uni-v3';
 
 export const SELECTED_CHAINID = 137;
 
 export const TOKENS = [
-  "LINK", // LINK
-  "WETH", // WETH
-  "WBTC", // WBTC
-  "UNI", // UNI
-  "AAVE", // AAVE
-  "WMATIC", // WMATIC
-  "CRV", // CRV,
-  "SNX",
-  "GRT",
-  "USDC.E", // USDC
+  'LINK', // LINK
+  'WETH', // WETH
+  'WBTC', // WBTC
+  'UNI', // UNI
+  'AAVE', // AAVE
+  'WMATIC', // WMATIC
+  'CRV', // CRV,
+  'SNX',
+  'GRT',
+  'USDC.E', // USDC
 ];
 export const WEIGHTS_UP = {
   LINK: 1000,
@@ -30,7 +30,7 @@ export const WEIGHTS_UP = {
   CRV: 500,
   SNX: 500,
   GRT: 500,
-  "USDC.E": 250,
+  'USDC.E': 250,
 };
 export const WEIGHTS_DOWN = {
   LINK: 0,
@@ -42,7 +42,7 @@ export const WEIGHTS_DOWN = {
   CRV: 0,
   SNX: 0,
   GRT: 0,
-  "USDC.E": 7000,
+  'USDC.E': 7000,
 };
 
 // YEARN CONFIG
@@ -51,15 +51,15 @@ export const YEARN_ENABLED = true;
 export const YEARN_VAULTS: ConfigTypeYearn = {
   137: {
     USDC: {
-      strategy: "multi",
+      strategy: 'multi',
       boosted: false,
     },
     WETH: {
-      strategy: "multi",
+      strategy: 'multi',
       boosted: true,
     },
     WMATIC: {
-      strategy: "multi",
+      strategy: 'multi',
       boosted: true,
     },
   },
@@ -77,14 +77,14 @@ export const INVESTMENT_AMOUNT = 100;
 
 // KST
 export const TREND_FOLLOWING = true;
-export const KST_TIMEFRAME = "1h";
+export const KST_TIMEFRAME = '1h';
 
 // AI
 export const PREDICTION = false;
 export const PREDICTION_PERIOD = 90;
 export const PREDICTION_EPOCHS = 100;
-export const PREDICTION_SYMBOL = "bitcoin";
-export const PREDICTION_ALGO = "REGR";
+export const PREDICTION_SYMBOL = 'bitcoin';
+export const PREDICTION_ALGO = 'REGR';
 
 // TECHNICAL ANALYSIS
 export const TECNICAL_ANALYSIS = false;
@@ -92,7 +92,7 @@ export const TECNICAL_ANALYSIS = false;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;
-export const RSI_TIMEFRAME = "5m";
+export const RSI_TIMEFRAME = '5m';
 
 //STOCKRSI
 export const STOCKRSI_PERIOD = 14;

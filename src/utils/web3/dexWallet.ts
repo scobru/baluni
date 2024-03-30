@@ -1,5 +1,5 @@
-import { ethers, BigNumber } from "ethers";
-import dotenv from "dotenv";
+import {ethers, BigNumber} from 'ethers';
+import dotenv from 'dotenv';
 dotenv.config();
 
 export interface DexWallet {
@@ -10,11 +10,14 @@ export interface DexWallet {
   walletProvider: ethers.providers.JsonRpcProvider;
 }
 
-export const initializeWallet = async (rpcUrl: string, pk?: string): Promise<DexWallet> => {
+export const initializeWallet = async (
+  rpcUrl: string,
+  pk?: string
+): Promise<DexWallet> => {
   const PRIVATE_KEY = String(pk ? pk : process.env.PRIVATE_KEY);
 
   if (!PRIVATE_KEY) {
-    throw new Error("Private key missing from env variables");
+    throw new Error('Private key missing from env variables');
   }
 
   const walletProvider = new ethers.providers.JsonRpcProvider(rpcUrl);

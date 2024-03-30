@@ -1,10 +1,10 @@
-import { BASEURL } from "baluni-api";
+import {BASEURL} from 'baluni-api';
 
 // Get Token Address from api through Uniswap api
 export async function getTokenAddressUniV3(symbol: string, chainId: any) {
   const token0AddressUrl = `${BASEURL}/${chainId}/uni-v3/tokens/${symbol}`;
   let response = await fetch(token0AddressUrl, {
-    method: "GET",
+    method: 'GET',
   });
 
   if (!response.ok) {

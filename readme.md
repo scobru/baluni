@@ -130,9 +130,9 @@ yarn pumpOrDump <token1> <token2> <action>
 
 Command line arguments::
 
-* token1: Reserve token name if configured (eg. WBNB) or token contract address
-* token2: Shit token's name if configured (eg. DARK) or token contract address
-* action: 'pump' | 'dump'
+- token1: Reserve token name if configured (eg. WBNB) or token contract address
+- token2: Shit token's name if configured (eg. DARK) or token contract address
+- action: 'pump' | 'dump'
 
 Examples:
 
@@ -151,39 +151,39 @@ npx ts-node src/getTxReceipt.ts 0xf90efa044b4a5c5a0da0ba1c9dc3c7a5e53962818c6a7a
 
 ## Configuration Details
 
-In `src/config/config.ts`, you can set various parameters for trading strategies. This includes token selections, weights, and whether to sell all tokens before reinvesting. Modify .env file with your PRIVATE\_KEY.
+In `src/config/config.ts`, you can set various parameters for trading strategies. This includes token selections, weights, and whether to sell all tokens before reinvesting. Modify .env file with your PRIVATE_KEY.
 
 ### Tokens and Weights
 
 #### 1. **TOKENS**
 
-* This array lists the addresses of the tokens you are working with.
-* Example Tokens:
-  * LINK
-  * WETH
-  * and others...
-* **To Modify**: Replace these with the token addresses relevant to your strategy.
+- This array lists the addresses of the tokens you are working with.
+- Example Tokens:
+  - LINK
+  - WETH
+  - and others...
+- **To Modify**: Replace these with the token addresses relevant to your strategy.
 
 ```typescript
 export const TOKENS = [
-  "LINK", // LINK
-  "WETH", // WETH
-  "WBTC", // WBTC
-  "UNI", // UNI
-  "AAVE", // AAVE
-  "WMATIC", // WMATIC
-  "1INCH", // 1INCH,
-  "CRV", // CRV
-  "LDO", // LDO
-  "USDC.E", // USDC
+  'LINK', // LINK
+  'WETH', // WETH
+  'WBTC', // WBTC
+  'UNI', // UNI
+  'AAVE', // AAVE
+  'WMATIC', // WMATIC
+  '1INCH', // 1INCH,
+  'CRV', // CRV
+  'LDO', // LDO
+  'USDC.E', // USDC
 ];
 ```
 
-#### 2. **WEIGHTS\_UP** and **WEIGHTS\_DOWN**
+#### 2. **WEIGHTS_UP** and **WEIGHTS_DOWN**
 
-* These objects define the weights for each token when the price is going up (`WEIGHTS_UP`) and down (`WEIGHTS_DOWN`).
-* The weights are in an integer format, which presumably represents their relative importance or allocation in the strategy.
-* **To Modify**: Adjust the values to change the weighting of each token under different market conditions.
+- These objects define the weights for each token when the price is going up (`WEIGHTS_UP`) and down (`WEIGHTS_DOWN`).
+- The weights are in an integer format, which presumably represents their relative importance or allocation in the strategy.
+- **To Modify**: Adjust the values to change the weighting of each token under different market conditions.
 
 ```typescript
 export const WEIGHTS_UP = {
@@ -193,10 +193,10 @@ export const WEIGHTS_UP = {
   UNI: 1000,
   AAVE: 500,
   WMATIC: 500,
-  "1INCH": 500,
+  '1INCH': 500,
   CRV: 500,
   LDO: 1000,
-  "USDC.E": 250,
+  'USDC.E': 250,
 };
 
 export const WEIGHTS_DOWN = {
@@ -206,10 +206,10 @@ export const WEIGHTS_DOWN = {
   UNI: 0,
   AAVE: 0,
   WMATIC: 0,
-  "1INCH": 0,
+  '1INCH': 0,
   CRV: 0,
   LDO: 0,
-  "USDC.E": 7000,
+  'USDC.E': 7000,
 };
 ```
 
@@ -217,8 +217,8 @@ export const WEIGHTS_DOWN = {
 
 #### 5. **Limits and Intervals**
 
-* `LIMIT`, `SLIPPAGE`, and `INTERVAL` define operational parameters like transaction limits and intervals.
-* **To Modify**: Adjust these values based on your risk management and operational strategy.\`\`\`typescript
+- `LIMIT`, `SLIPPAGE`, and `INTERVAL` define operational parameters like transaction limits and intervals.
+- **To Modify**: Adjust these values based on your risk management and operational strategy.\`\`\`typescript
 
 ```typescript
 // REBALANCE STRATEGY
@@ -230,17 +230,15 @@ export const MAX_APPROVAL = true;
 
 ```typescript
 // EXAMPLE CONFIGURATION
-
-
 ```
 
 #### 6. **Yearn Finance Integration**
 
 BALUNI has expanded its integration with Yearn Finance beyond the initial USDC offering. Now, the platform supports generating interest on a wider range of tokens, provided they have corresponding pools on Yearn Finance and are included within your weighted portfolio configuration. This enhancement allows for a more diversified earning strategy, optimizing the value of idle assets across different cryptocurrencies.
 
-* **Comprehensive Support:** While the initial setup focused on the USDC.e-A AAVE on Polygon vault, BALUNI's latest version broadens this scope. Users can now potentially earn interest on any token supported by Yearn Finance, as long as these tokens are part of the user's portfolio and have designated weights in the configuration settings.
-* **Configuration Flexibility:** To take advantage of this extended functionality, ensure that YEARN\_ENABLED is set to true in your src/config.ts. Then, specify the Yearn vault addresses for the tokens you wish to earn interest on, similar to how the USDC vault is specified. This setup allows BALUNI to dynamically interact with Yearn Finance, automatically depositing and managing your assets in the appropriate Yearn vaults based on your portfolio's configuration.
-* **Dynamic Earning Strategy:** With this update, BALUNI not only trades efficiently on decentralized exchanges but also ensures your assets are continuously working for you, earning interest through Yearn Finance even when market conditions are not favorable for trading. This dual approach maximizes potential returns and provides a more robust investment strategy. Ensure your portfolio includes the tokens with corresponding Yearn pools you wish to earn interest on, and update your src/config.ts to reflect these preferences. By doing so, you can enhance your investment strategy with BALUNI, leveraging both active trading and passive earning mechanisms for optimal asset growth.
+- **Comprehensive Support:** While the initial setup focused on the USDC.e-A AAVE on Polygon vault, BALUNI's latest version broadens this scope. Users can now potentially earn interest on any token supported by Yearn Finance, as long as these tokens are part of the user's portfolio and have designated weights in the configuration settings.
+- **Configuration Flexibility:** To take advantage of this extended functionality, ensure that YEARN_ENABLED is set to true in your src/config.ts. Then, specify the Yearn vault addresses for the tokens you wish to earn interest on, similar to how the USDC vault is specified. This setup allows BALUNI to dynamically interact with Yearn Finance, automatically depositing and managing your assets in the appropriate Yearn vaults based on your portfolio's configuration.
+- **Dynamic Earning Strategy:** With this update, BALUNI not only trades efficiently on decentralized exchanges but also ensures your assets are continuously working for you, earning interest through Yearn Finance even when market conditions are not favorable for trading. This dual approach maximizes potential returns and provides a more robust investment strategy. Ensure your portfolio includes the tokens with corresponding Yearn pools you wish to earn interest on, and update your src/config.ts to reflect these preferences. By doing so, you can enhance your investment strategy with BALUNI, leveraging both active trading and passive earning mechanisms for optimal asset growth.
 
 Can you find information about yearn vault calling the Baluni API at this address:
 
@@ -250,15 +248,15 @@ Can you find information about yearn vault calling the Baluni API at this addres
 export const YEARN_VAULTS: ConfigTypeYearn = {
   137: {
     USDC: {
-      strategy: "multi",
+      strategy: 'multi',
       boosted: false,
     },
     WETH: {
-      strategy: "multi",
+      strategy: 'multi',
       boosted: true,
     },
     WMATIC: {
-      strategy: "multi",
+      strategy: 'multi',
       boosted: true,
     },
   },
@@ -267,8 +265,8 @@ export const YEARN_VAULTS: ConfigTypeYearn = {
 
 #### 7. **Dollar-Cost Averaging (DCA)**
 
-* `INVESTMENT_INTERVAL` and `INVESTMENT_AMOUNT` define the frequency and amount for DCA.
-* **To Modify**: Adjust these to align with your DCA strategy.
+- `INVESTMENT_INTERVAL` and `INVESTMENT_AMOUNT` define the frequency and amount for DCA.
+- **To Modify**: Adjust these to align with your DCA strategy.
 
 ```typescript
 export const INVESTMENT_INTERVAL = 1 * 24 * 60 * 60 * 1000; // 1 day
@@ -277,36 +275,36 @@ export const INVESTMENT_AMOUNT = 100;
 
 #### 8. **Trend Following and Prediction Module**
 
-**Example PREDICTION\_ALGO:** REGR, 1CONV, GRU, RNN, LSTM.
+**Example PREDICTION_ALGO:** REGR, 1CONV, GRU, RNN, LSTM.
 
-**Example PREDICTION\_SYMBOL:** bitcoin, ethereum, litecoin.
+**Example PREDICTION_SYMBOL:** bitcoin, ethereum, litecoin.
 
-**Example PREDICTION\_EPOCHS:** 200, 2000.
+**Example PREDICTION_EPOCHS:** 200, 2000.
 
-**Example PREDICTION\_PERIOD:** 60.
+**Example PREDICTION_PERIOD:** 60.
 
-* Enables trend following and ML analysis.
-* Adjust `PREDICTION_PERIOD` and `PREDICTION_EPOCHS` for your analysis period and epochs. Select `PREDICTION_ALGO` and `PREDICTION_SYMBOL`
-* **To Modify**: Toggle `true`/`false` to enable/disable and adjust parameters for your analysis needs.
+- Enables trend following and ML analysis.
+- Adjust `PREDICTION_PERIOD` and `PREDICTION_EPOCHS` for your analysis period and epochs. Select `PREDICTION_ALGO` and `PREDICTION_SYMBOL`
+- **To Modify**: Toggle `true`/`false` to enable/disable and adjust parameters for your analysis needs.
 
 ```typescript
 // KST
 export const TREND_FOLLOWING = true;
-export const KST_TIMEFRAME = "1h";
+export const KST_TIMEFRAME = '1h';
 
 // AI
 export const PREDICTION = false;
 export const PREDICTION_PERIOD = 90;
 export const PREDICTION_EPOCHS = 100;
-export const PREDICTION_SYMBOL = "bitcoin";
-export const PREDICTION_ALGO = "REGR"; // REGR, 1CONV, GRU, RNN, LSTM.
+export const PREDICTION_SYMBOL = 'bitcoin';
+export const PREDICTION_ALGO = 'REGR'; // REGR, 1CONV, GRU, RNN, LSTM.
 ```
 
 #### 9. **Technical Analysis**
 
-* Configures parameters for RSI and Stochastic RSI.
-* Includes periods and thresholds for overbought/oversold conditions.
-* **To Modify**: Adjust these to suit your technical analysis criteria.
+- Configures parameters for RSI and Stochastic RSI.
+- Includes periods and thresholds for overbought/oversold conditions.
+- **To Modify**: Adjust these to suit your technical analysis criteria.
 
 ```typescript
 // TECHNICAL ANALYSIS
@@ -316,7 +314,7 @@ export const TECNICAL_ANALYSIS = true;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;
-export const RSI_TIMEFRAME = "5m";
+export const RSI_TIMEFRAME = '5m';
 
 //STOCKRSI
 export const STOCKRSI_PERIOD = 14;
@@ -324,9 +322,9 @@ export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
 
 // EMA
-export const EMA_TIMEFRAME = "5m";
+export const EMA_TIMEFRAME = '5m';
 export const EMA_PERIOD = 20;
-export const EMA_SYMBOL = "bitcoin";
+export const EMA_SYMBOL = 'bitcoin';
 
 //EMA CROSSOVER
 export const EMA_FAST = 50;
@@ -339,25 +337,25 @@ export const VWAP_PERIOD = 20;
 ## Workflow Overview with Enhanced Yearn Finance Integration
 
 1. **Bot Start**
-   * Initialize the trading bot.
+   - Initialize the trading bot.
 2. **Check Prediction Module**
-   * Perform forecast with ML analysis to understand market trends.
+   - Perform forecast with ML analysis to understand market trends.
 3. **Check KST Trend**
-   * Assess the Know Sure Thing (KST) trend signal to predict the market momentum.
+   - Assess the Know Sure Thing (KST) trend signal to predict the market momentum.
 4. **Select Weight Based on Trend Signal**
-   * Choose the asset allocation weight according to the trend signal.
+   - Choose the asset allocation weight according to the trend signal.
 5. **Distribute Assets**
-   * Allocate assets based on the selected weights.
+   - Allocate assets based on the selected weights.
 6. **Technical Analysis Upon Rebalance**
-   * When a rebalance occurs, conduct technical analysis using signals like RSI (Relative Strength Index) and Stochastic RSI.
+   - When a rebalance occurs, conduct technical analysis using signals like RSI (Relative Strength Index) and Stochastic RSI.
 7. **Deposit into Yearn Vaults**
-   * Evaluate portfolio for assets eligible for Yearn Finance interest generation. If rebalancing is not triggered or if there are idle assets, deposit them into the corresponding Yearn vaults based on the asset's type and the user's configured Yearn vault addresses. This action is not limited to USDC but extends to all supported tokens in the user's portfolio that have corresponding Yearn pools.
+   - Evaluate portfolio for assets eligible for Yearn Finance interest generation. If rebalancing is not triggered or if there are idle assets, deposit them into the corresponding Yearn vaults based on the asset's type and the user's configured Yearn vault addresses. This action is not limited to USDC but extends to all supported tokens in the user's portfolio that have corresponding Yearn pools.
 8. **Interest Accumulation**
-   * While assets are in Yearn vaults, they accrue interest according to the performance of the selected Yearn pools. This step enhances the value of idle assets, providing an additional revenue stream aside from trading gains.
+   - While assets are in Yearn vaults, they accrue interest according to the performance of the selected Yearn pools. This step enhances the value of idle assets, providing an additional revenue stream aside from trading gains.
 9. **Withdraw from Vaults for Trading or Rebalancing**
-   * Monitor market conditions and portfolio performance. When a trading opportunity arises or rebalancing is necessary, withdraw the appropriate amount of assets from Yearn vaults. This includes converting earned interest back into the portfolio's primary trading assets if desired.
+   - Monitor market conditions and portfolio performance. When a trading opportunity arises or rebalancing is necessary, withdraw the appropriate amount of assets from Yearn vaults. This includes converting earned interest back into the portfolio's primary trading assets if desired.
 10. **Execute Trades and Rebalance Portfolio**
-    * Use the withdrawn assets to execute trades according to the latest market analysis and rebalance the portfolio to maintain the desired asset allocation, optimizing for both trading performance and interest earnings.
+    - Use the withdrawn assets to execute trades according to the latest market analysis and rebalance the portfolio to maintain the desired asset allocation, optimizing for both trading performance and interest earnings.
 
 This enhanced workflow integrates the dynamic use of Yearn Finance for interest generation, making BALUNI not just a trading bot but a comprehensive DeFi portfolio management tool. It ensures assets are not lying idle but are continually working to generate returns, either through trading or earning interest, thereby maximizing the overall efficiency and profitability of the user's cryptocurrency portfolio.
 
@@ -403,11 +401,11 @@ This enhanced workflow integrates the dynamic use of Yearn Finance for interest 
 
 ## Tips for Configuration
 
-* **Understand Each Parameter**: Before modifying any values, ensure you understand what each parameter does and how it impacts your trading strategy.
-* **Test Changes**: Make changes incrementally and test the impact of each change.
-* **Network Compatibility**: Ensure that all contract addresses are compatible with the network you are using (e.g., Ethereum, Polygon).
-* **Pools and Tokens**: Verify that each token you're using has an associated liquidity pool on Uniswap V3, paired with either USDC or WMATIC, on your chosen network.
-* **Stay Updated**: Keep your configurations up to date with the latest changes in the DeFi space.
+- **Understand Each Parameter**: Before modifying any values, ensure you understand what each parameter does and how it impacts your trading strategy.
+- **Test Changes**: Make changes incrementally and test the impact of each change.
+- **Network Compatibility**: Ensure that all contract addresses are compatible with the network you are using (e.g., Ethereum, Polygon).
+- **Pools and Tokens**: Verify that each token you're using has an associated liquidity pool on Uniswap V3, paired with either USDC or WMATIC, on your chosen network.
+- **Stay Updated**: Keep your configurations up to date with the latest changes in the DeFi space.
 
 ## Contributing to BALUNI
 
@@ -417,8 +415,8 @@ We welcome contributions! Please submit pull requests with your proposed changes
 
 This project was ispired by following project:
 
-* [https://github.com/vhalme/dex-bot](https://github.com/vhalme/dex-bot)
-* [https://github.com/MattPereira/etherscript](https://github.com/MattPereira/etherscript)
+- [https://github.com/vhalme/dex-bot](https://github.com/vhalme/dex-bot)
+- [https://github.com/MattPereira/etherscript](https://github.com/MattPereira/etherscript)
 
 ## License
 

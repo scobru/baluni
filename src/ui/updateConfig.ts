@@ -1,5 +1,11 @@
-import * as Config from "./config";
-import { PROTOCOLS, ORACLE, NATIVETOKENS, NETWORKS, TOKENS_URL } from "baluni-api";
+import * as Config from './config';
+import {
+  PROTOCOLS,
+  ORACLE,
+  NATIVETOKENS,
+  NETWORKS,
+  TOKENS_URL,
+} from 'baluni-api';
 
 interface YearnVault {
   address: string;
@@ -29,13 +35,13 @@ interface YearnVault {
 
 export async function updateConfig(
   tokens: string[],
-  allocations: { [token: string]: number },
+  allocations: {[token: string]: number},
   chainId: number,
   yearnEnabled: boolean,
   yearnVaults: Record<string, any>,
   limit: number,
   trendFollowing: boolean,
-  technicalAnalysis: boolean,
+  technicalAnalysis: boolean
 ) {
   // Dati da inviare all'API
   const payload = {
@@ -74,13 +80,21 @@ export async function updateConfig(
   const updatedYearnVaults: Record<string, string> = {};
 
   const tokenAddresses = await Promise.all(
-    payload.tokens.map((tokenSymbol: string) => fetchTokenAddressByName(tokenSymbol, payload.chainId)),
+    payload.tokens.map((tokenSymbol: string) =>
+      fetchTokenAddressByName(tokenSymbol, payload.chainId)
+    )
   );
 
   tokenAddresses.forEach((address, index) => {
     if (address) {
-      updatedWeightsUp[address] = payload.weightsUp[payload.tokens[index] as keyof typeof payload.weightsUp] ?? 0;
-      updatedWeightsDown[address] = payload.weightsDown[payload.tokens[index] as keyof typeof payload.weightsDown] ?? 0;
+      updatedWeightsUp[address] =
+        payload.weightsUp[
+          payload.tokens[index] as keyof typeof payload.weightsUp
+        ] ?? 0;
+      updatedWeightsDown[address] =
+        payload.weightsDown[
+          payload.tokens[index] as keyof typeof payload.weightsDown
+        ] ?? 0;
     }
   });
 
@@ -89,30 +103,37 @@ export async function updateConfig(
     const yearnVaultsData = await fetchYearnVaultsData(payload.chainId);
 
     // Itera sui token per cui sono configurati i vault di Yearn
-    for (const [tokenSymbol, _config] of Object.entries(payload.yearnVaults[payload.chainId])) {
+    for (const [tokenSymbol, _config] of Object.entries(
+      payload.yearnVaults[payload.chainId]
+    )) {
       // Ora `config` è del tipo corretto
       const tokenConfig: any = _config;
 
       const filteredVaults = yearnVaultsData
         .filter(vault => {
-          const matchesSymbol = vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase();
+          const matchesSymbol =
+            vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase();
           const isVersion3 =
-            vault.version?.startsWith("3.0") || vault.name.includes("3.0") || vault.symbol.includes("3.0");
+            vault.version?.startsWith('3.0') ||
+            vault.name.includes('3.0') ||
+            vault.symbol.includes('3.0');
           let matchesStrategyType = true;
           let matchesBoosted = true;
 
-          if (tokenConfig.strategy === "multi") {
-            matchesStrategyType = vault.kind === "Multi Strategy";
-          } else if (tokenConfig.strategy === "single") {
-            matchesStrategyType = vault.kind !== "Multi Strategy";
+          if (tokenConfig.strategy === 'multi') {
+            matchesStrategyType = vault.kind === 'Multi Strategy';
+          } else if (tokenConfig.strategy === 'single') {
+            matchesStrategyType = vault.kind !== 'Multi Strategy';
           }
 
           // Check if boosted filter is applied
-          if (tokenConfig.boosted === "true") {
+          if (tokenConfig.boosted === 'true') {
             matchesBoosted = vault.boosted === true;
           }
 
-          return matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted;
+          return (
+            matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted
+          );
         })
         .map(vault => vault.address);
 
@@ -126,13 +147,13 @@ export async function updateConfig(
     TOKENS: tokenAddresses, // Indirizzi dei token
     WEIGHTS_UP: updatedWeightsUp, // Pesi aggiornati per l'aumento di prezzo
     WEIGHTS_DOWN: updatedWeightsDown, // Pesi aggiornati per il calo di prezzo
-    USDC: await fetchTokenAddressByName("USDC.E", payload.chainId),
+    USDC: await fetchTokenAddressByName('USDC.E', payload.chainId),
     NATIVE: NATIVETOKENS[payload.chainId]?.NATIVE,
     WRAPPED: NATIVETOKENS[payload.chainId]?.WRAPPED,
-    ORACLE: ORACLE[payload.chainId]?.["1inch-spot-agg"]?.OFFCHAINORACLE,
-    ROUTER: PROTOCOLS[payload.chainId]?.["uni-v3"]?.ROUTER,
-    QUOTER: PROTOCOLS[payload.chainId]?.["uni-v3"]?.QUOTER,
-    FACTORY: PROTOCOLS[payload.chainId]?.["uni-v3"]?.FACTORY,
+    ORACLE: ORACLE[payload.chainId]?.['1inch-spot-agg']?.OFFCHAINORACLE,
+    ROUTER: PROTOCOLS[payload.chainId]?.['uni-v3']?.ROUTER,
+    QUOTER: PROTOCOLS[payload.chainId]?.['uni-v3']?.QUOTER,
+    FACTORY: PROTOCOLS[payload.chainId]?.['uni-v3']?.FACTORY,
     NETWORKS: NETWORKS[payload.chainId],
     YEARN_ENABLED: payload.yearnEnabled,
     YEARN_VAULTS: updatedYearnVaults,
@@ -169,26 +190,30 @@ async function fetchYearnVaultsData(chainId: number): Promise<YearnVault[]> {
     const data: YearnVault[] = await response.json();
     return data;
   } catch (error) {
-    console.error("Failed to fetch Yearn Finance vaults:", error);
+    console.error('Failed to fetch Yearn Finance vaults:', error);
     return [];
   }
 }
 
-async function fetchTokenAddressByName(tokenSymbol: string, chainId: number): Promise<string | null> {
+async function fetchTokenAddressByName(
+  tokenSymbol: string,
+  chainId: number
+): Promise<string | null> {
   try {
     const response = await fetch(TOKENS_URL);
     const data = await response.json();
 
     // Filtra i token per chainId e cerca un token che corrisponda al tokenSymbol fornito
     const matchingToken = data.tokens.find(
-      (token: { chainId: number; symbol: string }) =>
-        token.chainId === chainId && token.symbol.toLowerCase() === tokenSymbol.toLowerCase(),
+      (token: {chainId: number; symbol: string}) =>
+        token.chainId === chainId &&
+        token.symbol.toLowerCase() === tokenSymbol.toLowerCase()
     );
 
     // Se il token esiste, restituisci il suo indirizzo
     return matchingToken ? matchingToken.address : null;
   } catch (error) {
-    console.error("Failed to fetch token address:", error);
+    console.error('Failed to fetch token address:', error);
     return null;
   }
 }

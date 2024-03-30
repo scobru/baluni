@@ -1,7 +1,18 @@
 {
   "SELECTED_PROTOCOL": "uni-v3",
   "SELECTED_CHAINID": 137,
-  "TOKENS": ["LINK", "WETH", "WBTC", "UNI", "AAVE", "WMATIC", "1INCH", "CRV", "LDO", "USDC.E"],
+  "TOKENS": [
+    "LINK",
+    "WETH",
+    "WBTC",
+    "UNI",
+    "AAVE",
+    "WMATIC",
+    "1INCH",
+    "CRV",
+    "LDO",
+    "USDC.E"
+  ],
   "WEIGHTS_UP": {
     "LINK": 1000,
     "WETH": 1000,

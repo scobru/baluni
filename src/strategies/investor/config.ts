@@ -1,24 +1,24 @@
 // set TOKENS and WEIGHTS
 
 type ConfigTypeYearn = {
-  [key: number]: { [key: string]: any };
+  [key: number]: {[key: string]: any};
 };
 
-export const SELECTED_PROTOCOL = "uni-v3";
+export const SELECTED_PROTOCOL = 'uni-v3';
 
 export const SELECTED_CHAINID = 137;
 
 export const TOKENS = [
-  "LINK", // LINK
-  "WETH", // WETH
-  "WBTC", // WBTC
-  "UNI", // UNI
-  "AAVE", // AAVE
-  "WMATIC", // WMATIC
-  "1INCH", // 1INCH,
-  "CRV", // CRV
-  "LDO", // LDO
-  "USDC.E", // USDC
+  'LINK', // LINK
+  'WETH', // WETH
+  'WBTC', // WBTC
+  'UNI', // UNI
+  'AAVE', // AAVE
+  'WMATIC', // WMATIC
+  '1INCH', // 1INCH,
+  'CRV', // CRV
+  'LDO', // LDO
+  'USDC.E', // USDC
 ];
 
 export const WEIGHTS_UP = {
@@ -28,10 +28,10 @@ export const WEIGHTS_UP = {
   UNI: 1000,
   AAVE: 500,
   WMATIC: 500,
-  "1INCH": 500,
+  '1INCH': 500,
   CRV: 500,
   LDO: 1000,
-  "USDC.E": 250,
+  'USDC.E': 250,
 };
 
 export const WEIGHTS_DOWN = {
@@ -41,10 +41,10 @@ export const WEIGHTS_DOWN = {
   UNI: 0,
   AAVE: 0,
   WMATIC: 0,
-  "1INCH": 0,
+  '1INCH': 0,
   CRV: 0,
   LDO: 0,
-  "USDC.E": 7000,
+  'USDC.E': 7000,
 };
 
 // REBALANCE STRATEGY
@@ -59,14 +59,14 @@ export const INVESTMENT_AMOUNT = 100;
 
 // KST
 export const TREND_FOLLOWING = true;
-export const KST_TIMEFRAME = "1h";
+export const KST_TIMEFRAME = '1h';
 
 // AI
 export const PREDICTION = false;
 export const PREDICTION_PERIOD = 90;
 export const PREDICTION_EPOCHS = 100;
-export const PREDICTION_SYMBOL = "bitcoin";
-export const PREDICTION_ALGO = "REGR";
+export const PREDICTION_SYMBOL = 'bitcoin';
+export const PREDICTION_ALGO = 'REGR';
 
 // TECHNICAL ANALYSIS
 export const TECNICAL_ANALYSIS = false;
@@ -74,7 +74,7 @@ export const TECNICAL_ANALYSIS = false;
 export const RSI_PERIOD = 4;
 export const RSI_OVERBOUGHT = 70;
 export const RSI_OVERSOLD = 30;
-export const RSI_TIMEFRAME = "5m";
+export const RSI_TIMEFRAME = '5m';
 
 //STOCKRSI
 export const STOCKRSI_PERIOD = 14;
@@ -82,9 +82,9 @@ export const STOCKRSI_OVERBOUGHT = 80;
 export const STOCKRSI_OVERSOLD = 20;
 
 // EMA
-export const EMA_TIMEFRAME = "5m";
+export const EMA_TIMEFRAME = '5m';
 export const EMA_PERIOD = 20;
-export const EMA_SYMBOL = "bitcoin";
+export const EMA_SYMBOL = 'bitcoin';
 
 //EMA CROSSOVER
 export const EMA_FAST = 50;

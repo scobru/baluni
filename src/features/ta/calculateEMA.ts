@@ -1,12 +1,25 @@
-import { crossover, crossunder } from "./cross";
+import {crossover, crossunder} from './cross';
 
 export const calculateEMA = async (symbol: string, config: any) => {
-  const { ema, getDetachSourceFromOHLCV } = require("trading-indicator");
-  const { input } = await getDetachSourceFromOHLCV("binance", `${symbol}/USDT`, config?.EMA_TIMEFRAME, false); // true if you want to get future market
+  const {ema, getDetachSourceFromOHLCV} = require('trading-indicator');
+  const {input} = await getDetachSourceFromOHLCV(
+    'binance',
+    `${symbol}/USDT`,
+    config?.EMA_TIMEFRAME,
+    false
+  ); // true if you want to get future market
 
   try {
-    let EMA_FAST_VAL = await ema(parseInt(String(config?.EMA_FAST)), "close", input);
-    let EMA_SLOW_VAL = await ema(parseInt(String(config?.EMA_SLOW)), "close", input);
+    let EMA_FAST_VAL = await ema(
+      parseInt(String(config?.EMA_FAST)),
+      'close',
+      input
+    );
+    let EMA_SLOW_VAL = await ema(
+      parseInt(String(config?.EMA_SLOW)),
+      'close',
+      input
+    );
     return {
       fast: EMA_FAST_VAL,
       slow: EMA_SLOW_VAL,
@@ -50,33 +63,43 @@ const emaCross = async (symbol: string, config: any) => {
 };
 
 const priceCrossEMA = async (symbol: string, config: any) => {
-  const { ema, getDetachSourceFromOHLCV } = require("trading-indicator");
-  const { input } = await getDetachSourceFromOHLCV("binance", `${symbol}/USDT`, config?.EMA_TIMEFRAME, false);
+  const {ema, getDetachSourceFromOHLCV} = require('trading-indicator');
+  const {input} = await getDetachSourceFromOHLCV(
+    'binance',
+    `${symbol}/USDT`,
+    config?.EMA_TIMEFRAME,
+    false
+  );
 
-  let maVal = await ema(parseInt(String(config?.EMA_PERIOD)), "close", input),
+  let maVal = await ema(parseInt(String(config?.EMA_PERIOD)), 'close', input),
     price = input.slice(-2),
     up = crossover(price, maVal),
     down = crossunder(price, maVal);
   return {
     cross: up || down,
-    direction: up ? "up" : down ? "down" : "none",
+    direction: up ? 'up' : down ? 'down' : 'none',
   };
 };
 
 const vwapCrossEMA = async (symbol: string, config: any) => {
-  const { vwap, getDetachSourceFromOHLCV, ema } = require("trading-indicator");
-  const { input } = await getDetachSourceFromOHLCV("binance", `${symbol}/USDT`, config?.EMA_TIMEFRAME, false);
+  const {vwap, getDetachSourceFromOHLCV, ema} = require('trading-indicator');
+  const {input} = await getDetachSourceFromOHLCV(
+    'binance',
+    `${symbol}/USDT`,
+    config?.EMA_TIMEFRAME,
+    false
+  );
   console.log(await vwap(input));
 
   let vwapResult = await vwap(input);
 
-  let maVal = await ema(parseInt(String(config?.VWAP_PERIOD)), "close", input),
+  let maVal = await ema(parseInt(String(config?.VWAP_PERIOD)), 'close', input),
     price = vwapResult.slice(-2),
     up = crossover(price, maVal),
     down = crossunder(price, maVal);
   return {
     cross: up || down,
-    direction: up ? "up" : down ? "down" : "none",
+    direction: up ? 'up' : down ? 'down' : 'none',
   };
 };
 
