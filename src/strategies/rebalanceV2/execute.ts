@@ -152,7 +152,6 @@ export async function rebalancePortfolio(
       )
 
       tokenValues[token] = tokenValue
-      totalPortfolioValue = totalPortfolioValue.add(tokenBalance)
       totalPortfolioValue = totalPortfolioValue.add(tokenValue)
     } else {
       tokenValue = await getTokenValue(
@@ -534,81 +533,83 @@ export async function rebalancePortfolio(
   }
 
   try {
-    if (quoteRequestBody.inputTokens.length === 0)
-      return console.log('📡 No input tokens to sell')
+    if (quoteRequestBody.inputTokens.length === 0) {
+      console.log('📡 No input tokens to sell')
+    } else {
+      quoteRequestBody.userAddr = dexWallet.walletAddress
 
-    quoteRequestBody.userAddr = dexWallet.walletAddress
+      const data = await buildSwapOdos(
+        dexWallet.wallet,
+        dexWallet.walletAddress,
+        String(chainId),
+        quoteRequestBody.inputTokens,
+        quoteRequestBody.outputTokens,
+        Number(quoteRequestBody.slippageLimitPercent),
+        Number(quoteRequestBody.referralCode),
+        Boolean(quoteRequestBody.disableRFQs),
+        Boolean(quoteRequestBody.compact)
+      )
 
-    const data = await buildSwapOdos(
-      dexWallet.wallet,
-      dexWallet.walletAddress,
-      String(chainId),
-      quoteRequestBody.inputTokens,
-      quoteRequestBody.outputTokens,
-      Number(quoteRequestBody.slippageLimitPercent),
-      Number(quoteRequestBody.referralCode),
-      Boolean(quoteRequestBody.disableRFQs),
-      Boolean(quoteRequestBody.compact)
-    )
+      if (data?.Approvals.length > 0) {
+        console.log('📡 Approvals')
 
-    if (data?.Approvals.length > 0) {
-      console.log('📡 Approvals')
+        const approvals = data.Approvals
 
-      const approvals = data.Approvals
+        for (const approval of approvals) {
+          approval.gasLimit = gasLimit
+          approval.gasPrice = gas
 
-      for (const approval of approvals) {
-        approval.gasLimit = gasLimit
-        approval.gasPrice = gas
+          const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+          const broadcaster = await waitForTx(
+            dexWallet.walletProvider,
+            approvalTx?.hash,
+            dexWallet.walletAddress
+          )
 
-        const approvalTx = await dexWallet.wallet.sendTransaction(approval)
-        const broadcaster = await waitForTx(
-          dexWallet.walletProvider,
-          approvalTx?.hash,
-          dexWallet.walletAddress
+          console.log(`📡 Approval broadcasted: ${broadcaster}`)
+        }
+      }
+
+      if (data?.Calldatas.length > 0) {
+        console.log('📡 Calldatas')
+
+        const simulate = await router.callStatic.execute(
+          data?.Calldatas,
+          data?.TokensReturn,
+          {
+            gasLimit: gasLimit,
+            gasPrice: gas,
+          }
         )
 
-        console.log(`📡 Approval broadcasted: ${broadcaster}`)
-      }
-    }
+        if ((await simulate) === false)
+          return console.log('📡 Simulation failed')
 
-    if (data?.Calldatas.length > 0) {
-      console.log('📡 Calldatas')
+        console.log(`📡  Simulation successful:: ${simulate}`)
 
-      const simulate = await router.callStatic.execute(
-        data?.Calldatas,
-        data?.TokensReturn,
-        {
+        if (!simulate) return console.log('📡 Simulation failed')
+
+        const calldata = router.interface.encodeFunctionData('execute', [
+          data.Calldatas,
+          data.TokensReturn,
+        ])
+
+        const tx = {
+          to: router.address,
+          value: 0,
+          data: calldata,
           gasLimit: gasLimit,
           gasPrice: gas,
         }
-      )
 
-      if ((await simulate) === false) return console.log('📡 Simulation failed')
-
-      console.log(`📡  Simulation successful:: ${simulate}`)
-
-      if (!simulate) return console.log('📡 Simulation failed')
-
-      const calldata = router.interface.encodeFunctionData('execute', [
-        data.Calldatas,
-        data.TokensReturn,
-      ])
-
-      const tx = {
-        to: router.address,
-        value: 0,
-        data: calldata,
-        gasLimit: gasLimit,
-        gasPrice: gas,
+        const executeTx = await dexWallet.wallet.sendTransaction(tx)
+        const broadcaster = await waitForTx(
+          dexWallet.walletProvider,
+          executeTx?.hash,
+          dexWallet.walletAddress
+        )
+        console.log(`📡 Tx broadcasted:: ${broadcaster}`)
       }
-
-      const executeTx = await dexWallet.wallet.sendTransaction(tx)
-      const broadcaster = await waitForTx(
-        dexWallet.walletProvider,
-        executeTx?.hash,
-        dexWallet.walletAddress
-      )
-      console.log(`📡 Tx broadcasted:: ${broadcaster}`)
     }
   } catch (e) {
     console.log(e)
