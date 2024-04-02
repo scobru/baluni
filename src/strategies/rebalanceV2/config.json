@@ -11,7 +11,8 @@
     "CRV",
     "SNX",
     "GRT",
-    "USDC.E"
+    "USDC.E",
+    "USDC"
   ],
   "WEIGHTS_UP": {
     "LINK": 500,
@@ -23,7 +24,8 @@
     "CRV": 500,
     "SNX": 500,
     "GRT": 500,
-    "USDC.E": 250
+    "USDC.E": 200,
+    "USDC": 50
   },
   "WEIGHTS_DOWN": {
     "LINK": 0,
@@ -35,7 +37,8 @@
     "CRV": 0,
     "SNX": 0,
     "GRT": 0,
-    "USDC.E": 7000
+    "USDC.E": 7000,
+    "USDC": 0
   },
   "YEARN_ENABLED": true,
   "YEARN_VAULTS": {
@@ -54,7 +57,7 @@
       }
     }
   },
-  "LIMIT": 50,
+  "LIMIT": 20,
   "SLIPPAGE": 3000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,

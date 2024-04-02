@@ -18,9 +18,7 @@ import routerAbi from 'baluni-api/dist/abis/infra/Router.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 import * as config from './config.json'
 import * as blocks from '../../utils/logBlocks'
-
 import { buildSwapOdos } from 'baluni-api/dist/odos'
-
 import { TConfigReturn } from '../../types/config'
 
 type TDeposit = {
@@ -404,7 +402,7 @@ export async function rebalancePortfolio(
   blocks.print1block()
   console.log('🔄 Buy Tokens')
 
-  const existTokenToSell = tokensToSell.length > 0
+  const existTokenToSell = quoteRequestBody.inputTokens.length > 0
   const poolAddress = config?.YEARN_VAULTS.USDC
 
   const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet)
@@ -462,7 +460,6 @@ export async function rebalancePortfolio(
   }
 
   console.log('🟩 USDC Balance: ', formatUnits(balUSD, 6))
-
   console.log('🟩 Yearn USDC Balance: ', formatUnits(yBalUSDC, 6))
 
   // Redeem USDC from Yearn Vaults
