@@ -640,7 +640,7 @@ export async function rebalancePortfolio(
     const balance = await assetContract.balanceOf(dexWallet.walletAddress)
 
     if (balance.gt(0)) {
-      if (tokensToBuy.length == 0 && tokensToSell.length == 0) {
+      if (tokensToBuy.length == 0 || tokensToSell.length == 0) {
         console.log(
           `Deposit to Yearn Vaults Amount: ${Number(
             balance

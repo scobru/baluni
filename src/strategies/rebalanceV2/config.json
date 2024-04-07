@@ -25,7 +25,7 @@
     "SNX": 500,
     "GRT": 500,
     "USDC": 0,
-    "USDC.E": 150
+    "USDC.E": 250
   },
   "WEIGHTS_DOWN": {
     "LINK": 0,
@@ -57,7 +57,7 @@
       }
     }
   },
-  "LIMIT": 10,
+  "LIMIT": 50,
   "SLIPPAGE": 1000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
