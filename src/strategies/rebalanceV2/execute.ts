@@ -18,8 +18,11 @@ import routerAbi from 'baluni-api/dist/abis/infra/Router.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 import * as config from './config.json'
 import * as blocks from '../../utils/logBlocks'
-import { buildSwapOdos } from 'baluni-api/dist/odos'
 import { TConfigReturn } from '../../types/config'
+
+//import { YEARN_VAULTS } from '~~/dist/ui/config'
+//import { buildSwapOdos } from 'baluni-api/dist/odos'
+import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
 
 type TDeposit = {
   wallet: ethers.Wallet
@@ -74,20 +77,16 @@ export async function rebalancePortfolio(
   config: TConfigReturn
 ) {
   blocks.print2block()
-
   console.log('⚖️  Rebalance Portfolio\n')
 
   const gasLimit = 10000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
-
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
-
   const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
+  const tokenValues: { [token: string]: BigNumber } = {}
 
   let totalPortfolioValue = BigNumber.from(0)
-
-  const tokenValues: { [token: string]: BigNumber } = {}
 
   console.log(
     `🏦 Total Portfolio Value (in USDT) at Start: ${String(
@@ -117,10 +116,8 @@ export async function rebalancePortfolio(
       token
     )
     const tokenBalance = _tokenbalance.balance
-
     const decimals = tokenMetadata.decimals
     const tokenSymbol = await tokenContract?.symbol()
-
     const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol]
 
     if (yearnVaultAddress !== undefined) {
@@ -270,12 +267,13 @@ export async function rebalancePortfolio(
 
   // Quote ODOS
   const quoteRequestBody = {
-    chainId: chainId, // Replace with desired chainId
+    chainId: Number(chainId), // Replace with desired chainId
     inputTokens: [] as { tokenAddress: string; amount: string }[],
     outputTokens: [] as { tokenAddress: string; proportion: number }[],
     userAddr: '0x',
-    slippageLimitPercent: 1, // set your slippage limit percentage (1 = 1%),
-    referralCode: 0, // referral code (recommended)
+    slippageLimitPercent: Number(config.SLIPPAGE / 1000), // set your slippage limit percentage (1 = 1%),
+
+    referralCode: 3844415834, // referral code (recommended)
     disableRFQs: true,
     compact: true,
   }
@@ -292,7 +290,6 @@ export async function rebalancePortfolio(
     try {
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet)
       const tokenSymbol = await tokenContract.symbol()
-
       const tokenDecimal = await tokenContract.decimals()
       const pool = config?.YEARN_VAULTS[tokenSymbol]
 
@@ -319,7 +316,6 @@ export async function rebalancePortfolio(
           Number(yearnCtxBal) >= Number(amountWei)
         ) {
           console.log('Redeem from Yearn')
-
           const data: TRedeem = {
             wallet: dexWallet.wallet,
             pool: pool,
@@ -331,7 +327,6 @@ export async function rebalancePortfolio(
           yearnRedeems.push(data)
         } else if (Number(yearnCtxBal) > Number(0)) {
           console.log('Redeem from Yearn')
-
           const data: TRedeem = {
             wallet: dexWallet.wallet,
             pool: pool,
@@ -383,8 +378,8 @@ export async function rebalancePortfolio(
           }
 
           quoteRequestBody.inputTokens.push({
-            tokenAddress: token,
             amount: String(amountWei),
+            tokenAddress: token,
           })
 
           console.log('Input Token Added')
@@ -429,6 +424,8 @@ export async function rebalancePortfolio(
       }
     })
 
+    let totalProportion = 0
+
     for (const { token, amount: amountWei } of tokensToBuy) {
       console.log(`🟩 Buying ${Number(amountWei) / 1e6} USDC worth of ${token}`)
 
@@ -444,17 +441,25 @@ export async function rebalancePortfolio(
       if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
         const tokenSym = await tokenCtx.symbol()
         console.log('Condition met for buying', tokenSym)
-
         quoteRequestBody.outputTokens.push({
           tokenAddress: token,
           proportion: Number(amountWei) / Number(totalAmountWei),
         })
+        totalProportion += Number(amountWei) / Number(totalAmountWei)
       } else {
         console.warn('⚠️ Waiting for StochRSI overSold')
       }
 
       blocks.printline()
     }
+
+    /* if (totalProportion != 1) {
+      console.error(
+        '⚠️ Total proportion is greater than 1 or less than 1',
+        totalProportion
+      )
+      return
+    } */
   } else {
     console.log('No Tokens To Sell')
   }
@@ -530,8 +535,11 @@ export async function rebalancePortfolio(
   }
 
   try {
-    if (quoteRequestBody.inputTokens.length === 0) {
-      console.log('📡 No input tokens to sell')
+    if (
+      quoteRequestBody.inputTokens.length === 0 ||
+      quoteRequestBody.outputTokens.length === 0
+    ) {
+      console.log('📡 No tokens to sell or buy')
     } else {
       quoteRequestBody.userAddr = dexWallet.walletAddress
 
