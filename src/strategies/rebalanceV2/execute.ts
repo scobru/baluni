@@ -21,8 +21,8 @@ import * as blocks from '../../utils/logBlocks'
 import { TConfigReturn } from '../../types/config'
 
 //import { YEARN_VAULTS } from '~~/dist/ui/config'
-//import { buildSwapOdos } from 'baluni-api/dist/odos'
-import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
+import { buildSwapOdos } from 'baluni-api/dist/odos'
+//import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
 
 type TDeposit = {
   wallet: ethers.Wallet

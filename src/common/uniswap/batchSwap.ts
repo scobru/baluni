@@ -2,9 +2,9 @@ import infraRouterAbi from 'baluni-api/dist/abis/infra/Router.json'
 import { ethers } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
+import { buildSwapUniswap, NETWORKS, INFRA, BASEURL } from 'baluni-api'
 
-import { /* buildSwapUniswap */ NETWORKS, INFRA, BASEURL } from 'baluni-api'
-import { buildSwapUniswap } from '../../../../baluni-api/dist/'
+//import { buildSwapUniswap } from '../../../../baluni-api/dist/'
 
 export async function batchSwap(
   swaps: Array<{
@@ -32,9 +32,9 @@ export async function batchSwap(
 
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet)
 
-  let allApprovals: unknown[] = []
-  let allCalldatas: unknown[] = []
-  let allTokensReturn: any[] = []
+  const allApprovals: unknown[] = []
+  const allCalldatas: unknown[] = []
+  const allTokensReturn: unknown[] = []
 
   async function fetchTokenInfo(url: string) {
     const response = await fetch(url, { method: 'GET' })
