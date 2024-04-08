@@ -11,7 +11,6 @@
     "CRV",
     "SNX",
     "GRT",
-    "USDC",
     "USDC.E"
   ],
   "WEIGHTS_UP": {
@@ -24,7 +23,6 @@
     "CRV": 500,
     "SNX": 500,
     "GRT": 500,
-    "USDC": 0,
     "USDC.E": 250
   },
   "WEIGHTS_DOWN": {
@@ -37,7 +35,6 @@
     "CRV": 0,
     "SNX": 0,
     "GRT": 0,
-    "USDC": 0,
     "USDC.E": 7000
   },
   "YEARN_ENABLED": true,
@@ -57,8 +54,8 @@
       }
     }
   },
-  "LIMIT": 50,
-  "SLIPPAGE": 1000,
+  "LIMIT": 20,
+  "SLIPPAGE": 3000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
   "INVESTMENT_INTERVAL": 86400000,

@@ -16,12 +16,12 @@ import {
 } from 'baluni-api'
 import routerAbi from 'baluni-api/dist/abis/infra/Router.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
+import yearnVaultAbi from 'baluni-api/dist/abis/yearn/YearnVault.json'
 import * as config from './config.json'
 import * as blocks from '../../utils/logBlocks'
 import { TConfigReturn } from '../../types/config'
-
-//import { YEARN_VAULTS } from '~~/dist/ui/config'
 import { buildSwapOdos } from 'baluni-api/dist/odos'
+
 //import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
 
 type TDeposit = {
@@ -44,25 +44,18 @@ type TRedeem = {
 export async function getTokenValueEnhanced(
   tokenSymbol: string,
   token: string,
-  tokenBalance: BigNumber,
+  maxRedeem: BigNumber,
   decimals: number,
   usdcAddress: string,
-  yearnBalance?: BigNumber,
-  interestAccrued?: BigNumber,
   chainId?: string
 ) {
-  let effectiveBalance = tokenBalance
-
-  if (config?.YEARN_ENABLED && yearnBalance) {
-    effectiveBalance = yearnBalance.add(interestAccrued!).add(tokenBalance)
-  }
-
+  console.log('🔴 Yearn Vallt Calculation')
   return tokenSymbol === 'USDC.E' || tokenSymbol === 'USDC'
-    ? effectiveBalance.mul(1e12)
+    ? maxRedeem.mul(1e12)
     : await getTokenValue(
         tokenSymbol,
         token,
-        effectiveBalance,
+        maxRedeem,
         decimals,
         usdcAddress,
         chainId!
@@ -85,7 +78,6 @@ export async function rebalancePortfolio(
   const infraRouter = INFRA[chainId].ROUTER
   const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
   const tokenValues: { [token: string]: BigNumber } = {}
-
   let totalPortfolioValue = BigNumber.from(0)
 
   console.log(
@@ -103,13 +95,11 @@ export async function rebalancePortfolio(
   console.log('📊 Calculate Total Portfolio Value')
 
   for (const token of desiredTokens) {
-    let tokenValue
     const tokenContract = new ethers.Contract(token, erc20Abi, dexWallet.wallet)
     const tokenMetadata = await getTokenMetadata(
       token,
       dexWallet.walletProvider
     )
-
     const _tokenbalance = await getTokenBalance(
       dexWallet.walletProvider,
       dexWallet.walletAddress,
@@ -118,47 +108,45 @@ export async function rebalancePortfolio(
     const tokenBalance = _tokenbalance.balance
     const decimals = tokenMetadata.decimals
     const tokenSymbol = await tokenContract?.symbol()
+
     const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol]
+
+    const currentValue = await getTokenValue(
+      tokenSymbol,
+      token,
+      tokenBalance,
+      decimals,
+      config?.USDC,
+      String(chainId)
+    )
 
     if (yearnVaultAddress !== undefined) {
       const yearnContract = new ethers.Contract(
         yearnVaultAddress,
-        erc20Abi,
+        yearnVaultAbi,
         dexWallet.wallet
       )
+
       const yearnBalance = await yearnContract?.balanceOf(
         dexWallet.walletAddress
       )
-      const interestAccrued = await accuredYearnInterest(
-        yearnVaultAddress,
-        dexWallet.walletAddress,
-        chainId
-      )
 
-      tokenValue = await getTokenValueEnhanced(
+      const maxRedeem = await yearnContract?.previewRedeem(yearnBalance)
+
+      const tokenValueYearn = await getTokenValueEnhanced(
         tokenSymbol,
         token,
-        tokenBalance,
+        maxRedeem,
         decimals,
         usdcAddress,
-        yearnBalance,
-        interestAccrued,
         String(chainId)!
       )
 
-      tokenValues[token] = tokenValue
-      totalPortfolioValue = totalPortfolioValue.add(tokenValue)
+      tokenValues[token] = currentValue.add(tokenValueYearn)
+      totalPortfolioValue = totalPortfolioValue.add(tokenValues[token])
     } else {
-      tokenValue = await getTokenValue(
-        tokenSymbol,
-        token,
-        tokenBalance,
-        decimals,
-        config?.USDC,
-        String(chainId)
-      )
-      tokenValues[token] = tokenValue
-      totalPortfolioValue = totalPortfolioValue.add(tokenValue)
+      tokenValues[token] = currentValue
+      totalPortfolioValue = totalPortfolioValue.add(currentValue)
     }
   }
 
@@ -169,8 +157,8 @@ export async function rebalancePortfolio(
   )
 
   const currentAllocations: { [token: string]: number } = {}
-  const tokensToSell = []
-  const tokensToBuy = []
+  let tokensToSell = []
+  let tokensToBuy = []
 
   Object.keys(tokenValues).forEach(token => {
     currentAllocations[token] = tokenValues[token]
@@ -189,20 +177,18 @@ export async function rebalancePortfolio(
   for (const token of desiredTokens) {
     const currentAllocation = currentAllocations[token]
     const desiredAllocation = desiredAllocations[token]
-
     const difference = desiredAllocation - currentAllocation
     const tokenMetadata = await getTokenMetadata(
       token,
       dexWallet.walletProvider
     )
-
+    const tokenDecimals = tokenMetadata.decimals
     const _tokenBalance = await getTokenBalance(
       dexWallet.walletProvider,
       dexWallet.walletAddress,
       token
     )
     const tokenSymbol: string = tokenMetadata.symbol as string
-
     const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol]
 
     let tokenBalance = _tokenBalance.balance
@@ -210,17 +196,20 @@ export async function rebalancePortfolio(
     if (yearnVaultAddress !== undefined) {
       const yearnContract = new ethers.Contract(
         yearnVaultAddress,
-        erc20Abi,
+        yearnVaultAbi,
         dexWallet.wallet
       )
       const yearnBalance = await yearnContract?.balanceOf(
         dexWallet.walletAddress
       )
-      tokenBalance = _tokenBalance.balance.add(yearnBalance)
+      const redeemAmount = await yearnContract?.previewRedeem(yearnBalance)
+      tokenBalance = _tokenBalance.balance.add(redeemAmount)
     }
     const valueToRebalance = totalPortfolioValue
       .mul(BigNumber.from(Math.abs(difference)))
       .div(10000)
+
+    const formattedBalance = formatUnits(tokenBalance, tokenDecimals)
 
     console.group(`🪙  Token: ${token}`)
     console.log(`📊 Current Allocation: ${currentAllocation}%`)
@@ -229,7 +218,7 @@ export async function rebalancePortfolio(
     console.log(
       `⚖️  Value to Rebalance (USD): ${formatEther(valueToRebalance)}`
     )
-    console.log(`👛 Balance: ${formatEther(tokenBalance)} ${tokenSymbol}`)
+    console.log(`👛 Balance: ${formattedBalance} ${tokenSymbol}`)
     console.groupEnd()
 
     if (difference < 0 && Math.abs(difference) > config?.LIMIT) {
@@ -238,17 +227,14 @@ export async function rebalancePortfolio(
         dexWallet?.walletProvider
       )
       const decimals = tokenMetadata.decimals
-
       const _token = {
         address: token,
         decimals: decimals,
       }
-
       const tokenPriceInUSDT: number = await fetchPrices(
         _token,
         String(chainId)
       ) // Ensure this returns a value
-
       const pricePerToken = ethers.utils.parseUnits(
         tokenPriceInUSDT!.toString(),
         'ether'
@@ -256,7 +242,9 @@ export async function rebalancePortfolio(
       const tokenAmountToSell = valueToRebalance
         .mul(BigNumber.from(10).pow(decimals))
         .div(pricePerToken)
-
+      console.log(
+        `🔴 Amount To Sell ${formatEther(tokenAmountToSell)} ${tokenSymbol}`
+      )
       tokensToSell.push({ token, amount: tokenAmountToSell })
     } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
       tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) })
@@ -272,7 +260,6 @@ export async function rebalancePortfolio(
     outputTokens: [] as { tokenAddress: string; proportion: number }[],
     userAddr: '0x',
     slippageLimitPercent: Number(config.SLIPPAGE / 1000), // set your slippage limit percentage (1 = 1%),
-
     referralCode: 3844415834, // referral code (recommended)
     disableRFQs: true,
     compact: true,
@@ -291,7 +278,7 @@ export async function rebalancePortfolio(
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet)
       const tokenSymbol = await tokenContract.symbol()
       const tokenDecimal = await tokenContract.decimals()
-      const pool = config?.YEARN_VAULTS[tokenSymbol]
+      const vault = config?.YEARN_VAULTS[tokenSymbol]
 
       console.log(
         `🔴 Selling ${formatUnits(
@@ -300,46 +287,6 @@ export async function rebalancePortfolio(
         )} worth of ${tokenSymbol}`
       )
 
-      // Redeem from Yearn Vaults
-      if (pool !== undefined && pool !== config?.YEARN_VAULTS.USDC) {
-        const balance = await getTokenBalance(
-          dexWallet.walletProvider,
-          dexWallet.walletAddress,
-          token
-        )
-
-        const yearnCtx = new ethers.Contract(pool, erc20Abi, dexWallet.wallet)
-        const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress)
-
-        if (
-          Number(amountWei) < Number(await balance.balance) &&
-          Number(yearnCtxBal) >= Number(amountWei)
-        ) {
-          console.log('Redeem from Yearn')
-          const data: TRedeem = {
-            wallet: dexWallet.wallet,
-            pool: pool,
-            amount: amountWei,
-            receiver: dexWallet.walletAddress,
-            chainId: String(chainId),
-          }
-
-          yearnRedeems.push(data)
-        } else if (Number(yearnCtxBal) > Number(0)) {
-          console.log('Redeem from Yearn')
-          const data: TRedeem = {
-            wallet: dexWallet.wallet,
-            pool: pool,
-            amount: yearnCtxBal,
-            receiver: dexWallet.walletAddress,
-            chainId: String(chainId),
-          }
-
-          yearnRedeems.push(data)
-        }
-      }
-
-      const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config)
       const balance = (
         await getTokenBalance(
           dexWallet.walletProvider,
@@ -347,6 +294,38 @@ export async function rebalancePortfolio(
           token
         )
       ).balance
+
+      const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config)
+
+      if (vault !== undefined) {
+        const yearnCtx = new ethers.Contract(vault, erc20Abi, dexWallet.wallet)
+        const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress)
+
+        if (
+          Number(amountWei) < Number(await balance) &&
+          Number(yearnCtxBal) >= Number(amountWei)
+        ) {
+          console.log('Redeem from Yearn')
+          const data: TRedeem = {
+            wallet: dexWallet.wallet,
+            pool: vault,
+            amount: amountWei,
+            receiver: dexWallet.walletAddress,
+            chainId: String(chainId),
+          }
+          yearnRedeems.push(data)
+        } else if (Number(yearnCtxBal) > 0) {
+          console.log('Redeem from Yearn')
+          const data: TRedeem = {
+            wallet: dexWallet.wallet,
+            pool: vault,
+            amount: yearnCtxBal,
+            receiver: dexWallet.walletAddress,
+            chainId: String(chainId),
+          }
+          yearnRedeems.push(data)
+        }
+      }
 
       // Sell token if RSI and StochRSI are overbought
       if (
@@ -359,7 +338,6 @@ export async function rebalancePortfolio(
           config?.TECNICAL_ANALYSIS
         ) {
           const tokenSymbol = await tokenContract.symbol()
-
           console.log('Condition met for selling', tokenSymbol)
 
           if (!quoteRequestBody.inputTokens) {
@@ -370,7 +348,6 @@ export async function rebalancePortfolio(
             tokenAddress: token,
             amount: String(amountWei),
           })
-
           console.log('Input Token Added')
         } else if (!config?.TECNICAL_ANALYSIS) {
           if (!quoteRequestBody.inputTokens) {
@@ -381,7 +358,6 @@ export async function rebalancePortfolio(
             amount: String(amountWei),
             tokenAddress: token,
           })
-
           console.log('Input Token Added')
         }
       }
@@ -394,15 +370,16 @@ export async function rebalancePortfolio(
   // Buy Tokens
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+
   blocks.print1block()
   console.log('🔄 Buy Tokens')
 
   const existTokenToSell = quoteRequestBody.inputTokens.length > 0
+  const existTokenToSellAndBuy =
+    tokensToBuy.length > 0 && tokensToSell.length > 0
   const poolAddress = config?.YEARN_VAULTS.USDC
-
   const poolCtx = new ethers.Contract(poolAddress, erc20Abi, dexWallet.wallet)
   const yBalUSDC = await poolCtx?.balanceOf(dexWallet.walletAddress)
-
   const balUSD: BigNumber = await (
     await getTokenBalance(
       dexWallet.walletProvider,
@@ -431,9 +408,7 @@ export async function rebalancePortfolio(
 
       const tokenCtx = new Contract(token, erc20Abi, dexWallet.wallet)
       const tokenSym = await tokenCtx.symbol()
-
       const [rsiResult, stochasticRSIResult] = await getRSI(tokenSym, config)
-
       const isTechnicalAnalysisConditionMet =
         stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD &&
         rsiResult.rsiVal < config?.RSI_OVERSOLD
@@ -453,31 +428,15 @@ export async function rebalancePortfolio(
       blocks.printline()
     }
 
-    /* if (totalProportion != 1) {
+    if (totalProportion != 1) {
       console.error(
         '⚠️ Total proportion is greater than 1 or less than 1',
         totalProportion
       )
-      return
-    } */
+      tokensToBuy = []
+    }
   } else {
     console.log('No Tokens To Sell')
-  }
-
-  console.log('🟩 USDC Balance: ', formatUnits(balUSD, 6))
-  console.log('🟩 Yearn USDC Balance: ', formatUnits(yBalUSDC, 6))
-
-  // Redeem USDC from Yearn Vaults
-  if (tokensToBuy.length > 0 && yBalUSDC.gt(0)) {
-    console.log('Redeem from Yearn Vaults')
-    const data: TRedeem = {
-      wallet: dexWallet.wallet,
-      pool: poolAddress,
-      amount: yBalUSDC,
-      receiver: dexWallet.walletAddress,
-      chainId: String(chainId),
-    }
-    yearnRedeems.push(data)
   }
 
   // Redeem from Yearn Vaults
@@ -486,49 +445,51 @@ export async function rebalancePortfolio(
   blocks.print1block()
   console.log('📡 Yearn Redeem Data')
   try {
-    const data = await redeemFromYearnBatched(yearnRedeems)
-    if (data?.Approvals.length > 0) {
-      console.log('📡 Approvals')
-      const approvals = data.Approvals
-      for (const approval of approvals) {
-        approval.gasLimit = gasLimit
-        approval.gasPrice = gas
+    if (existTokenToSellAndBuy) {
+      const data = await redeemFromYearnBatched(yearnRedeems)
+      if (data?.Approvals.length > 0) {
+        console.log('📡 Approvals')
+        const approvals = data.Approvals
+        for (const approval of approvals) {
+          approval.gasLimit = gasLimit
+          approval.gasPrice = gas
 
-        const approvalTx = await dexWallet.wallet.sendTransaction(approval)
-        const broadcaster = await waitForTx(
-          dexWallet.walletProvider,
-          approvalTx?.hash,
-          dexWallet.walletAddress
+          const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+          const broadcaster = await waitForTx(
+            dexWallet.walletProvider,
+            approvalTx?.hash,
+            dexWallet.walletAddress
+          )
+
+          console.log(`📡 Approval broadcasted: ${broadcaster}`)
+        }
+      }
+
+      if (data?.Calldatas.length > 0) {
+        console.log('📡 Calldatas')
+        const simulate = await router.callStatic.execute(
+          data?.Calldatas,
+          data?.TokensReturn,
+          {
+            gasLimit: gasLimit,
+            gasPrice: gas,
+          }
         )
 
-        console.log(`📡 Approval broadcasted: ${broadcaster}`)
-      }
-    }
+        console.log(`📡  Simulation successful:: ${simulate}`)
 
-    if (data?.Calldatas.length > 0) {
-      console.log('📡 Calldatas')
-      const simulate = await router.callStatic.execute(
-        data?.Calldatas,
-        data?.TokensReturn,
-        {
+        if (!simulate) return console.log('📡 Simulation failed')
+        const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
           gasLimit: gasLimit,
           gasPrice: gas,
-        }
-      )
-
-      console.log(`📡  Simulation successful:: ${simulate}`)
-
-      if (!simulate) return console.log('📡 Simulation failed')
-      const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
-        gasLimit: gasLimit,
-        gasPrice: gas,
-      })
-      const broadcaster = await waitForTx(
-        dexWallet.walletProvider,
-        tx?.hash,
-        dexWallet.walletAddress
-      )
-      console.log(`📡  Tx broadcasted:: ${broadcaster}`)
+        })
+        const broadcaster = await waitForTx(
+          dexWallet.walletProvider,
+          tx?.hash,
+          dexWallet.walletAddress
+        )
+        console.log(`📡  Tx broadcasted:: ${broadcaster}`)
+      }
     }
   } catch (e) {
     console.log(e)
@@ -591,7 +552,6 @@ export async function rebalancePortfolio(
           return console.log('📡 Simulation failed')
 
         console.log(`📡  Simulation successful:: ${simulate}`)
-
         if (!simulate) return console.log('📡 Simulation failed')
 
         const calldata = router.interface.encodeFunctionData('execute', [
