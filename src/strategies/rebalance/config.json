@@ -42,8 +42,9 @@
     "137": {
       "USDC": {
         "strategy": "multi",
-        "boosted": false
+        "boosted": true
       },
+
       "WETH": {
         "strategy": "multi",
         "boosted": true
@@ -55,7 +56,7 @@
     }
   },
   "LIMIT": 10,
-  "SLIPPAGE": 3000,
+  "SLIPPAGE": 1000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
   "INVESTMENT_INTERVAL": 86400000,

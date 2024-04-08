@@ -1,5 +1,5 @@
 import { BigNumber, ethers } from 'ethers'
-import { formatEther, parseUnits } from 'ethers/lib/utils'
+import { formatEther, formatUnits, parseUnits } from 'ethers/lib/utils'
 
 // import { fetchPrices } from './quote1Inch'
 
@@ -37,16 +37,17 @@ export async function getTokenValue(
     value = balance.mul(pricePerToken).div(BigNumber.from(10).pow(18)) // Adjust for token's value
   }
 
-  const _balance = parseUnits(balance.toString(), decimals)
+  const _balance = formatUnits(balance.toString(), decimals)
+  const balanceWei = balance.mul(1e12)
 
   if (tokenSymbol === 'USDC.E' || tokenSymbol === 'USDC') {
     console.group(`🔤 Token Symbol: ${tokenSymbol}`)
     console.log(`📄 Token: ${token}`)
     console.log(`👛 Balance: ${_balance}`)
     console.log(`📈 Price: 1`)
-    console.log(`💵 Value: ${formatEther(value.toString())}`)
+    console.log(`💵 Value: ${formatEther(balanceWei.toString())}`)
     console.groupEnd()
-    return balance.mul(1e12) // USDT value is the balance itself
+    return balanceWei // USDT value is the balance itself
   } else {
     console.group(`🔤 Token Symbol: ${tokenSymbol}`)
     console.log(`📄 Token: ${token}`)

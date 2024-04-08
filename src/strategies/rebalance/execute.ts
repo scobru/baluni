@@ -12,42 +12,14 @@ import { INFRA } from 'baluni-api'
 import {
   depositToYearnBatched,
   redeemFromYearnBatched,
-  accuredYearnInterest,
   getVaultAsset,
 } from 'baluni-api'
 import routerAbi from 'baluni-api/dist/abis/infra/Router.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 import yearnVaultAbi from 'baluni-api/dist/abis/yearn/YearnVault.json'
-import * as config from './config.json'
+import { TDeposit, TRedeem } from '~~/src/types/yearn'
+import { Tswap } from '~~/src/types/uniswap'
 import * as blocks from '../../utils/logBlocks'
-
-type Tswap = {
-  dexWallet: DexWallet
-  token0: string
-  token1: string
-  reverse: boolean
-  protocol: string
-  chainId: number
-  amount: string
-  slippage: number
-}
-
-type TDeposit = {
-  wallet: ethers.Wallet
-  tokenAddr: string
-  pool: string
-  amount: BigNumber
-  receiver: string
-  chainId: string
-}
-
-type TRedeem = {
-  wallet: ethers.Wallet
-  pool: string
-  amount: BigNumber
-  receiver: string
-  chainId: string
-}
 
 export async function getTokenValueEnhanced(
   tokenSymbol: string,
@@ -85,6 +57,7 @@ export async function rebalancePortfolio(
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
   const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
+  const tokenValues: { [token: string]: BigNumber } = {}
   let totalPortfolioValue = BigNumber.from(0)
 
   console.log(
@@ -93,7 +66,6 @@ export async function rebalancePortfolio(
     )}`
   )
 
-  let tokenValues: { [token: string]: BigNumber } = {}
   const swapsSell: Tswap[] = []
   const swapsBuy: Tswap[] = []
 
@@ -204,13 +176,14 @@ export async function rebalancePortfolio(
     if (yearnVaultAddress !== undefined) {
       const yearnContract = new ethers.Contract(
         yearnVaultAddress,
-        erc20Abi,
+        yearnVaultAbi,
         dexWallet.wallet
       )
       const yearnBalance = await yearnContract?.balanceOf(
         dexWallet.walletAddress
       )
-      tokenBalance = _tokenBalance.balance.add(yearnBalance)
+      const redeemAmount = await yearnContract?.previewRedeem(yearnBalance)
+      tokenBalance = _tokenBalance.balance.add(redeemAmount)
     }
     const valueToRebalance = totalPortfolioValue
       .mul(BigNumber.from(Math.abs(difference)))
@@ -272,7 +245,7 @@ export async function rebalancePortfolio(
   console.log('🔄 Sell Tokens')
   const yearnRedeems = []
   let i = 0
-  for (let { token, amount: amountWei } of tokensToSell) {
+  for (const { token, amount: amountWei } of tokensToSell) {
     try {
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet)
       const tokenSymbol = await tokenContract.symbol()
@@ -284,15 +257,14 @@ export async function rebalancePortfolio(
           tokenDecimal
         )} worth of ${tokenSymbol}`
       )
-      let intAmount = Number(formatUnits(amountWei, tokenDecimal))
-
-      const balance = (
-        await getTokenBalance(
-          dexWallet.walletProvider,
-          dexWallet.walletAddress,
-          token
-        )
-      ).balance
+      const intAmount = Number(formatUnits(amountWei, tokenDecimal))
+      const tokenBalance = await getTokenBalance(
+        dexWallet.walletProvider,
+        dexWallet.walletAddress,
+        token
+      )
+      const balance = tokenBalance.balance
+      const balanceInt = tokenBalance.formatted
 
       const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config)
       if (vault !== undefined) {
@@ -365,6 +337,42 @@ export async function rebalancePortfolio(
         } else {
           console.warn('⚠️ Waiting for StochRSI overBought')
         }
+      } else if (BigNumber.from(amountWei).gt(balance) && balance.gt(0)) {
+        if (
+          stochasticRSIResult.stochRSI > config?.STOCKRSI_OVERBOUGHT &&
+          rsiResult.rsiVal > config?.RSI_OVERBOUGHT &&
+          config?.TECNICAL_ANALYSIS
+        ) {
+          const tokenSymbol = await tokenContract.symbol()
+          console.log('Condition met for selling', tokenSymbol)
+
+          const swap: Tswap = {
+            dexWallet,
+            token0: tokenSymbol,
+            token1: 'USDC.E',
+            reverse: false,
+            protocol: config?.SELECTED_PROTOCOL,
+            chainId: config?.SELECTED_CHAINID,
+            amount: String(balanceInt),
+            slippage: Number(config?.SLIPPAGE),
+          }
+
+          swapsSell.push(swap)
+        } else if (!config?.TECNICAL_ANALYSIS) {
+          const swap: Tswap = {
+            dexWallet: dexWallet,
+            token0: tokenSymbol,
+            token1: 'USDC.E',
+            reverse: false,
+            protocol: config?.SELECTED_PROTOCOL,
+            chainId: config?.SELECTED_CHAINID,
+            amount: String(balanceInt),
+            slippage: Number(config?.SLIPPAGE),
+          }
+          swapsSell.push(swap)
+        } else {
+          console.warn('⚠️ Waiting for StochRSI overBought')
+        }
       }
 
       i++
@@ -394,7 +402,6 @@ export async function rebalancePortfolio(
   let totalAmountWei = BigNumber.from(0)
 
   i = 0
-
   tokensToBuy.forEach(token => {
     totalAmountWei = totalAmountWei.add(token.amount)
   })

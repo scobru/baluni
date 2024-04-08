@@ -42,6 +42,10 @@
     "137": {
       "USDC": {
         "strategy": "multi",
+        "boosted": true
+      },
+      "USDC.E": {
+        "strategy": "multi",
         "boosted": false
       },
       "WETH": {
