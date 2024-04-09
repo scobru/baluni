@@ -18,10 +18,10 @@ import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 import yearnVaultAbi from 'baluni-api/dist/abis/yearn/YearnVault.json'
 import * as blocks from '../../utils/logBlocks'
 import { TConfigReturn } from '../../types/config'
+import { BuildSwapOdosParams } from '../../types/odos'
 import { TDeposit, TRedeem } from '~~/src/types/yearn'
 
 import { buildSwapOdos } from 'baluni-api/dist/odos'
-import { BuildSwapOdosParams } from '~~/src/types/odos'
 //import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
 
 export async function rebalancePortfolio(
