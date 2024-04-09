@@ -50,7 +50,6 @@ export async function batchSwap(
     swaps.map(async swap => {
       const token0AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`
       const token0Info = await fetchTokenInfo(token0AddressUrl)
-
       const token1AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`
       const token1Info = await fetchTokenInfo(token1AddressUrl)
 
