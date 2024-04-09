@@ -19,7 +19,7 @@ import yearnVaultAbi from 'baluni-api/dist/abis/yearn/YearnVault.json'
 import * as blocks from '../../utils/logBlocks'
 import { TConfigReturn } from '../../types/config'
 import { BuildSwapOdosParams } from '../../types/odos'
-import { TDeposit, TRedeem } from '~~/src/types/yearn'
+import { TDeposit, TRedeem } from '../../types/yearn'
 
 import { buildSwapOdos } from 'baluni-api/dist/odos'
 //import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
