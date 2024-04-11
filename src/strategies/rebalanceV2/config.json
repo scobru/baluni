@@ -61,7 +61,7 @@
       }
     }
   },
-  "LIMIT": 20,
+  "LIMIT": 10,
   "SLIPPAGE": 1000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
