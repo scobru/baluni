@@ -129,6 +129,7 @@ export async function rebalancePortfolio(
   // Rebalance
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+
   blocks.print1block()
 
   console.log('📊 Rebalance Portfolio')
@@ -227,6 +228,7 @@ export async function rebalancePortfolio(
   // Sell Tokens
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+
   blocks.print1block()
   console.log('🔄 Sell Tokens')
   const yearnRedeems = []
@@ -352,6 +354,7 @@ export async function rebalancePortfolio(
   // Buy Tokens
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+
   blocks.print1block()
   console.log('🔄 Buy Tokens')
 
@@ -367,10 +370,10 @@ export async function rebalancePortfolio(
   // )?.balance
 
   let totalAmountWei = BigNumber.from(0)
-
   const existTokenToSell = quoteRequestBody.inputTokens.length > 0
   const existTokenToSellAndBuy =
     tokensToBuy.length > 0 && tokensToSell.length > 0
+
   if (existTokenToSell) {
     tokensToBuy.forEach(token => {
       totalAmountWei = totalAmountWei.add(token.amount)
@@ -419,9 +422,11 @@ export async function rebalancePortfolio(
   } else {
     console.log('No Tokens To Sell')
   }
+
   // Redeem from Yearn Vaults
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
+
   blocks.print1block()
   console.log('📡 Yearn Redeem Data')
   try {
@@ -474,6 +479,10 @@ export async function rebalancePortfolio(
   } catch (e) {
     console.log(e)
   }
+
+  // Build Swap Odos
+  // --------------------------------------------------------------------------------
+  // --------------------------------------------------------------------------------
 
   try {
     if (
