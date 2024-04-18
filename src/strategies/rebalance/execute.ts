@@ -91,7 +91,6 @@ export async function rebalancePortfolio(
     const decimals = tokenMetadata.decimals
     const tokenSymbol = await tokenContract?.symbol()
     const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol]
-
     const currentValue = await getTokenValue(
       tokenSymbol,
       token,
@@ -190,7 +189,6 @@ export async function rebalancePortfolio(
       .div(10000)
 
     const formattedBalance = formatUnits(tokenBalance, tokenDecimals)
-
     console.group(`🪙  Token: ${token}`)
     console.log(`📊 Current Allocation: ${currentAllocation}%`)
     console.log(`💰 Difference: ${difference}%`)
@@ -374,7 +372,6 @@ export async function rebalancePortfolio(
           console.warn('⚠️ Waiting for StochRSI overBought')
         }
       }
-
       i++
       blocks.printline()
     } catch (e) {
@@ -400,7 +397,6 @@ export async function rebalancePortfolio(
   )?.balance
   let totalAmount = BigNumber.from(0)
   let totalAmountWei = BigNumber.from(0)
-
   i = 0
   tokensToBuy.forEach(token => {
     totalAmountWei = totalAmountWei.add(token.amount)
@@ -423,7 +419,6 @@ export async function rebalancePortfolio(
     if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
       const tokenSym = await tokenCtx.symbol()
       console.log('Condition met for buying', tokenSym)
-
       const swap: Tswap = {
         dexWallet: dexWallet,
         token0: tokenSym,
@@ -439,7 +434,6 @@ export async function rebalancePortfolio(
     } else {
       console.warn('⚠️ Waiting for StochRSI overSold')
     }
-
     i++
     blocks.printline()
   }
@@ -515,16 +509,16 @@ export async function rebalancePortfolio(
     console.log(e)
   }
 
-  /*  const swapsArray = swapsSell.concat(swapsBuy);
+  //  const swapsArray = swapsSell.concat(swapsBuy);
 
-  if (swapsArray.length !== 0) {
-    try {
-      console.log("🔄 Swaps");
-      await batchSwap(swapsArray);
-    } catch (e) {
-      console.log(e);
-    }
-  } */
+  // if (swapsArray.length !== 0) {
+  //   try {
+  //     console.log("🔄 Swaps");
+  //     await batchSwap(swapsArray);
+  //   } catch (e) {
+  //     console.log(e);
+  //   }
+  // }
 
   if (swapsSell.length !== 0) {
     try {
@@ -617,7 +611,6 @@ export async function rebalancePortfolio(
       )
 
       if ((await simulate) === false) return console.log('📡 Simulation failed')
-
       console.log(`📡  Simulation successful:: ${simulate}`)
 
       if (!simulate) return console.log('📡 Simulation failed')
