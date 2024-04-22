@@ -225,23 +225,17 @@ export async function rebalancePortfolio(
     const intAmount = Number(formatUnits(amount, 6))
     const tokenSym = await tokenCtx.symbol()
 
-    if (usdBalance.gte(amount)) {
-      const swap: Tswap = {
-        dexWallet: dexWallet,
-        token0: tokenSym,
-        token1: 'USDC.E',
-        reverse: true,
-        protocol: config?.SELECTED_PROTOCOL,
-        chainId: config?.SELECTED_CHAINID,
-        amount: String(intAmount),
-        slippage: Number(config?.SLIPPAGE),
-      }
-      swapsBuy.push(swap)
-    } else {
-      console.error(
-        '✖️ Not enough USDT to buy, balance under 60% of required USD'
-      )
+    const swap: Tswap = {
+      dexWallet: dexWallet,
+      token0: tokenSym,
+      token1: 'USDC.E',
+      reverse: true,
+      protocol: config?.SELECTED_PROTOCOL,
+      chainId: config?.SELECTED_CHAINID,
+      amount: String(intAmount),
+      slippage: Number(config?.SLIPPAGE),
     }
+    swapsBuy.push(swap)
   }
 
   if (swapsSell.length !== 0) {

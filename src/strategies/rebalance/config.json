@@ -15,17 +15,17 @@
     "USDC.E"
   ],
   "WEIGHTS_UP": {
-    "LINK": 500,
-    "WETH": 1000,
-    "WBTC": 3250,
+    "LINK": 250,
+    "WETH": 3000,
+    "WBTC": 3000,
     "UNI": 1000,
-    "AAVE": 1000,
+    "AAVE": 250,
     "WMATIC": 1000,
-    "CRV": 500,
-    "SNX": 500,
-    "GRT": 500,
-    "MANA": 500,
-    "USDC.E": 250
+    "CRV": 250,
+    "SNX": 250,
+    "GRT": 250,
+    "MANA": 250,
+    "USDC.E": 500
   },
   "WEIGHTS_DOWN": {
     "LINK": 0,

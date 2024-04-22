@@ -52,7 +52,7 @@ export async function rebalancePortfolio(
   blocks.print2block()
   console.log('⚖️  Rebalance Portfolio\n')
 
-  const gasLimit = 30000000
+  const gasLimit = 10000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
@@ -603,11 +603,11 @@ export async function rebalancePortfolio(
 
       const simulate = await router.callStatic.execute(
         data?.Calldatas,
-        data?.TokensReturn
-        /* {
+        data?.TokensReturn,
+        {
           gasLimit: gasLimit,
           gasPrice: gas,
-        } */
+        }
       )
 
       if ((await simulate) === false) return console.log('📡 Simulation failed')
