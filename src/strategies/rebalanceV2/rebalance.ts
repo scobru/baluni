@@ -7,7 +7,7 @@ import * as blocks from '../../utils/logBlocks'
 
 import { NETWORKS, USDC } from 'baluni-api'
 import _config from './config.json'
-import { TConfigReturn } from '~~/src/types/config'
+import { TConfigReturn } from '../../types/config'
 
 interface LinearRegressionResult {
   predicted: number

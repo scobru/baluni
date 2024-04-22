@@ -3,7 +3,7 @@ import { DexWallet } from '../../utils/web3/dexWallet'
 import { swap } from '../../common/uniswap/swap'
 import { formatEther } from 'ethers/lib/utils'
 import { loadPrettyConsole } from '../../utils/prettyConsole'
-import { getTokenAddressUniV3 } from '~~/src/utils/getTokenAddress'
+import { getTokenAddressUniV3 } from '../../utils/getTokenAddress'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 
 const pc = loadPrettyConsole()

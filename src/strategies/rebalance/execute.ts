@@ -17,8 +17,8 @@ import {
 import routerAbi from 'baluni-api/dist/abis/infra/Router.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 import yearnVaultAbi from 'baluni-api/dist/abis/yearn/YearnVault.json'
-import { TDeposit, TRedeem } from '~~/src/types/yearn'
-import { Tswap } from '~~/src/types/uniswap'
+import { TDeposit, TRedeem } from '../../types/yearn'
+import { Tswap } from '../../types/uniswap'
 import * as blocks from '../../utils/logBlocks'
 
 export async function getTokenValueEnhanced(
@@ -269,10 +269,7 @@ export async function rebalancePortfolio(
         const yearnCtx = new ethers.Contract(vault, erc20Abi, dexWallet.wallet)
         const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress)
 
-        if (
-          Number(amountWei) < Number(await balance) &&
-          Number(yearnCtxBal) >= Number(amountWei)
-        ) {
+        if (Number(amountWei) < Number(await balance)) {
           console.log('Redeem from Yearn')
           const data: TRedeem = {
             wallet: dexWallet.wallet,
@@ -442,7 +439,7 @@ export async function rebalancePortfolio(
   console.log('🟩 Yearn USDC Balance: ', formatUnits(yBalUSDC, 6))
 
   // Redeem USDC from Yearn Vaults
-  /* if (tokensToBuy.length > 0 && yBalUSDC.gt(0)) {
+  if (tokensToBuy.length > 0 && yBalUSDC.gt(0)) {
     console.log('Redeem from Yearn Vaults')
     const data: TRedeem = {
       wallet: dexWallet.wallet,
@@ -452,7 +449,7 @@ export async function rebalancePortfolio(
       chainId: String(chainId),
     }
     yearnRedeems.push(data)
-  } */
+  }
 
   // Redeem from Yearn Vaults
   // --------------------------------------------------------------------------------

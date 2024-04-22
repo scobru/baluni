@@ -1,5 +1,5 @@
 import { ethers } from 'ethers'
-import uniswapV3FactoryAbi from 'baluni-api/dist/abis/uniswap/UniswapV3Factory.json'
+import uniswapV3FactoryAbi from 'baluni-api/dist/abis/uniswap/Factory.json'
 import uniswapV3PoolAbi from 'baluni-api/dist/abis/uniswap/UniswapV3Pool.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json' // Assuming you have ERC20 ABI for fetching decimals
 import { PROTOCOLS } from 'baluni-api'
