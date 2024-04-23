@@ -252,14 +252,11 @@ export async function rebalancePortfolio(
       const balance = tokenBalance.balance
 
       const [rsiResult, stochasticRSIResult] = await getRSI(tokenSymbol, config)
-      if (vault !== undefined) {
+      if (vault !== undefined && Number(await balance) < Number(amountWei)) {
         const yearnCtx = new ethers.Contract(vault, erc20Abi, dexWallet.wallet)
         const yearnCtxBal = await yearnCtx?.balanceOf(dexWallet.walletAddress)
 
-        if (
-          Number(amountWei) < Number(await balance) &&
-          Number(yearnCtxBal) >= Number(amountWei)
-        ) {
+        if (Number(yearnCtxBal) >= Number(amountWei)) {
           console.log('Redeem from Yearn')
           const data: TRedeem = {
             wallet: dexWallet.wallet,
