@@ -8,6 +8,7 @@ import { TConfigReturn } from '../../types/config'
 
 import _config from './config.json'
 import { NETWORKS, USDC } from 'baluni-api'
+import { checkWeightsSum } from '../../utils/checkWeights'
 
 type ConfigType = typeof _config
 
@@ -33,6 +34,7 @@ export async function executeRebalance(
   )
   // Set the default weight
   let selectedWeights = config?.WEIGHTS_UP
+
   // Import required modules and functions
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { kstCross, getDetachSourceFromOHLCV } = require('trading-indicator')
@@ -113,6 +115,10 @@ export async function executeRebalance(
   if (TREND) {
     selectedWeights = config?.WEIGHTS_UP
     console.log('🦄 Selected weights:', JSON.stringify(selectedWeights))
+
+    const isWeightSumCorrect = checkWeightsSum(selectedWeights)
+
+    if (!isWeightSumCorrect) return console.error('Weight Sum is not 10000')
     await rebalancePortfolio(
       dexWallet,
       config?.TOKENS,
@@ -123,6 +129,9 @@ export async function executeRebalance(
   } else if (!TREND) {
     selectedWeights = config?.WEIGHTS_DOWN
     console.log('🦄 Selected weights:', JSON.stringify(selectedWeights))
+    const isWeightSumCorrect = checkWeightsSum(selectedWeights)
+
+    if (!isWeightSumCorrect) return console.error('Weight Sum is not 10000')
     await rebalancePortfolio(
       dexWallet,
       config?.TOKENS,

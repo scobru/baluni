@@ -3,9 +3,8 @@ import { ethers } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import { NETWORKS, INFRA, BASEURL } from 'baluni-api'
-import { buildSwapUniswap } from 'baluni-api'
-
-//import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
+//import { buildSwapUniswap } from 'baluni-api'
+import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
 
 export async function batchSwap(
   swaps: Array<{
@@ -26,15 +25,19 @@ export async function batchSwap(
   )
 
   const gas = await provider?.getGasPrice()
+
   const gasLimit = 8000000
 
   const wallet = swaps[0].dexWallet.wallet
+
   const routerAddress = INFRA[swaps[0].chainId].ROUTER
 
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet)
 
   const allApprovals: unknown[] = []
+
   const allCalldatas: unknown[] = []
+
   const allTokensReturn: unknown[] = []
 
   async function fetchTokenInfo(url: string) {
@@ -50,8 +53,11 @@ export async function batchSwap(
   await Promise.all(
     swaps.map(async swap => {
       const token0AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`
+
       const token0Info = await fetchTokenInfo(token0AddressUrl)
+
       const token1AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`
+
       const token1Info = await fetchTokenInfo(token1AddressUrl)
 
       swap.token0 = String(token0Info.address)
