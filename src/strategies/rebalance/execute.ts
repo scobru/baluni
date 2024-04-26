@@ -312,6 +312,7 @@ export async function rebalancePortfolio(
 
       const balanceInt = tokenBalance.formatted
 
+      // Redeem from Yearn Vaults
       if (vault !== undefined && Number(await balance) < Number(amountWei)) {
         const yearnCtx = new ethers.Contract(vault, erc20Abi, dexWallet.wallet)
 
@@ -344,22 +345,24 @@ export async function rebalancePortfolio(
         }
       }
 
+      // Technical Analysis
       if (config?.TECNICAL_ANALYSIS) {
         const [rsiResult, stochasticRSIResult] = await getRSI(
           tokenSymbol,
           config
         )
 
+        // Sell
         if (
           BigNumber.from(amountWei).lt(balance) ||
           BigNumber.from(amountWei).eq(balance)
         ) {
+          // Sell if RSI and StochRSI are overbought
           if (
             stochasticRSIResult.stochRSI > config?.STOCKRSI_OVERBOUGHT &&
             rsiResult.rsiVal > config?.RSI_OVERBOUGHT
           ) {
             const tokenSymbol = await tokenContract.symbol()
-
             console.log('Condition met for selling', tokenSymbol)
 
             const swap: Tswap = {
@@ -401,6 +404,7 @@ export async function rebalancePortfolio(
           }
         }
       } else {
+        // Sell if RSI and StochRSI are overbought
         const swap: Tswap = {
           dexWallet: dexWallet,
           token0: tokenSymbol,
@@ -463,6 +467,7 @@ export async function rebalancePortfolio(
 
     let isTechnicalAnalysisConditionMet = false
 
+    // Technical Analysis
     if (config?.TECNICAL_ANALYSIS) {
       ;[rsiResult, stochasticRSIResult] = await getRSI(tokenSym, config)
 
@@ -471,6 +476,7 @@ export async function rebalancePortfolio(
         rsiResult.rsiVal < config?.RSI_OVERSOLD
     }
 
+    // Buy
     if (isTechnicalAnalysisConditionMet || !config?.TECNICAL_ANALYSIS) {
       const tokenSym = await tokenCtx.symbol()
       console.log('Condition met for buying', tokenSym)
