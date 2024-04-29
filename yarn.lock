@@ -1148,10 +1148,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-baluni-api@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-2.1.1.tgz#6ae0f482a1c1ff5eac8f5ce254fe2281fd95abbe"
-  integrity sha512-Wu+UIUw5mGu3dBFkoROQvblhm31Bf7ygzKK2cuWaEfFhUeqKPZVLO9sH60U1NdPbge2HhsLoxbpYYJ0b/VIPrg==
+baluni-api@^2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-2.1.2.tgz#9ae38c9a859de616390854625d632daf604aae54"
+  integrity sha512-tHarlva0uAULeEDH84Y6UMAumOjVPjWVbDcl+ZkujdO/EV85fL5Z05ADsGffmr3O2I5rUTO/DrNp7HylprNOdA==
   dependencies:
     "@uniswap/permit2-sdk" "^1.2.0"
     "@uniswap/router-sdk" "1.7.1"
