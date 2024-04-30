@@ -1148,10 +1148,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-baluni-api@^2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-2.1.2.tgz#9ae38c9a859de616390854625d632daf604aae54"
-  integrity sha512-tHarlva0uAULeEDH84Y6UMAumOjVPjWVbDcl+ZkujdO/EV85fL5Z05ADsGffmr3O2I5rUTO/DrNp7HylprNOdA==
+baluni-api@^2.1.6:
+  version "2.1.6"
+  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-2.1.6.tgz#dfc242a058027bb0d2c241be823d7dd584bdd607"
+  integrity sha512-IuwC2J5BUqVhDIMjoCQN6Ce4QjSCGR5Ylc9buodDbsk4OnkcLik/hC+pgYn+5IEuqCegOtS8Tjmjah8JB6pccA==
   dependencies:
     "@uniswap/permit2-sdk" "^1.2.0"
     "@uniswap/router-sdk" "1.7.1"
@@ -1167,6 +1167,28 @@ baluni-api@^2.1.2:
     ethers "^5.7.2"
     express "^4.18.3"
     jsbi "3.2.5"
+
+baluni@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/baluni/-/baluni-2.2.1.tgz#fdd81e9aad00d46714c18f0d4824a8a30f961c97"
+  integrity sha512-MiEwqI5voUmVCk8wPN0hGqILhk+2m9vGMp0x/V2zdKcKBlcNzL0Em8oFe88h7fdM7Q2ZFwVbB/WgP526qe4APA==
+  dependencies:
+    "@tensorflow/tfjs" "^4.15.0"
+    "@types/node" "^20.10.5"
+    "@uniswap/sdk-core" "^4.0.10"
+    asciichart "^1.5.25"
+    axios "^1.6.5"
+    baluni-api "^2.1.6"
+    chakl "^0.0.1-security"
+    cli-chart "^0.3.1"
+    dotenv "^16.3.1"
+    eslint-config-prettier "^8.5.0"
+    eslint-plugin-prettier "^4.2.1"
+    ethers "^5.7.2"
+    express "^4.18.3"
+    jsbi "^4.3.0"
+    prettier "^2.8.4"
+    trading-indicator "^2.0.4"
 
 base64-sol@1.0.1:
   version "1.0.1"

@@ -238,6 +238,8 @@ export async function rebalancePortfolio(
     swapsBuy.push(swap)
   }
 
+  console.log('__________________', swapsSell)
+
   if (swapsSell.length !== 0) {
     try {
       console.log('🔄 Swaps')

@@ -3,8 +3,8 @@ import { ethers } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import { NETWORKS, INFRA, BASEURL } from 'baluni-api'
-import { buildSwapUniswap } from 'baluni-api'
-//import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
+//import { buildSwapUniswap } from 'baluni-api'
+import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
 
 export async function batchSwap(
   swaps: Array<{
@@ -64,14 +64,6 @@ export async function batchSwap(
       swap.token1 = String(token1Info.address)
     })
   )
-
-  // const url = `${BASEURL}/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
-  // const url = `http://localhost:3001/swap/${swap.dexWallet.walletAddress}/${swap.token0}/${swap.token1}/${swap.reverse}/${swap.protocol}/${swap.chainId}/${swap.amount}`;
-  // const response = await fetch(url, { method: "POST" });
-  // if (!response.ok) {
-  //   throw new Error(`HTTP error! status: ${response.status}`);
-  // }
-  // const data = await response.json();
 
   const data = await buildSwapUniswap(
     swaps.map(swap => ({
