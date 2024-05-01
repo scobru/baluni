@@ -1,5 +1,6 @@
 export {
   rebalancePortfolio,
+  rebalancePortfolioOdos,
   calculateRebalanceStats,
 } from './ui/rebalanceSimple'
 export { predict } from './features/ml/predict'
