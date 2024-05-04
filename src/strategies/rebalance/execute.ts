@@ -21,6 +21,13 @@ import { TDeposit, TRedeem } from '../../types/yearn'
 import { Tswap } from '../../types/uniswap'
 import * as blocks from '../../utils/logBlocks'
 
+// import { INFRA } from '../../../../baluni-api/dist/constants'
+// import {
+//   depositToYearnBatched,
+//   redeemFromYearnBatched,
+//   getVaultAsset,
+// } from '../../../../baluni-api/dist'
+
 export async function getTokenValueEnhanced(
   tokenSymbol: string,
   token: string,
@@ -53,15 +60,10 @@ export async function rebalancePortfolio(
   console.log('⚖️  Rebalance Portfolio\n')
 
   const gasLimit = 10000000
-
   const gas = await dexWallet?.walletProvider?.getGasPrice()
-
   const chainId = dexWallet.walletProvider.network.chainId
-
   const infraRouter = INFRA[chainId].ROUTER
-
   const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
-
   const tokenValues: { [token: string]: BigNumber } = {}
 
   let totalPortfolioValue = BigNumber.from(0)

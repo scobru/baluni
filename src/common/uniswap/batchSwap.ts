@@ -2,9 +2,12 @@ import infraRouterAbi from 'baluni-api/dist/abis/infra/Router.json'
 import { ethers } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
-import { NETWORKS, INFRA, BASEURL } from 'baluni-api'
+import { NETWORKS, BASEURL } from 'baluni-api'
+import { INFRA } from 'baluni-api'
 import { buildSwapUniswap } from 'baluni-api'
+
 //import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
+//import { INFRA } from '../../../../baluni-api/dist/constants'
 
 export async function batchSwap(
   swaps: Array<{

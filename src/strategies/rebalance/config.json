@@ -21,13 +21,13 @@
     "USDC.E"
   ],
   "WEIGHTS_UP": {
-    "WETH": 1500,
-    "WBTC": 1500,
+    "WETH": 1000,
+    "WBTC": 1000,
     "COMP": 500,
-    "UNI": 500,
-    "AAVE": 500,
+    "UNI": 1000,
+    "AAVE": 1000,
     "YFI": 500,
-    "MKR": 500,
+    "MKR": 1000,
     "BAL": 500,
     "BNT": 500,
     "LINK": 500,
@@ -35,8 +35,8 @@
     "SNX": 500,
     "MANA": 500,
     "GRT": 500,
-    "USDT": 250,
-    "DAI": 250,
+    "USDT": 0,
+    "DAI": 0,
     "USDC.E": 500
   },
   "WEIGHTS_DOWN": {
@@ -79,7 +79,7 @@
       }
     }
   },
-  "LIMIT": 50,
+  "LIMIT": 2,
   "SLIPPAGE": 1000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
@@ -92,7 +92,7 @@
   "PREDICTION_EPOCHS": 100,
   "PREDICTION_SYMBOL": "bitcoin",
   "PREDICTION_ALGO": "REGR",
-  "TECNICAL_ANALYSIS": true,
+  "TECNICAL_ANALYSIS": false,
   "RSI_PERIOD": 4,
   "RSI_OVERBOUGHT": 70,
   "RSI_OVERSOLD": 30,

@@ -20,9 +20,15 @@ import * as blocks from '../../utils/logBlocks'
 import { TConfigReturn } from '../../types/config'
 import { BuildSwapOdosParams } from '../../types/odos'
 import { TDeposit, TRedeem } from '../../types/yearn'
-
 import { buildSwapOdos } from 'baluni-api/dist/odos'
-//import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
+
+// import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
+// import {
+//   depositToYearnBatched,
+//   redeemFromYearnBatched,
+//   getVaultAsset,
+// } from '../../../../baluni-api/dist'
+// import { INFRA } from '../../../../baluni-api/dist/constants'
 
 export async function rebalancePortfolio(
   dexWallet: DexWallet,

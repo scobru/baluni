@@ -1168,10 +1168,10 @@ baluni-api@^2.1.6:
     express "^4.18.3"
     jsbi "3.2.5"
 
-baluni-api@^2.1.8:
-  version "2.1.8"
-  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-2.1.8.tgz#57c7f2c6bf775bdc42cc5140ca46c74bb3af3c77"
-  integrity sha512-TZv7AvcftkxdYuPtepqvYap74LheS+XEcGuERarMu4FMB+yne8l5XiZlF3nVwLjhMsZJN4qlbUcWKLHITczmqQ==
+baluni-api@^2.1.9:
+  version "2.1.9"
+  resolved "https://registry.yarnpkg.com/baluni-api/-/baluni-api-2.1.9.tgz#9fb973bb28636058e59f35f65b5ea7b30b056682"
+  integrity sha512-EddoZ1vcObPuRywHh3zUq/vlMd7K+qFtzLmnjnYO8bXAeOeG5RhA3Yz7uEy5B57EQGD3oF6YCB25gi64Cr9Qqg==
   dependencies:
     "@uniswap/permit2-sdk" "^1.2.0"
     "@uniswap/router-sdk" "1.7.1"
