@@ -26,8 +26,8 @@
     "COMP": 500,
     "UNI": 1000,
     "AAVE": 1000,
-    "YFI": 500,
-    "MKR": 1000,
+    "YFI": 1000,
+    "MKR": 500,
     "BAL": 500,
     "BNT": 500,
     "LINK": 500,
@@ -54,9 +54,9 @@
     "SNX": 0,
     "MANA": 0,
     "GRT": 0,
-    "USDT": 2500,
-    "DAI": 2500,
-    "USDC.E": 5000
+    "USDT": 0,
+    "DAI": 0,
+    "USDC.E": 10000
   },
   "YEARN_ENABLED": true,
   "YEARN_VAULTS": {
@@ -79,8 +79,8 @@
       }
     }
   },
-  "LIMIT": 2,
-  "SLIPPAGE": 1000,
+  "LIMIT": 20,
+  "SLIPPAGE": 3000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
   "INVESTMENT_INTERVAL": 86400000,
