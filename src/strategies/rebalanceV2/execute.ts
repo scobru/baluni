@@ -7,13 +7,7 @@ import { getTokenBalance } from '../../utils/getTokenBalance'
 import { getTokenValue } from '../../utils/getTokenValue'
 import { getRSI } from '../../features/ta/getRSI'
 import { waitForTx } from '../../utils/web3/networkUtils'
-import { INFRA } from 'baluni-api'
-import { buildSwapOdos } from 'baluni-api/dist/odos'
-import {
-  depositToYearnBatched,
-  redeemFromYearnBatched,
-  getVaultAsset,
-} from 'baluni-api'
+
 import routerAbi from 'baluni-api/dist/abis/infra/Router.json'
 import erc20Abi from 'baluni-api/dist/abis/common/ERC20.json'
 import yearnVaultAbi from 'baluni-api/dist/abis/yearn/YearnVault.json'
@@ -21,6 +15,14 @@ import * as blocks from '../../utils/logBlocks'
 import { TConfigReturn } from '../../types/config'
 import { BuildSwapOdosParams } from '../../types/odos'
 import { TDeposit, TRedeem } from '../../types/yearn'
+
+import { INFRA } from 'baluni-api'
+import { buildSwapOdos } from 'baluni-api/dist/odos'
+import {
+  depositToYearnBatched,
+  redeemFromYearnBatched,
+  getVaultAsset,
+} from 'baluni-api'
 
 /* import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
 import {
@@ -40,7 +42,7 @@ export async function rebalancePortfolio(
   blocks.print2block()
   console.log('⚖️  Rebalance Portfolio\n')
 
-  const gasLimit = 30000000
+  const gasLimit = 8000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER

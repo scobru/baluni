@@ -4,6 +4,7 @@
   "TOKENS": [
     "WETH",
     "WBTC",
+    "WMATIC",
     "COMP",
     "UNI",
     "AAVE",
@@ -21,8 +22,9 @@
     "USDC.E"
   ],
   "WEIGHTS_UP": {
-    "WETH": 1000,
+    "WETH": 500,
     "WBTC": 1000,
+    "WMATIC": 500,
     "COMP": 500,
     "UNI": 1000,
     "AAVE": 1000,
@@ -42,6 +44,7 @@
   "WEIGHTS_DOWN": {
     "WETH": 0,
     "WBTC": 0,
+    "WMATIC": 0,
     "COMP": 0,
     "UNI": 0,
     "AAVE": 0,
@@ -79,13 +82,13 @@
       }
     }
   },
-  "LIMIT": 20,
-  "SLIPPAGE": 3000,
+  "LIMIT": 45,
+  "SLIPPAGE": 1000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
   "INVESTMENT_INTERVAL": 86400000,
   "INVESTMENT_AMOUNT": 100,
-  "TREND_FOLLOWING": true,
+  "TREND_FOLLOWING": false,
   "KST_TIMEFRAME": "1h",
   "PREDICTION": false,
   "PREDICTION_PERIOD": 90,

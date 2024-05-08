@@ -73,12 +73,13 @@ export async function executeRebalance(
   // Log the AI signal and KST trend results
   console.log(
     '🤖 Signal AI:',
-    signalAI,
+    config?.PREDICTION ? signalAI : 'None',
     '📈 KST trend:',
-    kstResult.direction,
+    config?.TREND_FOLLOWING ? kstResult.direction : 'None',
     '❎ KST cross:',
-    kstResult.cross
+    config?.TREND_FOLLOWING ? kstResult.cross : 'None'
   )
+
   let TREND: boolean = true
   let LAST_TREND: boolean = true
 
