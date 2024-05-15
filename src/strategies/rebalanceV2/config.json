@@ -17,8 +17,6 @@
     "SNX",
     "MANA",
     "GRT",
-    "USDT",
-    "DAI",
     "USDC.E"
   ],
   "WEIGHTS_UP": {
@@ -29,16 +27,14 @@
     "UNI": 1000,
     "AAVE": 1000,
     "YFI": 1000,
-    "MKR": 500,
-    "BAL": 500,
+    "MKR": 700,
+    "BAL": 300,
     "BNT": 500,
     "LINK": 500,
     "CRV": 500,
     "SNX": 500,
     "MANA": 500,
     "GRT": 500,
-    "USDT": 0,
-    "DAI": 0,
     "USDC.E": 500
   },
   "WEIGHTS_DOWN": {
@@ -57,8 +53,6 @@
     "SNX": 0,
     "MANA": 0,
     "GRT": 0,
-    "USDT": 0,
-    "DAI": 0,
     "USDC.E": 10000
   },
   "YEARN_ENABLED": true,
@@ -82,8 +76,8 @@
       }
     }
   },
-  "LIMIT": 45,
-  "SLIPPAGE": 1000,
+  "LIMIT": 150,
+  "SLIPPAGE": 3000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
   "INVESTMENT_INTERVAL": 86400000,

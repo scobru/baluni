@@ -44,10 +44,13 @@ export async function rebalancePortfolio(
 
   const gasLimit = 8000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
+
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
+
   const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
   const tokenValues: { [token: string]: BigNumber } = {}
+
   let totalPortfolioValue = BigNumber.from(0)
 
   console.log(
@@ -65,20 +68,23 @@ export async function rebalancePortfolio(
 
   for (const token of desiredTokens) {
     const tokenContract = new ethers.Contract(token, erc20Abi, dexWallet.wallet)
+
     const tokenMetadata = await getTokenMetadata(
       token,
       dexWallet.walletProvider
     )
+
     const _tokenbalance = await getTokenBalance(
       dexWallet.walletProvider,
       dexWallet.walletAddress,
       token
     )
+
     const tokenBalance = _tokenbalance.balance
     const decimals = tokenMetadata.decimals
     const tokenSymbol = await tokenContract?.symbol()
-    const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol]
 
+    const yearnVaultAddress = config?.YEARN_VAULTS[tokenSymbol]
     const currentValue = await getTokenValue(
       tokenSymbol,
       token,
@@ -124,8 +130,8 @@ export async function rebalancePortfolio(
   )
 
   const currentAllocations: { [token: string]: number } = {}
-  let tokensToSell = []
-  let tokensToBuy = []
+  const tokensToSell = []
+  const tokensToBuy = []
 
   Object.keys(tokenValues).forEach(token => {
     currentAllocations[token] = tokenValues[token]
@@ -375,6 +381,7 @@ export async function rebalancePortfolio(
   // )?.balance
 
   let totalAmountWei = BigNumber.from(0)
+
   const existTokenToSell = quoteRequestBody.inputTokens.length > 0
   const existTokenToSellAndBuy =
     tokensToBuy.length > 0 && tokensToSell.length > 0
@@ -397,6 +404,7 @@ export async function rebalancePortfolio(
 
       const tokenCtx = new Contract(token, erc20Abi, dexWallet.wallet)
       const tokenSym = await tokenCtx.symbol()
+
       const [rsiResult, stochasticRSIResult] = await getRSI(tokenSym, config)
       const isTechnicalAnalysisConditionMet =
         stochasticRSIResult.stochRSI < config?.STOCKRSI_OVERSOLD &&
@@ -422,7 +430,7 @@ export async function rebalancePortfolio(
         '⚠️ Total proportion is greater than 1 or less than 1',
         totalProportion
       )
-      tokensToBuy = []
+      //tokensToBuy = []
     }
   } else {
     console.log('No Tokens To Sell')
@@ -437,6 +445,7 @@ export async function rebalancePortfolio(
   try {
     if (existTokenToSellAndBuy) {
       const data = await redeemFromYearnBatched(yearnRedeems)
+
       if (data?.Approvals.length > 0) {
         console.log('📡 Approvals')
         const approvals = data.Approvals
@@ -532,6 +541,7 @@ export async function rebalancePortfolio(
           approval.gasPrice = gas
 
           const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+
           const broadcaster = await waitForTx(
             dexWallet.walletProvider,
             approvalTx?.hash,
@@ -540,6 +550,44 @@ export async function rebalancePortfolio(
 
           console.log(`📡 Approval broadcasted: ${broadcaster}`)
         }
+      }
+
+      if (data?.ApprovalsAgent.length > 0) {
+        console.log('📡 Approvalss Agent')
+
+        const simulate = await router.callStatic.execute(
+          data?.ApprovalsAgent,
+          [],
+          {
+            gasLimit: gasLimit,
+            gasPrice: gas,
+          }
+        )
+
+        if (!simulate) return console.log('📡 Simulation failed')
+        console.log(`📡  Simulation successful:: ${simulate}`)
+
+        const calldata = router.interface.encodeFunctionData('execute', [
+          data?.ApprovalsAgent,
+          [],
+        ])
+
+        const tx = {
+          to: router.address,
+          value: 0,
+          data: calldata,
+          gasLimit: gasLimit,
+          gasPrice: gas,
+        }
+
+        const executeTx = await dexWallet.wallet.sendTransaction(tx)
+
+        const broadcaster = await waitForTx(
+          dexWallet.walletProvider,
+          executeTx?.hash,
+          dexWallet.walletAddress
+        )
+        console.log(`📡 Tx broadcasted:: ${broadcaster}`)
       }
 
       if (data?.Calldatas.length > 0) {
@@ -574,6 +622,7 @@ export async function rebalancePortfolio(
         }
 
         const executeTx = await dexWallet.wallet.sendTransaction(tx)
+
         const broadcaster = await waitForTx(
           dexWallet.walletProvider,
           executeTx?.hash,

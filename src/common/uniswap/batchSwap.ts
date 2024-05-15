@@ -30,17 +30,15 @@ export async function batchSwap(
   const gas = await provider?.getGasPrice()
 
   const gasLimit = 8000000
-
   const wallet = swaps[0].dexWallet.wallet
 
   const routerAddress = INFRA[swaps[0].chainId].ROUTER
-
   const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet)
 
   const allApprovals: unknown[] = []
+  const allApprovalsAgent: unknown[] = []
 
   const allCalldatas: unknown[] = []
-
   const allTokensReturn: unknown[] = []
 
   async function fetchTokenInfo(url: string) {
@@ -56,11 +54,9 @@ export async function batchSwap(
   await Promise.all(
     swaps.map(async swap => {
       const token0AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token0}`
-
       const token0Info = await fetchTokenInfo(token0AddressUrl)
 
       const token1AddressUrl = `${BASEURL}/${swap.chainId}/${swap.protocol}/tokens/${swap.token1}`
-
       const token1Info = await fetchTokenInfo(token1AddressUrl)
 
       swap.token0 = String(token0Info.address)
@@ -88,6 +84,10 @@ export async function batchSwap(
 
   if (data.Approvals && data.Approvals.length > 0) {
     allApprovals.push(...data.Approvals)
+  }
+
+  if (data.ApprovalsAgent && data.ApprovalsAgent.length > 0) {
+    allApprovalsAgent.push(...data.ApprovalsAgent)
   }
 
   if (data.Calldatas && data.Calldatas.length > 0) {
@@ -119,6 +119,38 @@ export async function batchSwap(
     }
   } else {
     console.log('No approvals required')
+  }
+
+  if (allApprovalsAgent.length != 0) {
+    try {
+      const simulationResult = await router.callStatic.execute(
+        allApprovalsAgent,
+        allTokensReturn,
+        {
+          gasLimit: gasLimit,
+          gasPrice: gas,
+        }
+      )
+      console.log('Simulation successful:', simulationResult)
+
+      if (!simulationResult) return console.error('Simulation failed')
+
+      const tx = await router.execute(allApprovalsAgent, allTokensReturn, {
+        gasLimit: gasLimit,
+        gasPrice: gas,
+      })
+
+      const broadcaster = await waitForTx(
+        wallet.provider,
+        tx.hash,
+        swaps[0].dexWallet.walletAddress
+      )
+
+      console.log('Transaction executed', broadcaster)
+    } catch (error) {
+      console.error('Simulation failed:', error)
+      return
+    }
   }
 
   if (allCalldatas.length != 0) {

@@ -351,7 +351,8 @@ export async function rebalancePortfolioOdos(
   dexWallet: DexWallet,
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
-  usdcAddress: string
+  usdcAddress: string,
+  slippage: number
 ) {
   config = await updateConfig(
     desiredTokens,
@@ -365,7 +366,7 @@ export async function rebalancePortfolioOdos(
   )
   console.log('⚖️  Rebalance Portfolio\n')
 
-  const gasLimit = 5000000
+  const gasLimit = 30000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
@@ -506,7 +507,7 @@ export async function rebalancePortfolioOdos(
     inputTokens: [] as { tokenAddress: string; amount: string }[],
     outputTokens: [] as { tokenAddress: string; proportion: number }[],
     userAddr: '0x',
-    slippageLimitPercent: Number(config.SLIPPAGE / 1000), // set your slippage limit percentage (1 = 1%),
+    slippageLimitPercent: Number(slippage), // set your slippage limit percentage (1 = 1%),
     referralCode: 3844415834, // referral code (recommended)
     disableRFQs: true,
     compact: true,
@@ -718,7 +719,8 @@ export async function rebalancePortfolioOdosParams(
   dexWallet: DexWallet,
   desiredTokens: string[],
   desiredAllocations: { [token: string]: number },
-  usdcAddress: string
+  usdcAddress: string,
+  slippage: number
 ) {
   config = await updateConfig(
     desiredTokens,
@@ -732,12 +734,10 @@ export async function rebalancePortfolioOdosParams(
   )
   console.log('⚖️  Rebalance Portfolio\n')
 
-  const gasLimit = 5000000
-  const gas = await dexWallet?.walletProvider?.getGasPrice()
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
-  const router = new ethers.Contract(infraRouter, RouterABI, dexWallet.wallet)
   const tokenValues: { [token: string]: BigNumber } = {}
+
   let totalPortfolioValue = BigNumber.from(0)
 
   console.log(
@@ -787,6 +787,7 @@ export async function rebalancePortfolioOdosParams(
   )
 
   const currentAllocations: { [token: string]: number } = {}
+
   let tokensToSell = []
   let tokensToBuy = []
 
@@ -873,7 +874,7 @@ export async function rebalancePortfolioOdosParams(
     inputTokens: [] as { tokenAddress: string; amount: string }[],
     outputTokens: [] as { tokenAddress: string; proportion: number }[],
     userAddr: '0x',
-    slippageLimitPercent: Number(config.SLIPPAGE / 1000), // set your slippage limit percentage (1 = 1%),
+    slippageLimitPercent: slippage, // set your slippage limit percentage (1 = 1%),
     referralCode: 3844415834, // referral code (recommended)
     disableRFQs: true,
     compact: true,
