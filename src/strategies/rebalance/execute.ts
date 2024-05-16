@@ -22,12 +22,13 @@ import {
   getVaultAsset,
 } from 'baluni-api'
 
-/* import { INFRA } from '../../../../baluni-api/dist/constants'
-import {
-  depositToYearnBatched,
-  redeemFromYearnBatched,
-  getVaultAsset,
-} from '../../../../baluni-api/dist' */
+// TESTING
+// import { INFRA } from '../../../../baluni-api/dist/constants'
+// import {
+//   depositToYearnBatched,
+//   redeemFromYearnBatched,
+//   getVaultAsset,
+// } from '../../../../baluni-api/dist'
 
 export async function getTokenValueEnhanced(
   tokenSymbol: string,

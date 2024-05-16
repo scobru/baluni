@@ -21,9 +21,12 @@ import { updateConfig } from './updateConfig'
 import { TConfigReturn } from '../types/config'
 import { Tswap } from '../types/uniswap'
 import { batchSwap } from '../common/uniswap/batchSwap'
-import { INFRA, RouterABI, buildSwapOdos } from 'baluni-api'
 import { waitForTx } from '../utils/web3/networkUtils'
 import { BuildSwapOdosParams } from '../types/odos'
+import { INFRA, RouterABI, buildSwapOdos } from 'baluni-api'
+
+// TESTING
+// import { INFRA, RouterABI, buildSwapOdos } from '../../../baluni-api/src'
 
 let config: TConfigReturn
 
@@ -366,7 +369,6 @@ export async function rebalancePortfolioOdos(
   )
   console.log('⚖️  Rebalance Portfolio\n')
 
-  const gasLimit = 30000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
   const chainId = dexWallet.walletProvider.network.chainId
   const infraRouter = INFRA[chainId].ROUTER
@@ -656,7 +658,6 @@ export async function rebalancePortfolioOdos(
         const approvals = data.Approvals
 
         for (const approval of approvals) {
-          approval.gasLimit = gasLimit
           approval.gasPrice = gas
 
           const approvalTx = await dexWallet.wallet.sendTransaction(approval)
@@ -670,6 +671,42 @@ export async function rebalancePortfolioOdos(
         }
       }
 
+      if (data?.ApprovalsAgent.length > 0) {
+        console.log('📡 Approvalss Agent')
+
+        const simulate = await router.callStatic.execute(
+          data?.ApprovalsAgent,
+          [],
+          {
+            gasPrice: gas,
+          }
+        )
+
+        if (!simulate) return console.log('📡 Simulation failed')
+        console.log(`📡  Simulation successful:: ${simulate}`)
+
+        const calldata = router.interface.encodeFunctionData('execute', [
+          data?.ApprovalsAgent,
+          [],
+        ])
+
+        const tx = {
+          to: router.address,
+          value: 0,
+          data: calldata,
+          gasPrice: gas,
+        }
+
+        const executeTx = await dexWallet.wallet.sendTransaction(tx)
+
+        const broadcaster = await waitForTx(
+          dexWallet.walletProvider,
+          executeTx?.hash,
+          dexWallet.walletAddress
+        )
+        console.log(`📡 Tx broadcasted:: ${broadcaster}`)
+      }
+
       if (data?.Calldatas.length > 0) {
         console.log('📡 Calldatas')
 
@@ -677,7 +714,6 @@ export async function rebalancePortfolioOdos(
           data?.Calldatas,
           data?.TokensReturn,
           {
-            gasLimit: gasLimit,
             gasPrice: gas,
           }
         )
@@ -697,7 +733,6 @@ export async function rebalancePortfolioOdos(
           to: router.address,
           value: 0,
           data: calldata,
-          gasLimit: gasLimit,
           gasPrice: gas,
         }
 
