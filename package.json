@@ -1,6 +1,6 @@
 {
   "name": "baluni",
-  "version": "2.3.5",
+  "version": "2.4.0",
   "description": "Uniswap v3 rebalance and forecast CLI tool",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,14 +10,15 @@
   "scripts": {
     "ts-node": "ts-node",
     "build": "npx tsc",
-    "rebalance": "npx ts-node src/strategies/rebalance/rebalance.ts",
-    "rebalanceV2": "npx ts-node src/strategies/rebalanceV2/rebalance.ts",
-    "invest": "npx ts-node src/strategies/investor/investor.ts",
-    "dca": "npx ts-node src/dca.ts",
+    "rebalance": "npx ts-node src/core/strategies/rebalance/rebalance.ts",
+    "rebalanceV2": "npx ts-node src/core/strategies/rebalanceV2/rebalance.ts",
+    "invest": "npx ts-node src/core/strategies/investor/investor.ts",
+    "dca": "npx ts-node src/core/dca.ts",
     "pumpOrDump": "npx ts-node src/strategies/pumpOrDump/pumpOrDump.ts",
     "format": "npx prettier --write . --ignore-path .gitignore",
     "check-types": "tsc --noEmit --incremental",
     "dev": "tsc --watch",
+    "start": "npx ts-node src/api/server.ts",
     "lint": "eslint --ext .js,.ts"
   },
   "keywords": [
@@ -42,6 +43,7 @@
     "@tensorflow/tfjs": "^4.15.0",
     "@types/node": "^20.10.5",
     "@uniswap/sdk-core": "^4.0.10",
+    "@uniswap/smart-order-router": "^3.30.1",
     "asciichart": "^1.5.25",
     "axios": "^1.6.5",
     "baluni-api": "^2.3.4",
