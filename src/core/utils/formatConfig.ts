@@ -4,7 +4,7 @@ import {
   NATIVETOKENS,
   NETWORKS,
   TOKENS_URL,
-} from 'baluni-api'
+} from '../../api/'
 
 import { YearnVault, TConfig, TConfigReturn } from '../types/config'
 
