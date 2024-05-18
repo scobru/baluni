@@ -1,9 +1,7 @@
 {
   "name": "baluni",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "Uniswap v3 rebalance and forecast CLI tool",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -43,10 +41,10 @@
     "@tensorflow/tfjs": "^4.15.0",
     "@types/node": "^20.10.5",
     "@uniswap/sdk-core": "^4.0.10",
+    "@uniswap/sdk": "^3.0.3",
     "@uniswap/smart-order-router": "^3.30.1",
     "asciichart": "^1.5.25",
     "axios": "^1.6.5",
-    "baluni-api": "^2.3.4",
     "chakl": "^0.0.1-security",
     "cli-chart": "^0.3.1",
     "dotenv": "^16.3.1",
@@ -54,7 +52,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "ethers": "^5.7.2",
     "express": "^4.18.3",
-    "jsbi": "^4.3.0",
+    "jsbi": "3.2.5",
     "prettier": "^2.8.4",
     "trading-indicator": "^2.0.4"
   },

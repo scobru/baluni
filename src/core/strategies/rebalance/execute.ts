@@ -15,12 +15,12 @@ import { TDeposit, TRedeem } from '../../types/yearn'
 import { Tswap } from '../../types/uniswap'
 import * as blocks from '../../utils/logBlocks'
 
-import { INFRA } from 'baluni-api'
+import { INFRA } from '../../../api/'
 import {
   depositToYearnBatched,
   redeemFromYearnBatched,
   getVaultAsset,
-} from 'baluni-api'
+} from '../../../api/'
 
 // TESTING
 // import { INFRA } from '../../../../baluni-api/dist/constants'
