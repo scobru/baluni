@@ -5,6 +5,7 @@ import env from 'dotenv'
 import { getAdjAmount, route } from '../../utils/uniswap/bestQuote'
 import { TradeType } from '@uniswap/sdk'
 import routerAbi from '../../abis/infra/Router.json'
+import factoryAbi from '../../abis/infra/Factory.json'
 
 env.config()
 
@@ -33,6 +34,7 @@ export async function buildSwapUniswap(
 
   const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
   const uniRouter = String(protocol.ROUTER)
+  const agentFactory = String(INFRA[swaps[0].chainId].FACTORY)
 
   const Approvals = []
   const ApprovalsAgent = []
@@ -44,12 +46,17 @@ export async function buildSwapUniswap(
   if (debug) console.log('::API::UNISWAP::UNIROUTER', uniRouter)
 
   const tokensSet = new Set()
+  let agentAddress = await InfraRouterContract?.getAgentAddress(
+    swaps[0].address
+  )
+
+  if (agentAddress === ethers.constants.AddressZero) {
+    const factoryCtx = new Contract(agentFactory, factoryAbi, wallet)
+    await factoryCtx.getOrCreateAgent(wallet.address)
+    agentAddress = await InfraRouterContract?.getAgentAddress(swaps[0].address)
+  }
 
   for (const swap of swaps) {
-    const agentAddress = await InfraRouterContract?.getAgentAddress(
-      swap.address
-    )
-
     if (debug)
       console.log('::API: -----------------------------------------------')
     if (debug) console.log('::API::UNISWAP::AGENT', agentAddress)
