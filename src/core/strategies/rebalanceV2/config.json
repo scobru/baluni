@@ -76,8 +76,8 @@
       }
     }
   },
-  "LIMIT": 100,
-  "SLIPPAGE": 3000,
+  "LIMIT": 80,
+  "SLIPPAGE": 1000,
   "INTERVAL": 300000,
   "MAX_APPROVAL": true,
   "INVESTMENT_INTERVAL": 86400000,
