@@ -30,7 +30,8 @@ export async function buildSwapOdos(
 
   if (agentAddress === ethers.constants.AddressZero) {
     const factoryCtx = new Contract(agentFactory, factoryAbi, wallet)
-    await factoryCtx.getOrCreateAgent(sender)
+    const tx = await factoryCtx.getOrCreateAgent(sender)
+    tx.wait()
     agentAddress = await InfraRouterContract?.getAgentAddress(sender)
   }
 

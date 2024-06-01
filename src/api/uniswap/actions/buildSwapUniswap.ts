@@ -52,7 +52,8 @@ export async function buildSwapUniswap(
 
   if (agentAddress === ethers.constants.AddressZero) {
     const factoryCtx = new Contract(agentFactory, factoryAbi, wallet)
-    await factoryCtx.getOrCreateAgent(wallet.address)
+    const tx = await factoryCtx.getOrCreateAgent(wallet.address)
+    tx.wait()
     agentAddress = await InfraRouterContract?.getAgentAddress(swaps[0].address)
   }
 

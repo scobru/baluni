@@ -5,6 +5,9 @@ export type InfraConfig = {
     FACTORY: string
     POOLFACTORY: string
     POOLPERIPHERY: string
+    REGISTRY: string
+    SWAPPER: string
+    ORACLE: string
   }
 }
 
