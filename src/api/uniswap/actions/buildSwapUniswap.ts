@@ -39,7 +39,7 @@ export async function buildSwapUniswap(
   )
 
   const infraRouter = await registry.getBaluniRouter()
-  const agentFactory = await registry.getBaluniFactory()
+  const agentFactory = await registry.getBaluniAgentFactory()
 
   const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
   const uniRouter = String(protocol.ROUTER)
