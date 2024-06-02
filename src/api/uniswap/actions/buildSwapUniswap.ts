@@ -6,6 +6,7 @@ import { getAdjAmount, route } from '../../utils/uniswap/bestQuote'
 import { TradeType } from '@uniswap/sdk'
 import routerAbi from '../../abis/infra/Router.json'
 import factoryAbi from '../../abis/infra/Factory.json'
+import registryAbi from '../../abis/infra/Registry.json'
 
 env.config()
 
@@ -30,11 +31,18 @@ export async function buildSwapUniswap(
   const walletAddress = swaps[0].address
 
   const protocol = PROTOCOLS[swaps[0].chainId][swaps[0].protocol]
-  const infraRouter = String(INFRA[swaps[0].chainId].ROUTER)
+
+  const registry = new Contract(
+    INFRA[swaps[0].chainId].REGISTRY,
+    registryAbi,
+    wallet
+  )
+
+  const infraRouter = await registry.getBaluniRouter()
+  const agentFactory = await registry.getBaluniFactory()
 
   const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
   const uniRouter = String(protocol.ROUTER)
-  const agentFactory = String(INFRA[swaps[0].chainId].FACTORY)
 
   const Approvals = []
   const ApprovalsAgent = []

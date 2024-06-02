@@ -21,6 +21,7 @@ import {
   redeemFromYearnBatched,
   getVaultAsset,
 } from '../../../api/'
+import registryAbi from '../../../api/abis/infra/Registry.json'
 
 // TESTING
 // import { buildSwapOdos } from '../../../../baluni-api/dist/odos'
@@ -45,9 +46,14 @@ export async function rebalancePortfolio(
   const gas = await dexWallet?.walletProvider?.getGasPrice()
 
   const chainId = dexWallet.walletProvider.network.chainId
-  const infraRouter = INFRA[chainId].ROUTER
+  const registry = new Contract(
+    INFRA[config?.SELECTED_CHAINID].REGISTRY,
+    registryAbi,
+    dexWallet.wallet
+  )
 
-  const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
+  const routerAddress = await registry.getBaluniRouter()
+  const router = new ethers.Contract(routerAddress, routerAbi, dexWallet.wallet)
   const tokenValues: { [token: string]: BigNumber } = {}
 
   let totalPortfolioValue = BigNumber.from(0)

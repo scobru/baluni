@@ -1,8 +1,6 @@
 import YEARN_VAULT_ABI from '../../abis/yearn/YearnVault.json'
-import ERC20ABI from '../../abis/common/ERC20.json'
-import { BigNumber, ContractInterface, ethers } from 'ethers'
-import { INFRA, NETWORKS } from '../../constants'
-import routerAbi from '../../abis/infra/Router.json'
+import { BigNumber, ethers } from 'ethers'
+import { NETWORKS } from '../../constants'
 
 export async function accuredYearnInterest(
   pool: string,

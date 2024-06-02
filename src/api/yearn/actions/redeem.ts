@@ -1,7 +1,8 @@
 import YEARN_VAULT_ABI from '../../abis/yearn/YearnVault.json'
-import { BigNumber, ContractInterface, ethers } from 'ethers'
+import { BigNumber, Contract, ContractInterface, ethers } from 'ethers'
 import { INFRA, NETWORKS } from '../../constants'
 import routerAbi from '../../abis/infra/Router.json'
+import registryAbi from '../../abis/infra/Registry.json'
 
 export async function redeemFromYearn(
   wallet: ethers.Wallet,
@@ -18,15 +19,13 @@ export async function redeemFromYearn(
       wallet
     )
     const vaultBalance = await vault.balanceOf(receiver)
-    const gasLimit = 9000000
-    const gasPrice = await provider?.getGasPrice()
-    const gas = gasPrice.add(gasPrice.div(10))
 
     if (vaultBalance.lt(amount)) {
       throw new Error('::API:: Insufficient balance')
     }
 
-    const infraRouter = String(INFRA[chainId].ROUTER)
+    const registry = new Contract(INFRA[chainId].REGISTRY, registryAbi, wallet)
+    const infraRouter = await registry.getBaluniRouter()
     const InfraRouterContract = new ethers.Contract(
       infraRouter,
       routerAbi,

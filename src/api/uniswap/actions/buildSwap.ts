@@ -4,6 +4,8 @@ import swapRouterAbi from '../../abis/uniswap/SwapRouter.json'
 import routerAbi from '../../abis/infra/Router.json'
 import quoterAbi from '../../abis/uniswap/Quoter.json'
 import factoryAbi from '../../abis/uniswap/Factory.json'
+import registryAbi from '../../abis/uniswap/Factory.json'
+
 import { PROTOCOLS, INFRA } from '../../constants'
 import env from 'dotenv'
 import {
@@ -30,7 +32,10 @@ export async function buildSwap(
   const factory = String(PROTOCOLS[chainId][protocol].FACTORY)
   const uniRouter = String(PROTOCOLS[chainId][protocol].ROUTER)
   const swapRouterContract = new Contract(uniRouter, swapRouterAbi, wallet)
-  const infraRouter = String(INFRA[chainId].ROUTER)
+
+  const registry = new Contract(INFRA[chainId].REGISTRY, registryAbi, wallet)
+  const infraRouter = await registry.getBaluniRouter()
+
   const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
   const agentAddress = await InfraRouterContract.getAgentAddress(address)
   const tokenAAddress = reverse == true ? token1 : token0

@@ -2,6 +2,7 @@ import { Contract, Wallet, ethers } from 'ethers'
 import erc20Abi from '../../abis/common/ERC20.json'
 import routerAbi from '../../abis/infra/Router.json'
 import factoryAbi from '../../abis/infra/Factory.json'
+import registryAbi from '../../abis/infra/Registry.json'
 import { PROTOCOLS, INFRA } from '../../constants'
 import env from 'dotenv'
 import { ODOS_ASSEMBLE, ODOS_QUOTE } from '../../constants'
@@ -20,10 +21,11 @@ export async function buildSwapOdos(
 ) {
   console.log('Building Batch Swap tx')
 
-  const odosRouter = String(PROTOCOLS[chainId]['odos'].ROUTER)
-  const infraRouter = String(INFRA[chainId].ROUTER)
+  const registry = new Contract(INFRA[chainId].REGISTRY, registryAbi, wallet)
 
-  const agentFactory = String(INFRA[chainId].FACTORY)
+  const odosRouter = String(PROTOCOLS[chainId]['odos'].ROUTER)
+  const infraRouter = await registry.getBaluniRouter()
+  const agentFactory = await registry.getBaluniFactory()
 
   const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
   let agentAddress = await InfraRouterContract?.getAgentAddress(sender)

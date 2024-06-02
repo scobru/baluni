@@ -10,6 +10,7 @@ import { batchSwap } from '../../common/uniswap/batchSwap'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import routerAbi from '../../../api/abis/infra/Router.json'
 import erc20Abi from '../../../api/abis/common/ERC20.json'
+import registryAbi from '../../../api/abis/infra/Registry.json'
 import yearnVaultAbi from '../../../api/abis/yearn/YearnVault.json'
 import { TDeposit, TRedeem } from '../../types/yearn'
 import { Tswap } from '../../types/uniswap'
@@ -64,8 +65,15 @@ export async function rebalancePortfolio(
   const gasLimit = 8000000
   const gas = await dexWallet?.walletProvider?.getGasPrice()
   const chainId = dexWallet.walletProvider.network.chainId
-  const infraRouter = INFRA[chainId].ROUTER
-  const router = new ethers.Contract(infraRouter, routerAbi, dexWallet.wallet)
+
+  const registry = new Contract(
+    INFRA[config.chainId].REGISTRY,
+    registryAbi,
+    dexWallet.wallet
+  )
+
+  const routerAddress = await registry.getBaluniRouter()
+  const router = new ethers.Contract(routerAddress, routerAbi, dexWallet.wallet)
   const tokenValues: { [token: string]: BigNumber } = {}
 
   let totalPortfolioValue = BigNumber.from(0)

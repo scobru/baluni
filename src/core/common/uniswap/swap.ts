@@ -1,9 +1,10 @@
 import infraRouterAbi from '../../../api/abis/infra/Router.json'
-import { ethers } from 'ethers'
+import { ethers, Contract } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import { NETWORKS, INFRA, BASEURL } from '../../../api/constants'
 import { buildSwap } from '../../../api/uniswap/actions/buildSwap'
+import registryAbi from '../../../api/abis/infra/Registry.json'
 
 export async function swap(
   dexWallet: DexWallet,
@@ -16,7 +17,13 @@ export async function swap(
   slippage: number
 ) {
   const provider = new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
-  const routerAddress = INFRA[chainId].ROUTER
+  const registry = new Contract(
+    INFRA[chainId].REGISTRY,
+    registryAbi,
+    dexWallet.wallet
+  )
+
+  const routerAddress = await registry.getBaluniRouter()
   const wallet = dexWallet.wallet
   const router = new ethers.Contract(
     routerAddress,
