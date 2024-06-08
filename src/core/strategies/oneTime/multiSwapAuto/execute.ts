@@ -1,10 +1,10 @@
 import { BigNumber, Contract } from 'ethers'
-import { DexWallet } from '../../utils/web3/dexWallet'
-import { swap } from '../../common/uniswap/swap'
+import { DexWallet } from '../../../utils/web3/dexWallet'
+import { swap } from '../../../common/uniswap/swap'
 import { formatEther } from 'ethers/lib/utils'
-import { loadPrettyConsole } from '../../utils/prettyConsole'
-import { getTokenAddressUniV3 } from '../../utils/getTokenAddress'
-import erc20Abi from '../../../api/abis/common/ERC20.json'
+import { loadPrettyConsole } from '../../../utils/prettyConsole'
+import { getTokenAddressUniV3 } from '../../../utils/getTokenAddress'
+import erc20Abi from '../../../../api/abis/common/ERC20.json'
 
 const pc = loadPrettyConsole()
 
@@ -16,7 +16,7 @@ export async function invest(
   sellAll: boolean,
   buyAmount: string,
   protocol: string,
-  chainId: any,
+  chainId: number,
   slippage: number
 ) {
   const tokenContract = new Contract(usdtAddress, erc20Abi, dexWallet.wallet)

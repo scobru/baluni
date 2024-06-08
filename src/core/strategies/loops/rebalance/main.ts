@@ -1,20 +1,23 @@
-import { initializeWallet } from '../../utils/web3/dexWallet'
+import { initializeWallet } from '../../../utils/web3/dexWallet'
 import { rebalancePortfolio } from './execute'
-import { predict } from '../../features/ml/predict'
-import { welcomeMessage } from '../../welcome'
-import { formatConfig } from '../../utils/formatConfig'
-import * as blocks from '../../utils/logBlocks'
+import { predict } from '../../../features/ml/predict'
+import { welcomeMessage } from '../../../welcome'
+import { formatConfig } from '../../../utils/formatConfig'
+import * as blocks from '../../../utils/logBlocks'
+import { TConfigReturn } from '../../../types/config'
 
-import { NETWORKS, USDC } from '../../../api/'
 import _config from './config.json'
-import { TConfigReturn } from '../../types/config'
+import { NETWORKS, USDC } from '../../../../api/constants'
+import { checkWeightsSum } from '../../../utils/checkWeights'
+
+type ConfigType = typeof _config
 
 interface LinearRegressionResult {
   predicted: number
   actual: number
 }
 
-export async function executeRebalanceV2(
+export async function executeRebalance(
   config: TConfigReturn,
   log: boolean,
   pk?: string
@@ -31,6 +34,7 @@ export async function executeRebalanceV2(
   )
   // Set the default weight
   let selectedWeights = config?.WEIGHTS_UP
+
   // Import required modules and functions
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { kstCross, getDetachSourceFromOHLCV } = require('trading-indicator')
@@ -66,7 +70,6 @@ export async function executeRebalanceV2(
     }
   }
 
-  // Log the AI signal and KST trend results
   // Log the AI signal and KST trend results
   console.log(
     '🤖 Signal AI:',
@@ -113,6 +116,10 @@ export async function executeRebalanceV2(
   if (TREND) {
     selectedWeights = config?.WEIGHTS_UP
     console.log('🦄 Selected weights:', JSON.stringify(selectedWeights))
+
+    const isWeightSumCorrect = checkWeightsSum(selectedWeights)
+
+    if (!isWeightSumCorrect) return console.error('Weight Sum is not 10000')
     await rebalancePortfolio(
       dexWallet,
       config?.TOKENS,
@@ -123,6 +130,9 @@ export async function executeRebalanceV2(
   } else if (!TREND) {
     selectedWeights = config?.WEIGHTS_DOWN
     console.log('🦄 Selected weights:', JSON.stringify(selectedWeights))
+    const isWeightSumCorrect = checkWeightsSum(selectedWeights)
+
+    if (!isWeightSumCorrect) return console.error('Weight Sum is not 10000')
     await rebalancePortfolio(
       dexWallet,
       config?.TOKENS,
@@ -140,6 +150,7 @@ export async function executeRebalanceV2(
   const fs = require('fs')
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const path = require('path')
+
   const date = new Date()
   const kstResultPath = path.join(__dirname, 'kstResult.json')
   let results = []
@@ -165,11 +176,11 @@ export async function executeRebalanceV2(
 async function main() {
   welcomeMessage()
   const config: TConfigReturn = await formatConfig(_config)
-  await executeRebalanceV2(config, true)
+  await executeRebalance(config, true)
   try {
     setInterval(async () => {
       try {
-        await executeRebalanceV2(config, true)
+        await executeRebalance(config, true)
       } catch (error) {
         console.error('Error during rebalancing:', error)
       }

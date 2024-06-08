@@ -4,7 +4,7 @@ import swapRouterAbi from '../../abis/uniswap/SwapRouter.json'
 import routerAbi from '../../abis/infra/Router.json'
 import quoterAbi from '../../abis/uniswap/Quoter.json'
 import factoryAbi from '../../abis/uniswap/Factory.json'
-import registryAbi from '../../abis/uniswap/Factory.json'
+import registryAbi from '../../abis/infra/Registry.json'
 
 import { PROTOCOLS, INFRA } from '../../constants'
 import env from 'dotenv'
