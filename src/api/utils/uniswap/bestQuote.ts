@@ -316,7 +316,7 @@ export async function route(tradeRequest: TradeRequest) {
 
   const formatedSlippage = tradeRequest.slippage / 100 // 5000/100 = 50
 
-  const SLIPPAGE = new Percent(50, 10_000) // Correct 15%
+  const SLIPPAGE = new Percent(formatedSlippage, 10_000) // Correct 15%
 
   const routing = router.route(
     CurrencyAmount.fromRawAmount(currencyAmount, Number(tradeRequest.amount)),
