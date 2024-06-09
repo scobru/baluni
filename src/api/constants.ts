@@ -13,7 +13,7 @@ export const BASEURL = 'https://baluni-api.scobrudot.dev'
 export const INFRA: InfraConfig = {
   '137': {
     ROUTER: deployedContracts[137].BaluniV1Router,
-    REBALANCER: deployedContracts[137].BaluniV1Rebalance,
+    REBALANCER: deployedContracts[137].BaluniV1Rebalancer,
     FACTORY: deployedContracts[137].BaluniV1AgentFactory,
     POOLREGISTRY: deployedContracts[137].BaluniV1PoolRegistry,
     POOLPERIPHERY: deployedContracts[137].BaluniV1PoolPeriphery,
@@ -47,7 +47,7 @@ export const ORACLE: OracleConfig = {
 export const NATIVETOKENS: TokenConfig = {
   '137': {
     NATIVE: '0x0000000000000000000000000000000000001010',
-    WRAPPED: '0x0d500b1d8e8ef31e21c99d1db9a6444d3adf1270',
+    WRAPPED: '0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270',
   },
   // Add the rest of yur tokens here
 }
