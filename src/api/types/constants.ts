@@ -3,7 +3,7 @@ export type InfraConfig = {
     ROUTER: string
     REBALANCER: string
     FACTORY: string
-    POOLFACTORY: string
+    POOLREGISTRY: string
     POOLPERIPHERY: string
     REGISTRY: string
     SWAPPER: string
