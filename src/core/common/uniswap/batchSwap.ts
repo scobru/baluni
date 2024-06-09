@@ -109,6 +109,8 @@ export async function batchSwap(
         to: (approval as { to: string }).to,
         value: (approval as { value: number }).value,
         data: (approval as { data: any }).data,
+        gasPrice: gas,
+        gasLimit: gasLimit,
       }
 
       try {

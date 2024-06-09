@@ -43,6 +43,9 @@ export async function buildSwapUniswap(
   const InfraRouterContract = new Contract(infraRouter, routerAbi.abi, wallet)
   const uniRouter = await registry.getUniswapRouter()
 
+  const gasPrice = await wallet.provider.getGasPrice()
+  const gasLimit = 8000000
+
   const Approvals = []
   const ApprovalsAgent = []
   const Calldatas = []
@@ -58,10 +61,14 @@ export async function buildSwapUniswap(
   if (agentAddress == ethers.constants.AddressZero) {
     if (debug) console.log('::API::CREATE AGENT')
     const factoryCtx = new Contract(agentFactory, factoryAbi.abi, wallet)
+
     if (debug) console.log('::API::CREATE AGENT SIMULATION')
     const txSimulate = await factoryCtx.callStatic.getOrCreateAgent(
       walletAddress,
-     
+      {
+        gasPrice: gasPrice,
+        gasLimit: gasLimit,
+      }
     )
 
     if (!txSimulate) {
@@ -73,7 +80,11 @@ export async function buildSwapUniswap(
       }
     }
     if (debug) console.log('::API::CREATE AGENT EXECUTION')
-    const tx = await factoryCtx.getOrCreateAgent(walletAddress)
+    const tx = await factoryCtx.getOrCreateAgent(walletAddress, {
+      gasPrice: gasPrice,
+      gasLimit: gasLimit,
+    })
+
     await waitForTx(wallet.provider, tx.hash, walletAddress)
     agentAddress = await InfraRouterContract?.getAgentAddress(walletAddress)
   }
