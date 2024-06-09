@@ -8,10 +8,11 @@ import { getTokenValue } from '../../../utils/getTokenValue'
 import { getRSI } from '../../../features/ta/getRSI'
 import { batchSwap } from '../../../common/uniswap/batchSwap'
 import { waitForTx } from '../../../utils/web3/networkUtils'
-import routerAbi from '../../../../api/abis/infra/Router.json'
-import erc20Abi from '../../../../api/abis/common/ERC20.json'
-import registryAbi from '../../../../api/abis/infra/Registry.json'
+import routerAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 import yearnVaultAbi from '../../../../api/abis/yearn/YearnVault.json'
+import erc20Abi from '../../../../api/abis/common/ERC20.json'
+
 import { TDeposit, TRedeem } from '../../../types/yearn'
 import { Tswap } from '../../../types/uniswap'
 import * as blocks from '../../../utils/logBlocks'
@@ -68,12 +69,16 @@ export async function rebalancePortfolio(
 
   const registry = new Contract(
     INFRA[config.chainId].REGISTRY,
-    registryAbi,
+    registryAbi.abi,
     dexWallet.wallet
   )
 
   const routerAddress = await registry.getBaluniRouter()
-  const router = new ethers.Contract(routerAddress, routerAbi, dexWallet.wallet)
+  const router = new ethers.Contract(
+    routerAddress,
+    routerAbi.abi,
+    dexWallet.wallet
+  )
   const tokenValues: { [token: string]: BigNumber } = {}
 
   let totalPortfolioValue = BigNumber.from(0)

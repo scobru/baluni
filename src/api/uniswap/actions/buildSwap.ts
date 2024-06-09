@@ -1,10 +1,10 @@
 import { BigNumberish, BigNumber, Contract, Wallet, ethers } from 'ethers'
-import erc20Abi from '../../abis/common/ERC20.json'
-import swapRouterAbi from '../../abis/uniswap/SwapRouter.json'
-import routerAbi from '../../abis/infra/Router.json'
+import erc20Abi from 'baluni-contracts/abis/common/ERC20.json'
+import routerAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
+import factoryAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1AgentFactory.sol/BaluniV1AgentFactory.json'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 import quoterAbi from '../../abis/uniswap/Quoter.json'
-import factoryAbi from '../../abis/uniswap/Factory.json'
-import registryAbi from '../../abis/infra/Registry.json'
+import swapRouterAbi from '../../abis/uniswap/SwapRouter.json'
 
 import { PROTOCOLS, INFRA } from '../../constants'
 import env from 'dotenv'
@@ -33,10 +33,14 @@ export async function buildSwap(
   const uniRouter = String(PROTOCOLS[chainId][protocol].ROUTER)
   const swapRouterContract = new Contract(uniRouter, swapRouterAbi, wallet)
 
-  const registry = new Contract(INFRA[chainId].REGISTRY, registryAbi, wallet)
+  const registry = new Contract(
+    INFRA[chainId].REGISTRY,
+    registryAbi.abi,
+    wallet
+  )
   const infraRouter = await registry.getBaluniRouter()
 
-  const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
+  const InfraRouterContract = new Contract(infraRouter, routerAbi.abi, wallet)
   const agentAddress = await InfraRouterContract.getAgentAddress(address)
   const tokenAAddress = reverse == true ? token1 : token0
   const tokenBAddress = reverse == true ? token0 : token1
@@ -84,7 +88,7 @@ export async function buildSwap(
     }
 
     const quoterContract = new Contract(quoter, quoterAbi, wallet)
-    const factoryContract = new Contract(factory, factoryAbi, wallet)
+    const factoryContract = new Contract(factory, factoryAbi.abi, wallet)
 
     // const quote = await quotePair(
     //   tokenAAddress,

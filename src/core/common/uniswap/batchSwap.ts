@@ -1,11 +1,11 @@
-import infraRouterAbi from '../../../api/abis/infra/Router.json'
 import { Contract, ethers } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import { INFRA } from '../../../api/constants'
 import { NETWORKS, BASEURL } from '../../../api/constants'
 import { buildSwapUniswap } from '../../../api/uniswap/actions/buildSwapUniswap'
-import registryAbi from '../../../api/abis/infra/Registry.json'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
+import infraRouterAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
 
 // TESTING
 // import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
@@ -36,12 +36,12 @@ export async function batchSwap(
 
   const registry = new Contract(
     INFRA[swaps[0].chainId].REGISTRY,
-    registryAbi,
+    registryAbi.abi,
     wallet
   )
 
   const routerAddress = await registry.getBaluniRouter()
-  const router = new ethers.Contract(routerAddress, infraRouterAbi, wallet)
+  const router = new ethers.Contract(routerAddress, infraRouterAbi.abi, wallet)
 
   const allApprovals: unknown[] = []
   const allApprovalsAgent: unknown[] = []

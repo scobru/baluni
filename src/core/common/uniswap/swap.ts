@@ -1,10 +1,10 @@
-import infraRouterAbi from '../../../api/abis/infra/Router.json'
 import { ethers, Contract } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
 import { NETWORKS, INFRA, BASEURL } from '../../../api/constants'
 import { buildSwap } from '../../../api/uniswap/actions/buildSwap'
-import registryAbi from '../../../api/abis/infra/Registry.json'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
+import infraRouterAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
 
 export async function swap(
   dexWallet: DexWallet,
@@ -19,7 +19,7 @@ export async function swap(
   const provider = new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
   const registry = new Contract(
     INFRA[chainId].REGISTRY,
-    registryAbi,
+    registryAbi.abi,
     dexWallet.wallet
   )
 
@@ -27,23 +27,9 @@ export async function swap(
   const wallet = dexWallet.wallet
   const router = new ethers.Contract(
     routerAddress,
-    infraRouterAbi,
+    infraRouterAbi.abi,
     dexWallet.wallet
   )
-  const gasLimit = 8000000
-  const gas = await provider?.getGasPrice()
-
-  // METHOD 1
-  //-------------------------------------------------------------------------------------
-  // const url = `${BASEURL}/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
-  // const url = `http://localhost:3001/swap/${dexWallet.walletAddress}/${token0}/${token1}/${reverse}/${protocol}/${chainId}/${amount}`;
-  // const response = await fetch(url, {
-  //   method: "POST",
-  // });
-  // if (!response.ok) {
-  //   throw new Error(`HTTP error! status: ${response.status}`);
-  // }
-  // const data = await response.json().then(data => data);
 
   // METHOD 2
   //-------------------------------------------------------------------------------------
@@ -107,11 +93,7 @@ export async function swap(
     console.log('Sending calldatasArray')
     const simulationResult: unknown = await router?.callStatic?.execute(
       calldatasArray,
-      TokensReturn,
-      {
-        gasLimit: gasLimit,
-        gasPrice: gas,
-      }
+      TokensReturn
     )
     console.log('Simulation successful:', await simulationResult)
 
@@ -120,10 +102,7 @@ export async function swap(
       return
     }
 
-    const tx = await router.execute(calldatasArray, TokensReturn, {
-      gasLimit: gasLimit,
-      gasPrice: gas,
-    })
+    const tx = await router.execute(calldatasArray, TokensReturn)
     const txReceipt = await waitForTx(
       provider,
       await tx?.hash,

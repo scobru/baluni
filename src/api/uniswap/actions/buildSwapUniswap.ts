@@ -1,12 +1,12 @@
 import { BigNumber, Contract, Wallet, ethers } from 'ethers'
-import erc20Abi from '../../abis/common/ERC20.json'
 import { PROTOCOLS, INFRA } from '../../constants'
 import env from 'dotenv'
 import { getAdjAmount, route } from '../../utils/uniswap/bestQuote'
 import { TradeType } from '@uniswap/sdk'
-import routerAbi from '../../abis/infra/Router.json'
-import factoryAbi from '../../abis/infra/Factory.json'
-import registryAbi from '../../abis/infra/Registry.json'
+import erc20Abi from 'baluni-contracts/abis/common/ERC20.json'
+import routerAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
+import factoryAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1AgentFactory.sol/BaluniV1AgentFactory.json'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 
 env.config()
 
@@ -34,14 +34,14 @@ export async function buildSwapUniswap(
 
   const registry = new Contract(
     INFRA[swaps[0].chainId].REGISTRY,
-    registryAbi,
+    registryAbi.abi,
     wallet
   )
 
   const infraRouter = await registry.getBaluniRouter()
   const agentFactory = await registry.getBaluniAgentFactory()
 
-  const InfraRouterContract = new Contract(infraRouter, routerAbi, wallet)
+  const InfraRouterContract = new Contract(infraRouter, routerAbi.abi, wallet)
   const uniRouter = String(protocol.ROUTER)
 
   const Approvals = []
@@ -59,7 +59,7 @@ export async function buildSwapUniswap(
   )
 
   if (agentAddress === ethers.constants.AddressZero) {
-    const factoryCtx = new Contract(agentFactory, factoryAbi, wallet)
+    const factoryCtx = new Contract(agentFactory, factoryAbi.abi, wallet)
     const tx = await factoryCtx.getOrCreateAgent(wallet.address)
     tx.wait()
     agentAddress = await InfraRouterContract?.getAgentAddress(swaps[0].address)

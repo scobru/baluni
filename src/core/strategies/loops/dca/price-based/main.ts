@@ -19,6 +19,7 @@ const offChainOracleAddress = '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8' // Po
 let transactionHistory: { buyPrice: number; amount: BigNumber }[] = []
 let startPrice: number | null = null
 let lastPriceStep: number | null = null
+const priceThresholdPercentage = 0.05 // Define the percentage threshold (e.g., 5%)
 
 // 🔍 Function to get the initial price
 const getInitialPrice = async () => {
@@ -225,6 +226,14 @@ const executeDCA = async () => {
     toTokenMetadata,
     CurrentETHPrice
   )
+
+  // Check if the current price exceeds the threshold percentage compared to the start price
+  if (CurrentETHPrice > startPrice! * (1 + priceThresholdPercentage)) {
+    startPrice = CurrentETHPrice
+    console.log(
+      `🔄 Start price updated to ${startPrice} due to significant increase`
+    )
+  }
 }
 
 // 🧮 Function to calculate profit
@@ -322,7 +331,7 @@ const mainLoop = async () => {
   while (shouldContinue) {
     await executeDCA()
     console.log('⏳ Waiting for the next interval...')
-    await sleep(3600000) // ⏲️ Wait for 1 hour (3600000 milliseconds)
+    await sleep(60000) // ⏲️ Wait for 1 hour (3600000 milliseconds)
   }
 }
 

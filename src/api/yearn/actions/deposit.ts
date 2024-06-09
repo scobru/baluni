@@ -1,9 +1,9 @@
 import YEARN_VAULT_ABI from '../../abis/yearn/YearnVault.json'
-import ERC20ABI from '../../abis/common/ERC20.json'
+import ERC20ABI from 'baluni-contracts/abis/common/ERC20.json'
 import { BigNumber, Contract, ethers } from 'ethers'
 import { INFRA, NETWORKS } from '../../constants'
-import routerAbi from '../../abis/infra/Router.json'
-import registryAbi from '../../abis/infra/Registry.json'
+import routerAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 
 export async function depositToYearn(
   wallet: ethers.Wallet,
@@ -18,12 +18,16 @@ export async function depositToYearn(
     const vault = new ethers.Contract(pool, YEARN_VAULT_ABI, wallet)
 
     const tokenBalance = await token.balanceOf(receiver)
-    const registry = new Contract(INFRA[chainId].REGISTRY, registryAbi, wallet)
+    const registry = new Contract(
+      INFRA[chainId].REGISTRY,
+      registryAbi.abi,
+      wallet
+    )
     const infraRouter = await registry.getBaluniRouter()
 
     const InfraRouterContract = new ethers.Contract(
       infraRouter,
-      routerAbi,
+      routerAbi.abi,
       wallet
     )
     const agentAddress = await InfraRouterContract?.getAgentAddress(receiver)
@@ -159,7 +163,7 @@ export async function depositToYearnBatched(
     const infraRouter = String(INFRA[chainId].ROUTER)
     const InfraRouterContract = new ethers.Contract(
       infraRouter,
-      routerAbi,
+      routerAbi.abi,
       wallet
     )
     const agentAddress = await InfraRouterContract?.getAgentAddress(receiver)
