@@ -10,7 +10,6 @@ import deployedContracts from 'baluni-contracts/deployments/deployedContracts.js
 // TESTING
 // import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
 // import { INFRA } from '../../../../baluni-api/dist/constants'
-import { BaluniV1Registry } from '../../../../../baluni-contracts/typechain-types/contracts/registry/BaluniV1Registry'
 
 export async function batchSwap(
   swaps: Array<{
