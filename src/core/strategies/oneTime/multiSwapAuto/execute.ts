@@ -1,6 +1,6 @@
 import { BigNumber, Contract } from 'ethers'
 import { DexWallet } from '../../../utils/web3/dexWallet'
-import { swap } from '../../../common/uniswap/swap'
+import { batchSwap } from '../../../common/uniswap/batchSwap'
 import { formatEther } from 'ethers/lib/utils'
 import { loadPrettyConsole } from '../../../utils/prettyConsole'
 import { getTokenAddressUniV3 } from '../../../utils/getTokenAddress'
@@ -46,16 +46,18 @@ export async function invest(
         pc.log('Selling', token)
         const balanceString =
           token.decimals == 6 ? tokenBalance.div(1e6) : tokenBalance.div(1e18)
-        await swap(
-          dexWallet,
-          token,
-          'USDC.E',
-          false,
-          protocol,
-          chainId,
-          String(balanceString),
-          slippage
-        )
+        await batchSwap([
+          {
+            dexWallet,
+            token0: token,
+            token1: 'USDC.E',
+            reverse: false,
+            protocol,
+            chainId,
+            amount: String(balanceString),
+            slippage,
+          },
+        ])
         await new Promise(resolve => setTimeout(resolve, 10000))
       } else {
         pc.log('No Balance for', token)
@@ -77,16 +79,18 @@ export async function invest(
       //await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
       const balanceString = tokenAmount.div(1e6)
 
-      await swap(
-        dexWallet,
-        token,
-        'USDC.E',
-        true,
-        protocol,
-        chainId,
-        String(balanceString),
-        slippage
-      )
+      await batchSwap([
+        {
+          dexWallet,
+          token0: token,
+          token1: 'USDC.E',
+          reverse: true,
+          protocol,
+          chainId,
+          amount: String(balanceString),
+          slippage,
+        },
+      ])
       await new Promise(resolve => setTimeout(resolve, 10000))
     }
   }

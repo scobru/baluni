@@ -7,6 +7,8 @@ import erc20Abi from 'baluni-contracts/abis/common/ERC20.json'
 import routerAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
 import factoryAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1AgentFactory.sol/BaluniV1AgentFactory.json'
 import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
+import { waitForTx } from '../../../core/utils/web3/networkUtils'
+import deployedContracts from 'baluni-contracts/deployments/deployedContracts.json'
 
 env.config()
 
@@ -28,41 +30,61 @@ export async function buildSwapUniswap(
   console.log('Building Batch Swap tx')
 
   const wallet = swaps[0].wallet
-  const walletAddress = swaps[0].address
-
-  const protocol = PROTOCOLS[swaps[0].chainId][swaps[0].protocol]
+  const walletAddress = await swaps[0].wallet.getAddress()
 
   const registry = new Contract(
-    INFRA[swaps[0].chainId].REGISTRY,
+    deployedContracts[swaps[0].chainId].BaluniV1Registry,
     registryAbi.abi,
     wallet
   )
 
   const infraRouter = await registry.getBaluniRouter()
   const agentFactory = await registry.getBaluniAgentFactory()
-
   const InfraRouterContract = new Contract(infraRouter, routerAbi.abi, wallet)
-  const uniRouter = String(protocol.ROUTER)
+  const uniRouter = await registry.getUniswapRouter()
 
   const Approvals = []
   const ApprovalsAgent = []
   const Calldatas = []
-
   let TokensReturn = []
 
   if (debug) console.log('::API::UNISWAP::ROUTER', infraRouter)
   if (debug) console.log('::API::UNISWAP::UNIROUTER', uniRouter)
+  if (debug) console.log('::API::UNISWAP::WALLET ADDRESS', walletAddress)
 
   const tokensSet = new Set()
-  let agentAddress = await InfraRouterContract?.getAgentAddress(
-    swaps[0].address
-  )
+  let agentAddress = await InfraRouterContract?.getAgentAddress(walletAddress)
 
-  if (agentAddress === ethers.constants.AddressZero) {
+  if (agentAddress == ethers.constants.AddressZero) {
+    if (debug) console.log('::API::CREATE AGENT')
     const factoryCtx = new Contract(agentFactory, factoryAbi.abi, wallet)
-    const tx = await factoryCtx.getOrCreateAgent(wallet.address)
-    tx.wait()
-    agentAddress = await InfraRouterContract?.getAgentAddress(swaps[0].address)
+    if (debug) console.log('::API::CREATE AGENT SIMULATION')
+    const txSimulate = await factoryCtx.callStatic.getOrCreateAgent(
+      walletAddress,
+     
+    )
+
+    if (!txSimulate) {
+      return {
+        Approvals,
+        ApprovalsAgent,
+        Calldatas,
+        TokensReturn,
+      }
+    }
+    if (debug) console.log('::API::CREATE AGENT EXECUTION')
+    const tx = await factoryCtx.getOrCreateAgent(walletAddress)
+    await waitForTx(wallet.provider, tx.hash, walletAddress)
+    agentAddress = await InfraRouterContract?.getAgentAddress(walletAddress)
+  }
+
+  if (agentAddress == ethers.constants.AddressZero) {
+    return {
+      Approvals,
+      ApprovalsAgent,
+      Calldatas,
+      TokensReturn,
+    }
   }
 
   for (const swap of swaps) {
@@ -120,35 +142,6 @@ export async function buildSwapUniswap(
       if (debug) console.log('::API::UNISWAP::FOUND_ALLOWANCE_SENDER_AGENT')
     }
 
-    // Check allowance Router to UniRouter
-    // ----------------------------------------------------------------------------
-    // ----------------------------------------------------------------------------
-
-    // const allowanceAgentToUniRouter = await tokenAContract?.allowance(
-    //   agentAddress,
-    //   uniRouter
-    // )
-
-    // if (adjAmount.gt(allowanceAgentToUniRouter)) {
-    //   if (debug) console.log('::API::UNISWAP::MISSING_ALLOWANCE_AGENT_UNISWAP')
-
-    //   const calldataApproveAgentToRouter =
-    //     tokenAContract.interface.encodeFunctionData('approve', [
-    //       uniRouter,
-    //       ethers.constants.MaxUint256,
-    //     ])
-
-    //   const approvalAgentToRouter = {
-    //     to: tokenAAddress,
-    //     value: 0,
-    //     data: calldataApproveAgentToRouter,
-    //   }
-
-    //   ApprovalsAgent.push(approvalAgentToRouter)
-    // } else {
-    //   if (debug) console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNISWAP')
-    // }
-
     // Transfer tokens from Sender to Agent
     // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
@@ -195,6 +188,8 @@ export async function buildSwapUniswap(
       name: await tokenAContract.name(),
     }
 
+    console.log(currency, currencyAmount)
+
     const bestRoute = await route({
       chainId: Number(137),
       recipient: agentAddress,
@@ -204,6 +199,8 @@ export async function buildSwapUniswap(
       currency: currency,
       slippage: swaps[0].slippage,
     })
+
+    console.log(bestRoute)
 
     const swapMultiAgentToRouter = {
       to: bestRoute.methodParameters.to,
@@ -232,34 +229,7 @@ export async function buildSwapUniswap(
         data: calldataApproveAgentToRouter,
       }
 
-      Calldatas.push(approvalAgentToRouter)
-    } else {
-      if (debug)
-        console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNIVERSAL_ROUTER')
-    }
-
-    const allowanceSenderToUniversalRouter = await tokenAContract?.allowance(
-      walletAddress,
-      bestRoute.methodParameters.to
-    )
-
-    if (adjAmount.gt(allowanceSenderToUniversalRouter)) {
-      if (debug)
-        console.log('::API::UNISWAP::MISSING_ALLOWANCE_SENDER-UNIVERSAL_ROUTER')
-
-      const calldataApproveAgentToRouter =
-        tokenAContract.interface.encodeFunctionData('approve', [
-          bestRoute.methodParameters.to,
-          ethers.constants.MaxUint256,
-        ])
-
-      const approvalAgentToRouter = {
-        to: tokenAAddress,
-        value: 0,
-        data: calldataApproveAgentToRouter,
-      }
-
-      Approvals.push(approvalAgentToRouter)
+      ApprovalsAgent.push(approvalAgentToRouter)
     } else {
       if (debug)
         console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNIVERSAL_ROUTER')

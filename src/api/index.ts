@@ -4,7 +4,7 @@ import RegistryABI from 'baluni-contracts/artifacts/contracts/registry/BaluniV1R
 import OffChainOracleAbi from './abis/1inch/OffChainOracle.json'
 export { RouterABI, AgentABI, OffChainOracleAbi, RegistryABI }
 export { buildSwapOdos } from './odos'
-export { buildSwapUniswap, buildSwap } from './uniswap'
+export { buildSwapUniswap } from './uniswap'
 export {
   depositToYearn,
   depositToYearnBatched,

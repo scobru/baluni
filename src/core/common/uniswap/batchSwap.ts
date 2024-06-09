@@ -1,15 +1,16 @@
 import { Contract, ethers } from 'ethers'
 import { DexWallet } from '../../utils/web3/dexWallet'
 import { waitForTx } from '../../utils/web3/networkUtils'
-import { INFRA } from '../../../api/constants'
 import { NETWORKS, BASEURL } from '../../../api/constants'
 import { buildSwapUniswap } from '../../../api/uniswap/actions/buildSwapUniswap'
 import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 import infraRouterAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1Router.sol/BaluniV1Router.json'
+import deployedContracts from 'baluni-contracts/deployments/deployedContracts.json'
 
 // TESTING
 // import { buildSwapUniswap } from '../../../../baluni-api/dist/uniswap/actions/buildSwapUniswap'
 // import { INFRA } from '../../../../baluni-api/dist/constants'
+import { BaluniV1Registry } from '../../../../../baluni-contracts/typechain-types/contracts/registry/BaluniV1Registry'
 
 export async function batchSwap(
   swaps: Array<{
@@ -35,7 +36,7 @@ export async function batchSwap(
   const wallet = swaps[0].dexWallet.wallet
 
   const registry = new Contract(
-    INFRA[swaps[0].chainId].REGISTRY,
+    deployedContracts[swaps[0].chainId].BaluniV1Registry,
     registryAbi.abi,
     wallet
   )
@@ -108,8 +109,6 @@ export async function batchSwap(
         to: (approval as { to: string }).to,
         value: (approval as { value: number }).value,
         data: (approval as { data: any }).data,
-        gasLimit: gasLimit,
-        gasPrice: gas,
       }
 
       try {
@@ -133,12 +132,9 @@ export async function batchSwap(
     try {
       const simulationResult = await router.callStatic.execute(
         allApprovalsAgent,
-        allTokensReturn,
-        {
-          gasLimit: gasLimit,
-          gasPrice: gas,
-        }
+        allTokensReturn
       )
+
       console.log('Simulation successful:', simulationResult)
 
       if (!simulationResult) return console.error('Simulation failed')

@@ -4,9 +4,9 @@ import { NETWORKS, NATIVETOKENS } from '../../../../../api'
 import { getTokenMetadata } from '../../../../utils/getTokenMetadata'
 import { getTokenBalance } from '../../../../utils/getTokenBalance'
 import { formatUnits } from 'ethers/lib/utils.js'
-import { swap } from '../../../../common/uniswap/swap'
 import { OffChainOracleAbi } from '../../../../../api'
 import config from './config.json'
+import { batchSwap } from '../../../../common/uniswap/batchSwap'
 
 // 🏦 This script executes a Dollar Cost Averaging (DCA) strategy
 // based on price variations. It swaps a percentage of your balance
@@ -19,12 +19,13 @@ const offChainOracleAddress = '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8' // Po
 let transactionHistory: { buyPrice: number; amount: BigNumber }[] = []
 let startPrice: number | null = null
 let lastPriceStep: number | null = null
-const priceThresholdPercentage = 0.05 // Define the percentage threshold (e.g., 5%)
+const priceThresholdPercentage = 0.01 // Define the percentage threshold (e.g., 1%)
+let forceInitialInvestment = true // Flag to force initial investment
 
 // 🔍 Function to get the initial price
 const getInitialPrice = async () => {
   const dexWallet = await initializeWallet(
-    String(NETWORKS[config.SELECTED_CHAINID!])
+    String(NETWORKS[config.SELECTED_CHAINID])
   )
   const offchainOracle = new ethers.Contract(
     offChainOracleAddress,
@@ -60,7 +61,7 @@ const getInitialPrice = async () => {
 // 📈 Function to execute the DCA strategy
 const initializeDCA = async () => {
   const dexWallet = await initializeWallet(
-    String(NETWORKS[config.SELECTED_CHAINID!])
+    String(NETWORKS[config.SELECTED_CHAINID])
   )
   const offchainOracle = new ethers.Contract(
     offChainOracleAddress,
@@ -96,10 +97,16 @@ const calculateInvestment = (
   CurrentETHPrice,
   firstStep,
   secondStep,
-  thirdStep
+  thirdStep,
+  forceInitialInvestment
 ) => {
   let amountIn: BigNumber
-  if (CurrentETHPrice >= secondStep && CurrentETHPrice <= firstStep) {
+  if (forceInitialInvestment) {
+    amountIn = myBalance.balance.div(BigNumber.from(20)) // Or any initial investment logic you prefer
+    console.log(
+      `📊 Initial Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
+    )
+  } else if (CurrentETHPrice >= secondStep && CurrentETHPrice <= firstStep) {
     if (lastPriceStep !== firstStep) {
       amountIn = myBalance.balance.div(BigNumber.from(20))
       lastPriceStep = firstStep
@@ -154,16 +161,18 @@ const executeSwapAndRecordTransaction = async (
     } to ${toTokenMetadata.symbol} at price ${CurrentETHPrice}`
   )
 
-  await swap(
-    dexWallet,
-    fromTokenMetadata.symbol,
-    toTokenMetadata.symbol,
-    false,
-    config.SELECTED_PROTOCOL,
-    config.SELECTED_CHAINID,
-    formatUnits(amountIn, toTokenMetadata.decimals),
-    config.SLIPPAGE
-  )
+  await batchSwap([
+    {
+      dexWallet: dexWallet,
+      token0: fromTokenMetadata.symbol,
+      token1: toTokenMetadata.symbol,
+      reverse: false,
+      protocol: config.SELECTED_PROTOCOL,
+      chainId: config.SELECTED_CHAINID,
+      amount: formatUnits(amountIn, toTokenMetadata.decimals),
+      slippage: config.SLIPPAGE,
+    },
+  ])
 
   transactionHistory.push({
     buyPrice: CurrentETHPrice,
@@ -179,7 +188,7 @@ const executeSwapAndRecordTransaction = async (
   await checkAndSellIfProfitable()
 }
 
-const executeDCA = async () => {
+const executeDCA = async (forceInitialInvestment = false) => {
   const {
     dexWallet,
     offchainOracle,
@@ -216,7 +225,8 @@ const executeDCA = async () => {
     CurrentETHPrice,
     firstStep,
     secondStep,
-    thirdStep
+    thirdStep,
+    forceInitialInvestment
   )
 
   await executeSwapAndRecordTransaction(
@@ -239,7 +249,7 @@ const executeDCA = async () => {
 // 🧮 Function to calculate profit
 const calculateProfit = async () => {
   const dexWallet = await initializeWallet(
-    String(NETWORKS[config.SELECTED_CHAINID!])
+    String(NETWORKS[config.SELECTED_CHAINID])
   )
 
   const offchainOracle = new ethers.Contract(
@@ -275,11 +285,11 @@ const calculateProfit = async () => {
 // 🔄 Function to check and sell if profitable
 const checkAndSellIfProfitable = async () => {
   const totalProfit = await calculateProfit()
-  if (totalProfit > 0) {
+  if (totalProfit > 0.001) {
     console.log('💹 Profit detected:', totalProfit, 'Executing sell...')
 
     const dexWallet = await initializeWallet(
-      String(NETWORKS[config.SELECTED_CHAINID!])
+      String(NETWORKS[config.SELECTED_CHAINID])
     )
     const _tokenBalance = await getTokenBalance(
       dexWallet.walletProvider,
@@ -297,16 +307,18 @@ const checkAndSellIfProfitable = async () => {
       dexWallet.walletProvider
     )
 
-    await swap(
-      dexWallet,
-      fromTokenMetadata.symbol,
-      toTokenMetadata.symbol,
-      true,
-      config.SELECTED_PROTOCOL,
-      config.SELECTED_CHAINID,
-      formatUnits(_tokenBalance.balance, toTokenDecimal),
-      config.SLIPPAGE
-    )
+    await batchSwap([
+      {
+        dexWallet,
+        token0: fromTokenMetadata.symbol,
+        token1: toTokenMetadata.symbol,
+        reverse: true,
+        protocol: config.SELECTED_PROTOCOL,
+        chainId: config.SELECTED_CHAINID,
+        amount: formatUnits(_tokenBalance.balance, toTokenDecimal),
+        slippage: config.SLIPPAGE,
+      },
+    ])
 
     console.log(`🧹 Cleared transaction history after selling`)
     // 🧹 Clear the transaction history after selling
@@ -325,6 +337,7 @@ const mainLoop = async () => {
   if (startPrice === null) {
     startPrice = await getInitialPrice()
     console.log('🔍 Initial price set to', startPrice)
+    await executeDCA(true) // Perform an initial purchase
   }
 
   const shouldContinue = true

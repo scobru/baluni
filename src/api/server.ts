@@ -7,7 +7,7 @@ import {
   NETWORKS,
   TOKENS_URL,
 } from './constants'
-import { buildSwap } from './uniswap'
+import { buildSwapUniswap } from './uniswap'
 import { ethers } from 'ethers'
 import { depositToYearn, redeemFromYearn } from './yearn/vault'
 import { fetchTokenAddressByName } from './utils/uniswap/fetchToken'
@@ -207,22 +207,25 @@ app.get(
         new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
       )
 
-      const swapResult = await buildSwap(
-        wallet,
-        address,
-        tokenAAddress!,
-        tokenBAddress!,
-        Boolean(reverse),
-        'uni-v3',
-        chainId,
-        amount,
-        Number(slippage)
-      )
+      const swapResult = await buildSwapUniswap([
+        {
+          wallet,
+          address,
+          token0: tokenAAddress!,
+          token1: tokenBAddress!,
+          reverse: Boolean(reverse),
+          protocol: 'uni-v3',
+          chainId,
+          amount,
+          slippage: Number(slippage),
+        },
+      ])
 
       console.log('Swap result:', swapResult)
 
       res.json({
         Approvals: swapResult.Approvals,
+        ApprovalsAgent: swapResult.ApprovalsAgent,
         Calldatas: swapResult.Calldatas,
         TokensReturn: swapResult.TokensReturn,
       })

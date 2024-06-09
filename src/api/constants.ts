@@ -6,18 +6,20 @@ import {
   OracleConfig,
 } from './types/constants'
 
+import deployedContracts from 'baluni-contracts/deployments/deployedContracts.json'
+
 export const BASEURL = 'https://baluni-api.scobrudot.dev'
 
 export const INFRA: InfraConfig = {
   '137': {
-    ROUTER: '0x9c83FD0B44746a9247Fa784428E3F7fa751fD037',
-    REBALANCER: '0xF937Eb340340fd3A5b12B20040C9ECEd7afC597D',
-    FACTORY: '0xBef7F9CdfAca0c98B6eB84b2eefd4Cd6D3056BD9',
-    POOLREGISTRY: '0x82D45Fd07c3774b3BfF55376163E0404Bdb606b7',
-    POOLPERIPHERY: '0xFB1C414c94b8353cf7707f3574DD562A330b1e46',
-    REGISTRY: '0x07A6285533b08bC8Cb08Afd468894C7689CE0489',
-    SWAPPER: '0xD6Bc81a8286f8418FF16C8ae7C966FaA55686f09',
-    ORACLE: '0x92d88f6Fbbda97437bE528BedC4C2bE6103C39f3',
+    ROUTER: deployedContracts[137].BaluniV1Router,
+    REBALANCER: deployedContracts[137].BaluniV1Rebalance,
+    FACTORY: deployedContracts[137].BaluniV1AgentFactory,
+    POOLREGISTRY: deployedContracts[137].BaluniV1PoolRegistry,
+    POOLPERIPHERY: deployedContracts[137].BaluniV1PoolPeriphery,
+    REGISTRY: deployedContracts[137].BaluniV1Registry,
+    SWAPPER: deployedContracts[137].BaluniV1Swapper,
+    ORACLE: deployedContracts[137].BaluniV1Oracle,
   },
 }
 

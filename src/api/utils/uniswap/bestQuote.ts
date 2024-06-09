@@ -84,7 +84,7 @@ async function getAmountOut(
     return BigNumber.from(0)
   }
 }
-// Utilizza questa funzione per verificare la validità delle condizioni prima della chiamata
+
 async function isSwapPossible(
   factoryContract: Contract,
   tokenIn: string,
@@ -299,6 +299,8 @@ interface TradeRequest {
 }
 
 export async function route(tradeRequest: TradeRequest) {
+  console.log('::API::UNISWAP::ROUTE')
+
   const router = new AlphaRouter({
     chainId: tradeRequest.chainId,
     provider: new ethers.providers.JsonRpcProvider(
@@ -314,7 +316,7 @@ export async function route(tradeRequest: TradeRequest) {
 
   const formatedSlippage = tradeRequest.slippage / 100 // 5000/100 = 50
 
-  const SLIPPAGE = new Percent(formatedSlippage, 10_000) // Correct 15%
+  const SLIPPAGE = new Percent(50, 10_000) // Correct 15%
 
   const routing = router.route(
     CurrencyAmount.fromRawAmount(currencyAmount, Number(tradeRequest.amount)),
@@ -328,8 +330,8 @@ export async function route(tradeRequest: TradeRequest) {
       //deadlineOrPreviousBlockhash: Math.floor(Date.now() / 1000) + 360,
     },
     {
-      distributionPercent: 5,
-      maxSplits: 4,
+      //distributionPercent: 5,
+      //maxSplits: 3,
       protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
     }
   )
