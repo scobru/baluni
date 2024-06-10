@@ -315,7 +315,6 @@ export async function route(tradeRequest: TradeRequest) {
   const currency = parseToken(tradeRequest.currency, tradeRequest.chainId)
 
   const formatedSlippage = tradeRequest.slippage / 100 // 5000/100 = 50
-
   const SLIPPAGE = new Percent(formatedSlippage, 10_000) // Correct 15%
 
   const routing = router.route(
@@ -328,12 +327,12 @@ export async function route(tradeRequest: TradeRequest) {
       recipient: tradeRequest.recipient,
       deadline: Math.floor(Date.now() / 1000) + 360,
       //deadlineOrPreviousBlockhash: Math.floor(Date.now() / 1000) + 360,
-    }
-    /* {
-      distributionPercent: 10,
+    },
+    {
+      distributionPercent: 2,
       maxSplits: 3,
       protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
-    } */
+    }
   )
 
   return routing

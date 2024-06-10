@@ -246,6 +246,32 @@ export async function buildSwapUniswap(
         console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNIVERSAL_ROUTER')
     }
 
+    const allowanceAgentToUniversalRouter2 = await tokenAContract?.allowance(
+      uniRouter,
+      bestRoute.methodParameters.to
+    )
+
+    if (adjAmount.gt(allowanceAgentToUniversalRouter2)) {
+      if (debug)
+        console.log('::API::UNISWAP::MISSING_ALLOWANCE_AGENT_UNI_ROUTER')
+
+      const calldataApproveAgentToRouter2 =
+        tokenAContract.interface.encodeFunctionData('approve', [
+          uniRouter,
+          ethers.constants.MaxUint256,
+        ])
+
+      const approvalAgentToRouter2 = {
+        to: tokenAAddress,
+        value: 0,
+        data: calldataApproveAgentToRouter2,
+      }
+
+      ApprovalsAgent.push(approvalAgentToRouter2)
+    } else {
+      if (debug) console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNI_ROUTER')
+    }
+
     for (let i = 0; i < bestRoute.route.length; i++) {
       bestRoute.route[i].tokenPath.forEach(token =>
         tokensSet.add(token.address)
