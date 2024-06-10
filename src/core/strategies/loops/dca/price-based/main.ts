@@ -20,7 +20,7 @@ let transactionHistory: { buyPrice: number; amount: BigNumber }[] = []
 let startPrice: number | null = null
 let lastPriceStep: number | null = null
 const priceThresholdPercentage = 0.01 // Define the percentage threshold (e.g., 1%)
-const forceInitialInvestment = true // Flag to force initial investment
+let forceInitialInvestment = true // Flag to force initial investment
 
 // 🔍 Function to get the initial price
 const getInitialPrice = async () => {
@@ -91,7 +91,6 @@ const initializeDCA = async () => {
     _tokenBalance,
   }
 }
-
 const calculateInvestment = (
   myBalance,
   CurrentETHPrice,
@@ -100,44 +99,38 @@ const calculateInvestment = (
   thirdStep,
   forceInitialInvestment
 ) => {
-  let amountIn: BigNumber
+  let amountIn: Number
   if (forceInitialInvestment) {
-    amountIn = myBalance.balance.div(20) // Or any initial investment logic you prefer
-    console.log(
-      `📊 Initial Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
-    )
+    amountIn = Number(myBalance.formatted) / 20
+
+    console.log(`📊 Initial Step: Investing ${amountIn} `)
+    forceInitialInvestment = false
   } else if (CurrentETHPrice >= secondStep && CurrentETHPrice <= firstStep) {
     if (lastPriceStep !== firstStep) {
-      amountIn = myBalance.balance.div(20)
+      amountIn = Number(myBalance.formatted) / 20
       lastPriceStep = firstStep
-      console.log(
-        `📊 First Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
-      )
+      console.log(`📊 First Step: Investing ${amountIn} `)
     } else {
-      amountIn = BigNumber.from(0)
+      amountIn = 0
     }
   } else if (CurrentETHPrice >= thirdStep && CurrentETHPrice <= secondStep) {
     if (lastPriceStep !== secondStep) {
-      amountIn = myBalance.balance.div(10)
+      amountIn = Number(myBalance.formatted) / 10
       lastPriceStep = secondStep
-      console.log(
-        `📊 Second Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
-      )
+      console.log(`📊 Second Step: Investing ${amountIn} `)
     } else {
-      amountIn = BigNumber.from(0)
+      amountIn = 0
     }
   } else if (CurrentETHPrice < thirdStep) {
     if (lastPriceStep !== thirdStep) {
-      amountIn = myBalance.balance.div(5)
+      amountIn = Number(myBalance.formatted) / 5
       lastPriceStep = thirdStep
-      console.log(
-        `📊 Third Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
-      )
+      console.log(`📊 Third Step: Investing ${amountIn} `)
     } else {
-      amountIn = BigNumber.from(0)
+      amountIn = 0
     }
   } else {
-    amountIn = BigNumber.from(0)
+    amountIn = 0
   }
 
   return amountIn
@@ -150,15 +143,15 @@ const executeSwapAndRecordTransaction = async (
   toTokenMetadata,
   CurrentETHPrice
 ) => {
-  if (amountIn.eq(BigNumber.from(0))) {
+  await checkAndSellIfProfitable()
+
+  if (amountIn === 0) {
     console.log('🚫 No action required, skipping...')
     return
   }
 
   console.log(
-    `💱 Executing swap: ${formatUnits(amountIn)} ${
-      fromTokenMetadata.symbol
-    } to ${toTokenMetadata.symbol} at price ${CurrentETHPrice}`
+    `💱 Executing swap: ${amountIn} ${fromTokenMetadata.symbol} to ${toTokenMetadata.symbol} at price ${CurrentETHPrice}`
   )
 
   await batchSwap([
@@ -169,23 +162,22 @@ const executeSwapAndRecordTransaction = async (
       reverse: false,
       protocol: config.SELECTED_PROTOCOL,
       chainId: config.SELECTED_CHAINID,
-      amount: formatUnits(amountIn, toTokenMetadata.decimals),
+      amount: String(amountIn), // Ensure correct format
       slippage: config.SLIPPAGE,
     },
   ])
 
   transactionHistory.push({
     buyPrice: CurrentETHPrice,
-    amount: amountIn,
+    amount: ethers.utils.parseUnits(
+      amountIn.toString(),
+      fromTokenMetadata.decimals
+    ), // Store as BigNumber
   })
 
   console.log(
-    `📝 Transaction recorded: Bought at ${CurrentETHPrice}, Amount: ${formatUnits(
-      amountIn
-    )}`
+    `📝 Transaction recorded: Bought at ${CurrentETHPrice}, Amount: ${amountIn}`
   )
-
-  await checkAndSellIfProfitable()
 }
 
 const executeDCA = async (forceInitialInvestment = false) => {
@@ -211,9 +203,9 @@ const executeDCA = async (forceInitialInvestment = false) => {
 
   const myBalance = _tokenBalance
 
-  const firstStep = startPrice * 0.998
-  const secondStep = startPrice * 0.95
-  const thirdStep = startPrice * 0.9
+  const firstStep = startPrice! * 0.998
+  const secondStep = startPrice! * 0.95
+  const thirdStep = startPrice! * 0.9
 
   console.log(`Current Price: ${CurrentETHPrice}, Start Price: ${startPrice}`)
   console.log(
@@ -227,17 +219,6 @@ const executeDCA = async (forceInitialInvestment = false) => {
     secondStep,
     thirdStep,
     forceInitialInvestment
-  )
-
-  console.log(
-    'My Balance:',
-    formatUnits(String(myBalance.balance), fromTokenMetadata.decimals),
-    fromTokenMetadata.symbol
-  )
-  console.log(
-    'Investment Amount:',
-    formatUnits(amountIn, fromTokenMetadata.decimals),
-    fromTokenMetadata.symbol
   )
 
   await executeSwapAndRecordTransaction(
@@ -257,7 +238,6 @@ const executeDCA = async (forceInitialInvestment = false) => {
   }
 }
 
-// 🧮 Function to calculate profit
 const calculateProfit = async () => {
   const dexWallet = await initializeWallet(
     String(NETWORKS[config.SELECTED_CHAINID])
@@ -280,13 +260,16 @@ const calculateProfit = async () => {
     .catch(console.log)
 
   const currentPrice = parseFloat(ETHdata)
+  console.log(`Current ETH Price: ${currentPrice}`)
 
   let totalProfit = 0
   transactionHistory.forEach(tx => {
-    const profit =
-      (currentPrice - tx.buyPrice) *
-      parseFloat(ethers.utils.formatEther(tx.amount))
+    const amountInEther = ethers.utils.parseEther(String(tx.amount))
+    const profit = (currentPrice - tx.buyPrice) * Number(amountInEther)
     totalProfit += profit
+    console.log(
+      `Transaction: Buy Price: ${tx.buyPrice}, Amount: ${amountInEther}, Current Price: ${currentPrice}, Profit: ${profit}`
+    )
   })
 
   console.log(`💹 Calculated total profit: ${totalProfit}`)

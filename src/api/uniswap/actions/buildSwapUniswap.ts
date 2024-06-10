@@ -115,7 +115,7 @@ export async function buildSwapUniswap(
     if (debug) console.log('::API::UNISWAP::BALANCE', Number(tokenABalance))
 
     const allowanceAgent = await tokenAContract?.allowance(
-      swap.address,
+      walletAddress,
       agentAddress
     )
 
@@ -153,37 +153,9 @@ export async function buildSwapUniswap(
       if (debug) console.log('::API::UNISWAP::FOUND_ALLOWANCE_SENDER_AGENT')
     }
 
-    // Transfer tokens from Sender to Agent
-    // ----------------------------------------------------------------------------
-    // ----------------------------------------------------------------------------
-
-    const dataTransferFromSenderToAgent =
-      tokenAContract.interface.encodeFunctionData('transferFrom', [
-        swap.address,
-        agentAddress,
-        adjAmount,
-      ])
-
-    const transferFromSenderToAgent = {
-      to: tokenAAddress,
-      value: 0,
-      data: dataTransferFromSenderToAgent,
-    }
-
-    if (transferFromSenderToAgent)
-      if (debug) console.log('::API::UNISWAP::BUILD_TRANSFER_FROM_SENDER_AGENT')
-
-    Calldatas.push(transferFromSenderToAgent)
-
     // Encode Swap tx to Uni Router
     // ----------------------------------------------------------------------------
     // ----------------------------------------------------------------------------
-    // const quote = await quotePair(
-    //   tokenAAddress,
-    //   tokenBAddress,
-    //   Number(swap.chainId)
-    // );
-    // const slippageTolerance = swap.slippage;
 
     const currency = {
       address: tokenBAddress,
@@ -199,8 +171,6 @@ export async function buildSwapUniswap(
       name: await tokenAContract.name(),
     }
 
-    console.log(currency, currencyAmount)
-
     const bestRoute = await route({
       chainId: Number(137),
       recipient: agentAddress,
@@ -211,8 +181,6 @@ export async function buildSwapUniswap(
       slippage: swaps[0].slippage,
     })
 
-    console.log(bestRoute)
-
     const swapMultiAgentToRouter = {
       to: bestRoute.methodParameters.to,
       value: bestRoute.methodParameters.value,
@@ -221,7 +189,7 @@ export async function buildSwapUniswap(
 
     const allowanceAgentToUniversalRouter = await tokenAContract?.allowance(
       agentAddress,
-      bestRoute.methodParameters.to
+      uniRouter
     )
 
     if (adjAmount.gt(allowanceAgentToUniversalRouter)) {
@@ -230,7 +198,7 @@ export async function buildSwapUniswap(
 
       const calldataApproveAgentToRouter =
         tokenAContract.interface.encodeFunctionData('approve', [
-          bestRoute.methodParameters.to,
+          uniRouter,
           ethers.constants.MaxUint256,
         ])
 
@@ -240,36 +208,10 @@ export async function buildSwapUniswap(
         data: calldataApproveAgentToRouter,
       }
 
-      ApprovalsAgent.push(approvalAgentToRouter)
+      Calldatas.push(approvalAgentToRouter)
     } else {
       if (debug)
         console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNIVERSAL_ROUTER')
-    }
-
-    const allowanceAgentToUniversalRouter2 = await tokenAContract?.allowance(
-      uniRouter,
-      bestRoute.methodParameters.to
-    )
-
-    if (adjAmount.gt(allowanceAgentToUniversalRouter2)) {
-      if (debug)
-        console.log('::API::UNISWAP::MISSING_ALLOWANCE_AGENT_UNI_ROUTER')
-
-      const calldataApproveAgentToRouter2 =
-        tokenAContract.interface.encodeFunctionData('approve', [
-          uniRouter,
-          ethers.constants.MaxUint256,
-        ])
-
-      const approvalAgentToRouter2 = {
-        to: tokenAAddress,
-        value: 0,
-        data: calldataApproveAgentToRouter2,
-      }
-
-      ApprovalsAgent.push(approvalAgentToRouter2)
-    } else {
-      if (debug) console.log('::API::UNISWAP::FOUND_ALLOWANCE_AGENT_UNI_ROUTER')
     }
 
     for (let i = 0; i < bestRoute.route.length; i++) {
@@ -278,11 +220,35 @@ export async function buildSwapUniswap(
       )
     }
 
-    if (swapMultiAgentToRouter)
+    // Transfer tokens from Sender to Agent
+    // ----------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------
+
+    const dataTransferFromSenderToAgent =
+      tokenAContract.interface.encodeFunctionData('transferFrom', [
+        walletAddress,
+        agentAddress,
+        adjAmount.add(BigNumber.from(100)),
+      ])
+
+    const transferFromSenderToAgent = {
+      to: tokenAAddress,
+      value: 0,
+      data: dataTransferFromSenderToAgent,
+    }
+
+    if (transferFromSenderToAgent) {
+      if (debug) console.log('::API::UNISWAP::BUILD_TRANSFER_FROM_SENDER_AGENT')
+
+      Calldatas.push(transferFromSenderToAgent)
+    }
+
+    if (swapMultiAgentToRouter) {
       if (debug)
         console.log('::API::UNISWAP::BUILD_AGENT_EXACT_INPUT_TO_UNIROUTER')
 
-    Calldatas.push(swapMultiAgentToRouter)
+      Calldatas.push(swapMultiAgentToRouter)
+    }
   }
 
   TokensReturn = Array.from(tokensSet)

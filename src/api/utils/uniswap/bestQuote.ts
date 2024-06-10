@@ -97,7 +97,7 @@ async function isSwapPossible(
 
 async function getPoolData(poolContract, minRequiredLiquidity) {
   const slot0 = await poolContract.slot0()
-  const currentSqrtPriceX96 = slot0.sqrtPriceX96
+  //const currentSqrtPriceX96 = slot0.sqrtPriceX96
   const currentTick = slot0.tick
   const tickSpacing = await poolContract.tickSpacing()
   const desiredTickLower = currentTick - (currentTick % tickSpacing)
@@ -264,7 +264,7 @@ export async function getBestQuote(
   const tokenAContract = new Contract(tokenAAddress, erc20Abi, wallet)
   const tokenADecimals = await tokenAContract.decimals()
   const tokenBAddress = reverse ? token0 : token1
-  const adjAmount = getAdjAmount(amount, tokenADecimals)
+  const adjAmount = getAdjAmount(Number(amount).toPrecision(18), tokenADecimals)
 
   const bestQuote = await getBestQuoteForSwapPath(
     factoryContract,
@@ -301,7 +301,7 @@ interface TradeRequest {
 export async function route(tradeRequest: TradeRequest) {
   console.log('::API::UNISWAP::ROUTE')
 
-  const router = new AlphaRouter({
+  const alphaRouter = new AlphaRouter({
     chainId: tradeRequest.chainId,
     provider: new ethers.providers.JsonRpcProvider(
       NETWORKS[tradeRequest.chainId]
@@ -312,12 +312,12 @@ export async function route(tradeRequest: TradeRequest) {
     tradeRequest.currencyAmount,
     tradeRequest.chainId
   )
+
   const currency = parseToken(tradeRequest.currency, tradeRequest.chainId)
 
-  const formatedSlippage = tradeRequest.slippage / 100 // 5000/100 = 50
-  const SLIPPAGE = new Percent(formatedSlippage, 10_000) // Correct 15%
+  const SLIPPAGE = new Percent(tradeRequest.slippage, 10_000)
 
-  const routing = router.route(
+  const routing = alphaRouter.route(
     CurrencyAmount.fromRawAmount(currencyAmount, Number(tradeRequest.amount)),
     currency,
     TradeType.EXACT_INPUT,
@@ -329,8 +329,8 @@ export async function route(tradeRequest: TradeRequest) {
       //deadlineOrPreviousBlockhash: Math.floor(Date.now() / 1000) + 360,
     },
     {
-      distributionPercent: 2,
-      maxSplits: 3,
+      distributionPercent: 5,
+      maxSplits: 2,
       protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
     }
   )
