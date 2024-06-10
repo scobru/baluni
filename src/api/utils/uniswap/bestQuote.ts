@@ -328,12 +328,12 @@ export async function route(tradeRequest: TradeRequest) {
       recipient: tradeRequest.recipient,
       deadline: Math.floor(Date.now() / 1000) + 360,
       //deadlineOrPreviousBlockhash: Math.floor(Date.now() / 1000) + 360,
-    },
-    {
-      //distributionPercent: 5,
-      //maxSplits: 3,
-      protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
     }
+    /* {
+      distributionPercent: 10,
+      maxSplits: 3,
+      protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
+    } */
   )
 
   return routing

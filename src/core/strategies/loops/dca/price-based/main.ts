@@ -20,7 +20,7 @@ let transactionHistory: { buyPrice: number; amount: BigNumber }[] = []
 let startPrice: number | null = null
 let lastPriceStep: number | null = null
 const priceThresholdPercentage = 0.01 // Define the percentage threshold (e.g., 1%)
-let forceInitialInvestment = true // Flag to force initial investment
+const forceInitialInvestment = true // Flag to force initial investment
 
 // 🔍 Function to get the initial price
 const getInitialPrice = async () => {
@@ -102,13 +102,13 @@ const calculateInvestment = (
 ) => {
   let amountIn: BigNumber
   if (forceInitialInvestment) {
-    amountIn = myBalance.balance.div(BigNumber.from(20)) // Or any initial investment logic you prefer
+    amountIn = myBalance.balance.div(20) // Or any initial investment logic you prefer
     console.log(
       `📊 Initial Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
     )
   } else if (CurrentETHPrice >= secondStep && CurrentETHPrice <= firstStep) {
     if (lastPriceStep !== firstStep) {
-      amountIn = myBalance.balance.div(BigNumber.from(20))
+      amountIn = myBalance.balance.div(20)
       lastPriceStep = firstStep
       console.log(
         `📊 First Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
@@ -118,7 +118,7 @@ const calculateInvestment = (
     }
   } else if (CurrentETHPrice >= thirdStep && CurrentETHPrice <= secondStep) {
     if (lastPriceStep !== secondStep) {
-      amountIn = myBalance.balance.div(BigNumber.from(10))
+      amountIn = myBalance.balance.div(10)
       lastPriceStep = secondStep
       console.log(
         `📊 Second Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
@@ -128,7 +128,7 @@ const calculateInvestment = (
     }
   } else if (CurrentETHPrice < thirdStep) {
     if (lastPriceStep !== thirdStep) {
-      amountIn = myBalance.balance.div(BigNumber.from(5))
+      amountIn = myBalance.balance.div(5)
       lastPriceStep = thirdStep
       console.log(
         `📊 Third Step: Investing ${formatUnits(amountIn)} ${myBalance.symbol}`
@@ -211,9 +211,9 @@ const executeDCA = async (forceInitialInvestment = false) => {
 
   const myBalance = _tokenBalance
 
-  const firstStep = startPrice! * 0.998
-  const secondStep = startPrice! * 0.95
-  const thirdStep = startPrice! * 0.9
+  const firstStep = startPrice * 0.998
+  const secondStep = startPrice * 0.95
+  const thirdStep = startPrice * 0.9
 
   console.log(`Current Price: ${CurrentETHPrice}, Start Price: ${startPrice}`)
   console.log(
@@ -227,6 +227,17 @@ const executeDCA = async (forceInitialInvestment = false) => {
     secondStep,
     thirdStep,
     forceInitialInvestment
+  )
+
+  console.log(
+    'My Balance:',
+    formatUnits(String(myBalance.balance), fromTokenMetadata.decimals),
+    fromTokenMetadata.symbol
+  )
+  console.log(
+    'Investment Amount:',
+    formatUnits(amountIn, fromTokenMetadata.decimals),
+    fromTokenMetadata.symbol
   )
 
   await executeSwapAndRecordTransaction(
