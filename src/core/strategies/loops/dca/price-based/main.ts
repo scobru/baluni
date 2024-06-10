@@ -264,11 +264,14 @@ const calculateProfit = async () => {
 
   let totalProfit = 0
   transactionHistory.forEach(tx => {
-    const amountInEther = ethers.utils.parseEther(String(tx.amount))
-    const profit = (currentPrice - tx.buyPrice) * Number(amountInEther)
+    const amountInEther = String(tx.amount)
+    const profit =
+      currentPrice * Number(amountInEther) -
+      Number(ethers.utils.parseEther(String(tx.buyPrice))) *
+        Number(amountInEther)
     totalProfit += profit
     console.log(
-      `Transaction: Buy Price: ${tx.buyPrice}, Amount: ${amountInEther}, Current Price: ${currentPrice}, Profit: ${profit}`
+      `Transaction: Buy Price: ${tx.buyPrice}, Amount:  ${tx.amount}, Current Price: ${currentPrice}, Profit: ${profit}`
     )
   })
 
