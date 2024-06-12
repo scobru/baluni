@@ -154,7 +154,7 @@ const executeSwapAndRecordTransaction = async (
     `💱 Executing swap: ${amountIn} ${fromTokenMetadata.symbol} to ${toTokenMetadata.symbol} at price ${CurrentETHPrice}`
   )
 
-  await batchSwap([
+  const result = await batchSwap([
     {
       dexWallet: dexWallet,
       token0: fromTokenMetadata.symbol,
@@ -166,6 +166,8 @@ const executeSwapAndRecordTransaction = async (
       slippage: config.SLIPPAGE,
     },
   ])
+
+  if (result == null) return
 
   transactionHistory.push({
     buyPrice: CurrentETHPrice,

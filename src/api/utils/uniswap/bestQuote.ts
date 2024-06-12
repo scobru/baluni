@@ -331,7 +331,7 @@ export async function route(tradeRequest: TradeRequest) {
     {
       distributionPercent: 10,
       maxSplits: 3,
-      protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
+      protocols: [Protocol.V3 /* , Protocol.V2, Protocol.MIXED */],
     }
   )
 
