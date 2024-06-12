@@ -329,8 +329,8 @@ export async function route(tradeRequest: TradeRequest) {
       //deadlineOrPreviousBlockhash: Math.floor(Date.now() / 1000) + 360,
     },
     {
-      distributionPercent: 5,
-      maxSplits: 2,
+      distributionPercent: 10,
+      maxSplits: 3,
       protocols: [Protocol.V3, Protocol.V2, Protocol.MIXED],
     }
   )

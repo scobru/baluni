@@ -150,7 +150,9 @@ export async function buildSwapUniswap(
 
       Approvals.push(approvalToAgent)
     } else {
-      if (debug) console.log('::API::UNISWAP::FOUND_ALLOWANCE_SENDER_AGENT')
+      if (debug) {
+        console.log('::API::UNISWAP::FOUND_ALLOWANCE_SENDER_AGENT')
+      }
     }
 
     // Encode Swap tx to Uni Router

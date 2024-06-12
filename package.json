@@ -39,7 +39,7 @@
     "@tensorflow/tfjs": "^4.15.0",
     "@types/node": "^20.10.5",
     "@uniswap/permit2-sdk": "^1.2.0",
-    "@uniswap/router-sdk": "^1.9.2",
+    "@uniswap/router-sdk": "^1.7.1",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/sdk-core": "^4.0.10",
     "@uniswap/smart-order-router": "^3.34.0",
