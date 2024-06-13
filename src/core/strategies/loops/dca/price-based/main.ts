@@ -167,8 +167,6 @@ const executeSwapAndRecordTransaction = async (
     },
   ])
 
-  if (result == null) return
-
   transactionHistory.push({
     buyPrice: CurrentETHPrice,
     amount: ethers.utils.parseUnits(
