@@ -1,6 +1,6 @@
 {
   "name": "baluni",
-  "version": "2.6.4",
+  "version": "2.6.6",
   "description": "Uniswap v3 rebalance and forecast CLI tool",
   "files": [
     "dist",
@@ -42,7 +42,7 @@
     "@uniswap/router-sdk": "^1.9.2",
     "@uniswap/sdk": "^3.0.3",
     "@uniswap/sdk-core": "^4.0.10",
-    "@uniswap/smart-order-router": "^3.34.0",
+    "@uniswap/smart-order-router": "3.19.3",
     "asciichart": "^1.5.25",
     "axios": "^1.6.5",
     "baluni-contracts": "^2.7.2",
