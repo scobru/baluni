@@ -25,7 +25,7 @@ import { Percent } from '@uniswap/sdk-core'
 import { parseToken } from './utils/uniswap/parseToken'
 
 const app = express()
-const port = 3001
+const port = 3003
 
 const CONFIGURATIONS: Configurations = {
   protocols: PROTOCOLS,
