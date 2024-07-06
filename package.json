@@ -1,6 +1,6 @@
 {
   "name": "baluni",
-  "version": "2.6.6",
+  "version": "2.7.0",
   "description": "Uniswap v3 rebalance and forecast CLI tool",
   "files": [
     "dist",
@@ -9,8 +9,8 @@
   "scripts": {
     "ts-node": "ts-node",
     "build": "npx tsc",
-    "rebalance": "npx ts-node src/core/strategies/rebalance/main.ts",
-    "rebalanceV2": "npx ts-node src/core/strategies/rebalanceV2/main.ts",
+    "rebalance:uniswap": "npx ts-node src/core/strategies/rebalance/main.ts",
+    "rebalance:odos": "npx ts-node src/core/strategies/rebalanceOdos/main.ts",
     "format": "npx prettier --write . --ignore-path .gitignore",
     "check-types": "tsc --noEmit --incremental",
     "dev": "tsc --watch",
@@ -45,7 +45,7 @@
     "@uniswap/smart-order-router": "3.19.3",
     "asciichart": "^1.5.25",
     "axios": "^1.6.5",
-    "baluni-contracts": "^2.7.2",
+    "baluni-contracts": "^2.9.1",
     "bignumber.js": "^9.1.2",
     "chakl": "^0.0.1-security",
     "cli-chart": "^0.3.1",

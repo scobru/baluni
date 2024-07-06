@@ -12,25 +12,15 @@ import routerAbi from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV
 import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 import yearnVaultAbi from '../../../../api/abis/yearn/YearnVault.json'
 import erc20Abi from '../../../../api/abis/common/ERC20.json'
-
 import { TDeposit, TRedeem } from '../../../types/yearn'
 import { Tswap } from '../../../types/uniswap'
 import * as blocks from '../../../utils/logBlocks'
-
 import { INFRA } from '../../../../api'
 import {
   depositToYearnBatched,
   redeemFromYearnBatched,
   getVaultAsset,
 } from '../../../../api'
-
-// TESTING
-// import { INFRA } from '../../../../baluni-api/dist/constants'
-// import {
-//   depositToYearnBatched,
-//   redeemFromYearnBatched,
-//   getVaultAsset,
-// } from '../../../../baluni-api/dist'
 
 export async function getTokenValueEnhanced(
   tokenSymbol: string,
@@ -44,13 +34,13 @@ export async function getTokenValueEnhanced(
   return tokenSymbol === 'USDC.E' || tokenSymbol === 'USDC'
     ? maxRedeem.mul(1e12)
     : await getTokenValue(
-        tokenSymbol,
-        token,
-        maxRedeem,
-        decimals,
-        usdcAddress,
-        chainId!
-      )
+      tokenSymbol,
+      token,
+      maxRedeem,
+      decimals,
+      usdcAddress,
+      chainId!
+    )
 }
 
 export async function rebalancePortfolio(
@@ -97,7 +87,6 @@ export async function rebalancePortfolio(
   // --------------------------------------------------------------------------------
   // --------------------------------------------------------------------------------
   blocks.print1block()
-
   console.log('📊 Calculate Total Portfolio Value')
 
   for (const token of desiredTokens) {
@@ -226,7 +215,6 @@ export async function rebalancePortfolio(
     console.log(
       `⚖️  Value to Rebalance (USD): ${formatEther(valueToRebalance)}`
     )
-
     console.log(`👛 Balance: ${formattedBalance} ${tokenSymbol}`)
     console.groupEnd()
 
@@ -560,16 +548,7 @@ export async function rebalancePortfolio(
     console.log(e)
   }
 
-  //  const swapsArray = swapsSell.concat(swapsBuy);
 
-  // if (swapsArray.length !== 0) {
-  //   try {
-  //     console.log("🔄 Swaps");
-  //     await batchSwap(swapsArray);
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // }
 
   if (swapsSell.length !== 0) {
     try {
@@ -588,15 +567,6 @@ export async function rebalancePortfolio(
       console.log(e)
     }
   }
-
-  // if (swapsSell.length !== 0 || swapsBuy.length !== 0) {
-  //   try {
-  //     console.log('🔄 Swaps')
-  //     await batchSwap(swapsSell.concat(swapsBuy))
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }
 
   // Deposit to Yearn Vaults
   // --------------------------------------------------------------------------------

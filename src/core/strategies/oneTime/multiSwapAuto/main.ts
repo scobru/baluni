@@ -3,17 +3,12 @@ import { invest } from './execute'
 import { USDC, NETWORKS } from '../../../../api'
 
 // CONFIGURE INVESTMENT HERE --------------------------------------------------------------
-// ----------------------------------------------------------------------------------------
-
 const chainId = 137
 const slippage = 100
-
 const protocol = 'uni-v3'
 const usdc = USDC[chainId]
-
 const sellAll = true
 const amountToInvest = '1000' // Amount to invest in USDC
-
 const TOKENS = [
   'LINK',
   'WETH',
@@ -26,7 +21,6 @@ const TOKENS = [
   'GRT',
   'USDC.E',
 ]
-
 const WEIGHTS = {
   LINK: 500,
   WETH: 1000,
@@ -39,14 +33,11 @@ const WEIGHTS = {
   GRT: 500,
   'USDC.E': 250,
 }
-
 // END CONFIGURATION -----------------------------------------------------------------
-//------------------------------------------------------------------------------------
 
 async function investor() {
   try {
     const dexWallet = await initializeWallet(String(NETWORKS[chainId]))
-
     await invest(
       dexWallet,
       WEIGHTS,

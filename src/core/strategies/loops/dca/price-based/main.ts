@@ -1,6 +1,6 @@
 import { ethers, BigNumber } from 'ethers'
 import { initializeWallet } from '../../../../utils/web3/dexWallet'
-import { NETWORKS, NATIVETOKENS } from '../../../../../api'
+import { NETWORKS, NATIVETOKENS, ORACLE } from '../../../../../api'
 import { getTokenMetadata } from '../../../../utils/getTokenMetadata'
 import { getTokenBalance } from '../../../../utils/getTokenBalance'
 import { formatUnits } from 'ethers/lib/utils.js'
@@ -13,38 +13,33 @@ import { batchSwap } from '../../../../common/uniswap/batchSwap'
 // from the native token of the selected chain to the selected token address.
 // The percentage is determined based on price movements.
 
-const offChainOracleAddress = '0x0AdDd25a91563696D8567Df78D5A01C9a991F9B8' // Polygon
-
-// In-memory storage for tracking profits
 let transactionHistory: { buyPrice: number; amount: BigNumber }[] = []
 let startPrice: number | null = null
 let lastPriceStep: number | null = null
-const priceThresholdPercentage = 0.01 // Define the percentage threshold (e.g., 1%)
-let forceInitialInvestment = true // Flag to force initial investment
 
-// 🔍 Function to get the initial price
+const priceThresholdPercentage = 0.01 // Define the percentage threshold (e.g., 1%)
+
 const getInitialPrice = async () => {
   const dexWallet = await initializeWallet(
     String(NETWORKS[config.SELECTED_CHAINID])
   )
+  const offChainOracleAddress = ORACLE[config.SELECTED_CHAINID]["1inch-spot-agg"].OFFCHAINORACLE
+
   const offchainOracle = new ethers.Contract(
     offChainOracleAddress,
     OffChainOracleAbi,
     dexWallet.walletProvider
   )
-
   const fromTokenMetadata = await getTokenMetadata(
     config?.FROMADDRESS,
     dexWallet.walletProvider
   )
   const fromTokenDecimal = fromTokenMetadata.decimals
-
   const toTokenMetadata = await getTokenMetadata(
     config.TOADDRESS,
     dexWallet.walletProvider
   )
   const toTokenDecimal = toTokenMetadata.decimals
-
   const ETHdata = await offchainOracle
     .getRate(config?.FROMADDRESS, config.TOADDRESS, true)
     .then(rate => {
@@ -63,6 +58,8 @@ const initializeDCA = async () => {
   const dexWallet = await initializeWallet(
     String(NETWORKS[config.SELECTED_CHAINID])
   )
+  const offChainOracleAddress = ORACLE[config.SELECTED_CHAINID]["1inch-spot-agg"].OFFCHAINORACLE
+
   const offchainOracle = new ethers.Contract(
     offChainOracleAddress,
     OffChainOracleAbi,
@@ -102,7 +99,6 @@ const calculateInvestment = (
   let amountIn: Number
   if (forceInitialInvestment) {
     amountIn = Number(myBalance.formatted) / 20
-
     console.log(`📊 Initial Step: Investing ${amountIn} `)
     forceInitialInvestment = false
   } else if (CurrentETHPrice >= secondStep && CurrentETHPrice <= firstStep) {
@@ -188,7 +184,6 @@ const executeDCA = async (forceInitialInvestment = false) => {
     toTokenMetadata,
     _tokenBalance,
   } = await initializeDCA()
-
   const ETHdata = await offchainOracle
     .getRate(config?.FROMADDRESS, config.TOADDRESS, true)
     .then(rate => {
@@ -200,9 +195,7 @@ const executeDCA = async (forceInitialInvestment = false) => {
     .catch(console.log)
 
   const CurrentETHPrice = parseFloat(ETHdata)
-
   const myBalance = _tokenBalance
-
   const firstStep = startPrice! * 0.998
   const secondStep = startPrice! * 0.95
   const thirdStep = startPrice! * 0.9
@@ -229,7 +222,6 @@ const executeDCA = async (forceInitialInvestment = false) => {
     CurrentETHPrice
   )
 
-  // Check if the current price exceeds the threshold percentage compared to the start price
   if (CurrentETHPrice > startPrice! * (1 + priceThresholdPercentage)) {
     startPrice = CurrentETHPrice
     console.log(
@@ -242,13 +234,13 @@ const calculateProfit = async () => {
   const dexWallet = await initializeWallet(
     String(NETWORKS[config.SELECTED_CHAINID])
   )
+  const offChainOracleAddress = ORACLE[config.SELECTED_CHAINID]["1inch-spot-agg"].OFFCHAINORACLE
 
   const offchainOracle = new ethers.Contract(
     offChainOracleAddress,
     OffChainOracleAbi,
     dexWallet.walletProvider
   )
-
   const ETHdata = await offchainOracle
     .getRateToEth(config.TOADDRESS, true)
     .then(rate => {
@@ -268,7 +260,7 @@ const calculateProfit = async () => {
     const profit =
       currentPrice * Number(amountInEther) -
       Number(ethers.utils.parseEther(String(tx.buyPrice))) *
-        Number(amountInEther)
+      Number(amountInEther)
     totalProfit += profit
     console.log(
       `Transaction: Buy Price: ${tx.buyPrice}, Amount:  ${tx.amount}, Current Price: ${currentPrice}, Profit: ${profit}`
@@ -284,7 +276,6 @@ const checkAndSellIfProfitable = async () => {
   const totalProfit = await calculateProfit()
   if (totalProfit > 0.001) {
     console.log('💹 Profit detected:', totalProfit, 'Executing sell...')
-
     const dexWallet = await initializeWallet(
       String(NETWORKS[config.SELECTED_CHAINID])
     )
@@ -298,7 +289,6 @@ const checkAndSellIfProfitable = async () => {
       dexWallet.walletProvider
     )
     const toTokenDecimal = toTokenMetadata.decimals
-
     const fromTokenMetadata = await getTokenMetadata(
       NATIVETOKENS[config?.SELECTED_CHAINID].WRAPPED,
       dexWallet.walletProvider
@@ -323,13 +313,9 @@ const checkAndSellIfProfitable = async () => {
     lastPriceStep = null // Reset the last price step after selling
   }
 }
-
-// 🕒 Start the main loop
 async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
-
-// 🔄 Main loop
 const mainLoop = async () => {
   if (startPrice === null) {
     startPrice = await getInitialPrice()

@@ -1645,10 +1645,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
-baluni-contracts@^2.7.2:
-  version "2.7.2"
-  resolved "https://registry.yarnpkg.com/baluni-contracts/-/baluni-contracts-2.7.2.tgz#591757556b72e98bd266e309a309fd3423e516b7"
-  integrity sha512-uM0xcTo6P60ZrCwEaei0STZvZOxbidQph6zlZvBch73LEM5gz46kZGmLcb37kOrGt5Fk8mU/sWlMGonQ6/qZ8A==
+baluni-contracts@^2.9.1:
+  version "2.9.1"
+  resolved "https://registry.yarnpkg.com/baluni-contracts/-/baluni-contracts-2.9.1.tgz#fee73077963b475913f08e9ca3f8d45feed202ca"
+  integrity sha512-C+DgaJ7C+xDjYzmt93rgE8D5qq/NvXP6oS5aHXMq6OJ+yTKfZztOouR/WsMlaU1c7h9SpytBChEfDhKwElOAdw==
   dependencies:
     "@chainlink/contracts" "^0.8.0"
     "@openzeppelin/contracts" "^5.0.2"

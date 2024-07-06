@@ -4,7 +4,6 @@ import { predict } from '../../../features/ml/predict'
 import { welcomeMessage } from '../../../welcome'
 import { formatConfig } from '../../../utils/formatConfig'
 import * as blocks from '../../../utils/logBlocks'
-
 import { NETWORKS, USDC } from '../../../../api'
 import _config from './config.json'
 import { TConfigReturn } from '../../../types/config'
@@ -19,9 +18,7 @@ export async function executeRebalanceV2(
   log: boolean,
   pk?: string
 ) {
-  // Log the initiation of portfolio checking
   blocks.print1starry()
-
   console.log('Checking portfolio')
 
   // Initialize the wallet with the first Polygon network node
@@ -29,16 +26,13 @@ export async function executeRebalanceV2(
     NETWORKS[config?.SELECTED_CHAINID],
     pk
   )
-  // Set the default weight
   let selectedWeights = config?.WEIGHTS_UP
-  // Import required modules and functions
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { kstCross, getDetachSourceFromOHLCV } = require('trading-indicator')
 
   let kstResult
 
   if (config?.TREND_FOLLOWING) {
-    // Get input data from Binance for BTC/USDT pair with 1h interval
     const { input } = await getDetachSourceFromOHLCV(
       'binance',
       'BTC/USDT',

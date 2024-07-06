@@ -4,12 +4,8 @@ import { NETWORKS } from '../../../../api'
 
 const main = async () => {
   // CONFIGURE SWAP HERE --------------------------------------------------------------
-  // ----------------------------------------------------------------------------------
-
   const chainId = 137
-
   const dexWallet = await initializeWallet(NETWORKS[chainId])
-
   const SWAP = {
     dexWallet: dexWallet as DexWallet,
     token0: 'WBTC',
@@ -20,6 +16,8 @@ const main = async () => {
     amount: '0.01',
     slippage: 100,
   }
+  // END CONFIGURATION -----------------------------------------------------------------
+
 
   await batchSwap([
     {
@@ -35,7 +33,6 @@ const main = async () => {
   ])
 }
 
-// END CONFIGURATION -----------------------------------------------------------------
 
 main().then(() => {
   console.log('Async operation completed')

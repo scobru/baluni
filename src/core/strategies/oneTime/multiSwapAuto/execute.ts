@@ -7,7 +7,6 @@ import { getTokenAddressUniV3 } from '../../../utils/getTokenAddress'
 import erc20Abi from '../../../../api/abis/common/ERC20.json'
 
 const pc = loadPrettyConsole()
-
 export async function invest(
   dexWallet: DexWallet,
   allocations: { [token: string]: number },
@@ -30,7 +29,6 @@ export async function invest(
   }
 
   if (totalAllocation !== 10000) {
-    // Assuming allocations are in basis points (10000 = 100%)
     throw new Error('Total allocation must sum up to 100%')
   }
 
@@ -74,11 +72,8 @@ export async function invest(
     const allocationPercentage = BigNumber.from(allocations[token])
     const tokenAmount = usdBalance.mul(allocationPercentage).div(10000)
 
-    // Swap USDT for the current token based on its allocation
     if (!tokenAmount.isZero()) {
-      //await swapCustom(dexWallet, [token, usdtAddress], true, tokenAmount);
       const balanceString = tokenAmount.div(1e6)
-
       await batchSwap([
         {
           dexWallet,

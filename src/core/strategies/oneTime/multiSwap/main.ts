@@ -4,9 +4,7 @@ import { NETWORKS } from '../../../../api'
 
 const main = async () => {
   // CONFIGURE SWAPS HERE --------------------------------------------------------------
-  // -----------------------------------------------------------------------------------
   const SELECTED_CHAINID = 137
-
   const dexWallet: DexWallet = await initializeWallet(
     NETWORKS[SELECTED_CHAINID]
   )
@@ -33,7 +31,6 @@ const main = async () => {
       slippage: 100,
     },
   ]
-
   // END CONFIGURATION -----------------------------------------------------------------
 
   await batchSwap(SWAPS)

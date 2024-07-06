@@ -23,7 +23,6 @@ import {
 import { TradeType } from '@uniswap/sdk'
 import { Percent } from '@uniswap/sdk-core'
 import { parseToken } from './utils/uniswap/parseToken'
-import JSBI from 'jsbi'
 
 const app = express()
 const port = 3001
@@ -95,7 +94,7 @@ app.get('/:chainId/yearn-v3/vaults/:tokenSymbol', async (req, res) => {
     const response = await fetch(apiURL)
     const data: YearnVault[] = await response.json()
 
-    let filteredVaults = data.filter(vault => {
+    const filteredVaults = data.filter(vault => {
       const matchesSymbol =
         vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase()
       const isVersion3 =
@@ -151,18 +150,7 @@ app.get('/:chainId/yearn-v3/vaults', async (req, res) => {
 
   try {
     const response = await fetch(apiURL)
-    const data: YearnVault[] = await response.json()
-
-    res.json(
-      data.map(vault => ({
-        vaultAddress: vault.address,
-        vaultName: vault.name,
-        vaultSymbol: vault.symbol,
-        tokenAddress: vault.token.address,
-        tokenName: vault.token.name,
-        tokenSymbol: vault.token.symbol,
-      }))
-    )
+    return await response.json()
   } catch (error) {
     console.error('Failed to fetch Yearn Finance vaults:', error)
     res.status(500).json({ error: 'Failed to fetch Yearn Finance vaults.' })
