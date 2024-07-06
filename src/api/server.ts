@@ -150,10 +150,14 @@ app.get('/:chainId/yearn-v3/vaults', async (req, res) => {
 
   try {
     const response = await fetch(apiURL)
-    return await response.json()
+    const data = await response.json()
+
+    return res.json(data)
   } catch (error) {
     console.error('Failed to fetch Yearn Finance vaults:', error)
-    res.status(500).json({ error: 'Failed to fetch Yearn Finance vaults.' })
+    return res
+      .status(500)
+      .json({ error: 'Failed to fetch Yearn Finance vaults.' })
   }
 })
 
