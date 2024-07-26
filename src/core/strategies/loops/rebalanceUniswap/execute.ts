@@ -16,11 +16,9 @@ import { TDeposit, TRedeem } from '../../../types/yearn'
 import { Tswap } from '../../../types/uniswap'
 import * as blocks from '../../../utils/logBlocks'
 import { INFRA } from '../../../../api'
-import {
-  depositToYearnBatched,
-  redeemFromYearnBatched,
-  getVaultAsset,
-} from '../../../../api'
+import { DepositTokenLogic } from '../../../../api/yearn/logics/logic.deposit-token'
+import { RedeemTokenLogic } from '../../../../api/yearn/logics/logic.redeem-token'
+import { VaultStats } from '../../../../api/yearn'
 
 export async function getTokenValueEnhanced(
   tokenSymbol: string,
@@ -34,13 +32,13 @@ export async function getTokenValueEnhanced(
   return tokenSymbol === 'USDC.E' || tokenSymbol === 'USDC'
     ? maxRedeem.mul(1e12)
     : await getTokenValue(
-      tokenSymbol,
-      token,
-      maxRedeem,
-      decimals,
-      usdcAddress,
-      chainId!
-    )
+        tokenSymbol,
+        token,
+        maxRedeem,
+        decimals,
+        usdcAddress,
+        chainId!
+      )
 }
 
 export async function rebalancePortfolio(
@@ -493,18 +491,18 @@ export async function rebalancePortfolio(
   blocks.print1block()
   console.log('📡 Yearn Redeem Data')
   try {
-    const data = await redeemFromYearnBatched(yearnRedeems)
+    const redeemLogic = new RedeemTokenLogic(dexWallet.wallet)
+    const data = await redeemLogic.build(yearnRedeems)
 
-    if (data?.Approvals.length > 0) {
+    if (data?.approvals.length > 0) {
       console.log('📡 Approvals')
 
-      const approvals = data.Approvals
+      const approvals = data.approvals
 
       for (const approval of approvals) {
-        approval.gasLimit = gasLimit
-        approval.gasPrice = gas
-
-        const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+        const approvalTx = await dexWallet.wallet.sendTransaction(
+          approval as unknown
+        )
 
         const broadcaster = await waitForTx(
           dexWallet.walletProvider,
@@ -516,11 +514,11 @@ export async function rebalancePortfolio(
       }
     }
 
-    if (data?.Calldatas.length > 0) {
+    if (data?.calldatas.length > 0) {
       console.log('📡 Calldatas')
       const simulate = await router.callStatic.execute(
-        data?.Calldatas,
-        data?.TokensReturn,
+        data?.calldatas,
+        data?.outputs,
         {
           gasLimit: gasLimit,
           gasPrice: gas,
@@ -531,7 +529,7 @@ export async function rebalancePortfolio(
 
       if (!simulate) return console.log('📡 Simulation failed')
 
-      const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
+      const tx = await router.execute(data?.calldatas, data?.outputs, {
         gasLimit: gasLimit,
         gasPrice: gas,
       })
@@ -547,8 +545,6 @@ export async function rebalancePortfolio(
   } catch (e) {
     console.log(e)
   }
-
-
 
   if (swapsSell.length !== 0) {
     try {
@@ -577,14 +573,15 @@ export async function rebalancePortfolio(
   const yearnDeposits = []
 
   for (const vault of Object.values(config?.YEARN_VAULTS)) {
-    const vaultAsset = await getVaultAsset(String(vault), chainId)
-
+    const statsGetter = new VaultStats()
+    const vaultAsset = await statsGetter.getAsset(String(vault), chainId)
+    
     const assetContract = new ethers.Contract(
       vaultAsset,
       erc20Abi,
       dexWallet.wallet
     )
-
+    
     const balance = await assetContract.balanceOf(dexWallet.walletAddress)
 
     if (balance.gt(0)) {
@@ -610,18 +607,18 @@ export async function rebalancePortfolio(
   }
 
   try {
-    const data = await depositToYearnBatched(yearnDeposits)
+    const depositLogic = new DepositTokenLogic(dexWallet.wallet)
 
-    if (data?.Approvals.length > 0) {
+    const data = await depositLogic.build(yearnDeposits)
+
+    if (data?.approvals.length > 0) {
       console.log('📡 Approvals')
-      const approvals = data.Approvals
+      const approvals = data.approvals
 
       for (const approval of approvals) {
-        approval.gasLimit = gasLimit
-
-        approval.gasPrice = gas
-
-        const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+        const approvalTx = await dexWallet.wallet.sendTransaction(
+          approval as unknown
+        )
         const broadcaster = await waitForTx(
           dexWallet.walletProvider,
           approvalTx?.hash,
@@ -632,12 +629,11 @@ export async function rebalancePortfolio(
       }
     }
 
-    if (data?.Calldatas.length > 0) {
+    if (data?.calldatas.length > 0) {
       console.log('📡 Calldatas')
       const simulate = await router.callStatic.execute(
-        data?.Calldatas,
-
-        data?.TokensReturn,
+        data?.calldatas,
+        data?.outputs,
         {
           gasLimit: gasLimit,
           gasPrice: gas,
@@ -650,8 +646,8 @@ export async function rebalancePortfolio(
       if (!simulate) return console.log('📡 Simulation failed')
 
       const calldata = router.interface.encodeFunctionData('execute', [
-        data.Calldatas,
-        data.TokensReturn,
+        data?.calldatas,
+        data?.outputs,
       ])
 
       const tx = {

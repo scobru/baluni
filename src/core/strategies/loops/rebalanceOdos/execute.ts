@@ -12,14 +12,17 @@ import yearnVaultAbi from '../../../../api/abis/yearn/YearnVault.json'
 import * as blocks from '../../../utils/logBlocks'
 import { TConfigReturn } from '../../../types/config'
 import { TDeposit, TRedeem } from '../../../types/yearn'
-import {
-  depositToYearnBatched,
-  redeemFromYearnBatched,
-  getVaultAsset,
-} from '../../../../api'
+import { INFRA } from '../../../../api'
+
+import { DepositTokenLogic } from '../../../../api/yearn/logics/logic.deposit-token'
+import { RedeemTokenLogic } from '../../../../api/yearn/logics/logic.redeem-token'
+
 import { SwapTokenLogic } from '../../../../api/odos'
 import { Builder } from '../../../../api/classes/builder'
 import { QuoteParams } from '../../../../api/odos/logics/logic.swap-token'
+import registryAbi from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
+import rebalancerAbi from 'baluni-contracts/artifacts/contracts/managers/BaluniV1Rebalancer.sol/BaluniV1Rebalancer.json'
+import { VaultStats } from '../../../../api/yearn'
 
 export async function rebalancePortfolio(
   dexWallet: DexWallet,
@@ -131,6 +134,37 @@ export async function rebalancePortfolio(
   blocks.print1block()
 
   console.log('📊 Rebalance Portfolio')
+  const amountAllocaton = Object.values(desiredAllocations)
+
+  const registerAddress =
+    INFRA[dexWallet.walletProvider.network.chainId].REGISTRY
+  const registryCtx = new Contract(
+    registerAddress,
+    registryAbi.abi,
+    dexWallet.wallet
+  )
+  const baluniRebalancer = await registryCtx.baluniRebalancer()
+  const rebalancerCtx = new Contract(
+    baluniRebalancer,
+    rebalancerAbi.abi,
+    dexWallet.wallet
+  )
+
+  const rebalanceData = await rebalancerCtx.checkRebalance(
+    [],
+    desiredTokens,
+    amountAllocaton,
+    500,
+    dexWallet.walletAddress,
+    await registryCtx.USDC()
+  )
+
+  for (let i = 0; i < rebalanceData.overweightVaults.length; i++) {
+    tokensToSell.push({
+      token: desiredTokens[Number(rebalanceData.overweightVaults[i])],
+      amount: rebalanceData.overweightAmounts[i],
+    })
+  }
 
   for (const token of desiredTokens) {
     const currentAllocation = currentAllocations[token]
@@ -167,6 +201,7 @@ export async function rebalancePortfolio(
       .div(10000)
 
     const formattedBalance = formatUnits(tokenBalance, tokenDecimals)
+
     console.group(`🪙  Token: ${token}`)
     console.log(`📊 Current Allocation: ${currentAllocation}%`)
     console.log(`💰 Difference: ${difference}%`)
@@ -177,34 +212,34 @@ export async function rebalancePortfolio(
     console.log(`👛 Balance: ${formattedBalance} ${tokenSymbol}`)
     console.groupEnd()
 
-    if (difference < 0 && Math.abs(difference) > config?.LIMIT) {
-      const tokenMetadata = await getTokenMetadata(
-        token,
-        dexWallet?.walletProvider
-      )
-      const decimals = tokenMetadata.decimals
-      const _token = {
-        address: token,
-        decimals: decimals,
-      }
-      const tokenPriceInUSDT: number = await fetchPrices(
-        _token,
-        String(chainId)
-      ) // Ensure this returns a value
-      const pricePerToken = ethers.utils.parseUnits(
-        tokenPriceInUSDT!.toString(),
-        'ether'
-      )
-      const tokenAmountToSell = valueToRebalance
-        .mul(BigNumber.from(10).pow(decimals))
-        .div(pricePerToken)
-      console.log(
-        `🔴 Amount To Sell ${formatEther(tokenAmountToSell)} ${tokenSymbol}`
-      )
-      tokensToSell.push({ token, amount: tokenAmountToSell })
-    } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
-      tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) })
-    }
+    // if (difference < 0 && Math.abs(difference) > config?.LIMIT) {
+    //   const tokenMetadata = await getTokenMetadata(
+    //     token,
+    //     dexWallet?.walletProvider
+    //   )
+    //   const decimals = tokenMetadata.decimals
+    //   const _token = {
+    //     address: token,
+    //     decimals: decimals,
+    //   }
+    //   const tokenPriceInUSDT: number = await fetchPrices(
+    //     _token,
+    //     String(chainId)
+    //   ) // Ensure this returns a value
+    //   const pricePerToken = ethers.utils.parseUnits(
+    //     tokenPriceInUSDT!.toString(),
+    //     'ether'
+    //   )
+    //   const tokenAmountToSell = valueToRebalance
+    //     .mul(BigNumber.from(10).pow(decimals))
+    //     .div(pricePerToken)
+    //   console.log(
+    //     `🔴 Amount To Sell ${formatEther(tokenAmountToSell)} ${tokenSymbol}`
+    //   )
+    //   tokensToSell.push({ token, amount: tokenAmountToSell })
+    // } else if (difference > 0 && Math.abs(difference) > config?.LIMIT) {
+    //   tokensToBuy.push({ token, amount: valueToRebalance.div(1e12) })
+    // }
 
     blocks.printline()
   }
@@ -227,7 +262,9 @@ export async function rebalancePortfolio(
 
   blocks.print1block()
   console.log('🔄 Sell Tokens')
+
   const yearnRedeems = []
+
   for (const { token, amount: amountWei } of tokensToSell) {
     try {
       const tokenContract = new Contract(token, erc20Abi, dexWallet.wallet)
@@ -349,11 +386,20 @@ export async function rebalancePortfolio(
   // --------------------------------------------------------------------------------
 
   blocks.print1block()
+
   console.log('🔄 Buy Tokens')
 
   let totalAmountWei = BigNumber.from(0)
 
   const existTokenToSell = quoteRequestBody.inputTokens.length > 0
+
+  for (let i = 0; i < rebalanceData.underweightVaults.length; i++) {
+    tokensToBuy.push({
+      token: desiredTokens[Number(rebalanceData.underweightVaults[i])],
+      amount: rebalanceData.underweightAmounts[i],
+    })
+  }
+
   const existTokenToSellAndBuy =
     tokensToBuy.length > 0 && tokensToSell.length > 0
 
@@ -412,15 +458,17 @@ export async function rebalancePortfolio(
   console.log('📡 Yearn Redeem Data')
   try {
     if (existTokenToSellAndBuy) {
-      const data = await redeemFromYearnBatched(yearnRedeems)
-      if (data?.Approvals.length > 0) {
-        console.log('📡 Approvals')
-        const approvals = data.Approvals
-        for (const approval of approvals) {
-          approval.gasLimit = gasLimit
-          approval.gasPrice = gas
+      const redeemLogic = new RedeemTokenLogic(dexWallet.wallet)
 
-          const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+      const data = await redeemLogic.build(yearnRedeems)
+
+      if (data?.approvals.length > 0) {
+        console.log('📡 Approvals')
+        const approvals = data.approvals
+        for (const approval of approvals) {
+          const approvalTx = await dexWallet.wallet.sendTransaction(
+            approval as unknown
+          )
           const broadcaster = await waitForTx(
             dexWallet.walletProvider,
             approvalTx?.hash,
@@ -431,11 +479,11 @@ export async function rebalancePortfolio(
         }
       }
 
-      if (data?.Calldatas.length > 0) {
+      if (data?.calldatas.length > 0) {
         console.log('📡 Calldatas')
         const simulate = await router.callStatic.execute(
-          data?.Calldatas,
-          data?.TokensReturn,
+          data?.calldatas,
+          data?.outputs,
           {
             gasLimit: gasLimit,
             gasPrice: gas,
@@ -445,7 +493,7 @@ export async function rebalancePortfolio(
         console.log(`📡  Simulation successful:: ${simulate}`)
         if (!simulate) return console.log('📡 Simulation failed')
 
-        const tx = await router.execute(data?.Calldatas, data?.TokensReturn, {
+        const tx = await router.execute(data?.calldatas, data?.outputs, {
           gasLimit: gasLimit,
           gasPrice: gas,
         })
@@ -473,6 +521,7 @@ export async function rebalancePortfolio(
       console.log('📡 No tokens to sell or buy')
     } else {
       quoteRequestBody.userAddr = dexWallet.walletAddress
+
       const builder = new Builder(dexWallet.wallet)
       await builder.setup(chainId)
 
@@ -487,7 +536,11 @@ export async function rebalancePortfolio(
       await swap_logics.setup(chainId)
 
       const quote = await swap_logics.quote(params)
-      const data = await swap_logics.build(builder.sender,builder.agentAddress, quote)
+      const data = await swap_logics.build(
+        builder.sender,
+        builder.agentAddress,
+        quote
+      )
 
       const builderData = await builder.buildTransaction(
         data.approvals,
@@ -565,7 +618,9 @@ export async function rebalancePortfolio(
   const yearnDeposits = []
 
   for (const vault of Object.values(config?.YEARN_VAULTS)) {
-    const vaultAsset = await getVaultAsset(String(vault), chainId)
+    const statsGetter = new VaultStats()
+    const vaultAsset = await statsGetter.getAsset(String(vault), chainId)
+    
     const assetContract = new ethers.Contract(
       vaultAsset,
       erc20Abi,
@@ -595,17 +650,18 @@ export async function rebalancePortfolio(
   }
 
   try {
-    const data = await depositToYearnBatched(yearnDeposits)
+    const depositLogic = new DepositTokenLogic(dexWallet.wallet)
+    const data = await depositLogic.build(yearnDeposits)
 
-    if (data?.Approvals.length > 0) {
+    if (data?.approvals.length > 0) {
       console.log('📡 Approvals')
 
-      const approvals = data.Approvals
+      const approvals = data.approvals
 
       for (const approval of approvals) {
-        approval.gasLimit = gasLimit
-        approval.gasPrice = gas
-        const approvalTx = await dexWallet.wallet.sendTransaction(approval)
+        const approvalTx = await dexWallet.wallet.sendTransaction(
+          approval as unknown
+        )
         const broadcaster = await waitForTx(
           dexWallet.walletProvider,
           approvalTx?.hash,
@@ -616,12 +672,12 @@ export async function rebalancePortfolio(
       }
     }
 
-    if (data?.Calldatas.length > 0) {
+    if (data?.calldatas.length > 0) {
       console.log('📡 Calldatas')
 
       const simulate = await router.callStatic.execute(
-        data?.Calldatas,
-        data?.TokensReturn,
+        data?.calldatas,
+        data?.outputs,
         {
           gasLimit: gasLimit,
           gasPrice: gas,
@@ -635,8 +691,8 @@ export async function rebalancePortfolio(
       if (!simulate) return console.log('📡 Simulation failed')
 
       const calldata = router.interface.encodeFunctionData('execute', [
-        data.Calldatas,
-        data.TokensReturn,
+        data.calldatas,
+        data.outputs,
       ])
 
       const tx = {

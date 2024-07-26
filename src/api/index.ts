@@ -6,15 +6,7 @@ export { RouterABI, AgentABI, OffChainOracleAbi, RegistryABI }
 export { SwapTokenLogic } from './odos'
 export { Builder } from './classes/builder'
 export { buildSwapUniswap } from './uniswap'
-export {
-  depositToYearn,
-  depositToYearnBatched,
-  redeemFromYearn,
-  redeemFromYearnBatched,
-  accuredYearnInterest,
-  previewWithdraw,
-  getVaultAsset,
-} from './yearn/vault'
+
 
 export {
   INFRA,
