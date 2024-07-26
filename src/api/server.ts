@@ -12,7 +12,6 @@ import { ethers } from 'ethers'
 import { depositToYearn, redeemFromYearn } from './yearn/vault'
 import { fetchTokenAddressByName } from './utils/uniswap/fetchToken'
 import cors from 'cors'
-import { buildSwapOdos } from './odos'
 import bodyParser from 'body-parser'
 import { YearnVault, Configurations } from './types/constants'
 import {
@@ -379,54 +378,6 @@ app.get(
     }
   }
 )
-
-app.post('/:chainId/odos/swap', async (req, res) => {
-  const { address, inputTokens, outputTokens, slippage } = req.body
-
-  const { chainId } = req.params
-  try {
-    const inputTokensArray = inputTokens.map(
-      (token: { tokenAddress: any; amount: any }) => ({
-        tokenAddress: token.tokenAddress,
-        amount: token.amount,
-      })
-    )
-    const outputTokensArray = outputTokens.map(
-      (token: { tokenAddress: any; proportion: any }) => ({
-        tokenAddress: token.tokenAddress,
-        proportion: token.proportion,
-      })
-    )
-
-    const wallet = new ethers.Wallet(
-      process.env.PRIVATE_KEY,
-      new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
-    )
-
-    const swapResult = await buildSwapOdos(
-      wallet,
-      address,
-      chainId,
-      inputTokensArray,
-      outputTokensArray,
-      Number(slippage),
-      3844415834, // referralCode
-      false, // disableRFQs
-      true // compact
-    )
-
-    console.log('Swap result:', swapResult)
-
-    res.json({
-      Approvals: swapResult.Approvals,
-      Calldatas: swapResult.Calldatas,
-      TokensReturn: swapResult.TokensReturn,
-    })
-  } catch (error) {
-    console.error('Error during swap operation:', error)
-    res.status(500).json({ error: 'Error during swap operation' })
-  }
-})
 
 app.post('/route', (req, res) => {
   const reqBody = req.body
