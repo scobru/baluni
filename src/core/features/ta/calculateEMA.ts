@@ -44,8 +44,8 @@ const egoldenCross = async (symbol: string, config: any) => {
 }
 
 const edeathCross = async (symbol: string, config: any) => {
-  var emaFastVal
-  var emaSlowVal
+  let emaFastVal
+  let emaSlowVal
   //if (emaFastVal == undefined || emaSlowVal == undefined) {
   let emaVal = await calculateEMA(symbol, config)
   emaFastVal = emaVal.fast
