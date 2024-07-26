@@ -3,17 +3,10 @@ import AgentABI from 'baluni-contracts/artifacts/contracts/orchestators/BaluniV1
 import RegistryABI from 'baluni-contracts/artifacts/contracts/registry/BaluniV1Registry.sol/BaluniV1Registry.json'
 import OffChainOracleAbi from './abis/1inch/OffChainOracle.json'
 export { RouterABI, AgentABI, OffChainOracleAbi, RegistryABI }
-export { buildSwapOdos } from './odos'
+export { SwapTokenLogic } from './odos'
+export { Builder } from './classes/builder'
 export { buildSwapUniswap } from './uniswap'
-export {
-  depositToYearn,
-  depositToYearnBatched,
-  redeemFromYearn,
-  redeemFromYearnBatched,
-  accuredYearnInterest,
-  previewWithdraw,
-  getVaultAsset,
-} from './yearn/vault'
+
 
 export {
   INFRA,

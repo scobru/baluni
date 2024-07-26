@@ -9,10 +9,8 @@ import {
 } from './constants'
 import { buildSwapUniswap } from './uniswap'
 import { ethers } from 'ethers'
-import { depositToYearn, redeemFromYearn } from './yearn/vault'
 import { fetchTokenAddressByName } from './utils/uniswap/fetchToken'
 import cors from 'cors'
-import { buildSwapOdos } from './odos'
 import bodyParser from 'body-parser'
 import { YearnVault, Configurations } from './types/constants'
 import {
@@ -228,205 +226,157 @@ app.get(
   }
 )
 
-app.get(
-  '/:chainId/yearn-v3/deposit/:tokenSymbol/:strategy/:boosted/:amount/:receiver/',
-  async (req, res) => {
-    try {
-      const { tokenSymbol, strategy, amount, receiver, chainId, boosted } =
-        req.params
+// app.get(
+//   '/:chainId/yearn-v3/deposit/:tokenSymbol/:strategy/:boosted/:amount/:receiver/',
+//   async (req, res) => {
+//     try {
+//       const { tokenSymbol, strategy, amount, receiver, chainId, boosted } =
+//         req.params
 
-      // Ora `config` è del tipo corretto
-      const filteredVaults = await fetchYearnVaultsData(Number(chainId))
+//       // Ora `config` è del tipo corretto
+//       const filteredVaults = await fetchYearnVaultsData(Number(chainId))
 
-      filteredVaults
-        .filter(vault => {
-          const matchesSymbol =
-            vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase()
-          const isVersion3 =
-            vault.version?.startsWith('3.0') ||
-            vault.name.includes('3.0') ||
-            vault.symbol.includes('3.0')
-          let matchesStrategyType = true
-          let matchesBoosted = true
+//       filteredVaults
+//         .filter(vault => {
+//           const matchesSymbol =
+//             vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase()
+//           const isVersion3 =
+//             vault.version?.startsWith('3.0') ||
+//             vault.name.includes('3.0') ||
+//             vault.symbol.includes('3.0')
+//           let matchesStrategyType = true
+//           let matchesBoosted = true
 
-          if (strategy === 'multi') {
-            matchesStrategyType = vault.kind === 'Multi Strategy'
-          } else if (strategy === 'single') {
-            matchesStrategyType = vault.kind !== 'Multi Strategy'
-          }
+//           if (strategy === 'multi') {
+//             matchesStrategyType = vault.kind === 'Multi Strategy'
+//           } else if (strategy === 'single') {
+//             matchesStrategyType = vault.kind !== 'Multi Strategy'
+//           }
 
-          if (boosted === 'true') {
-            matchesBoosted = vault.boosted === true
-          }
+//           if (boosted === 'true') {
+//             matchesBoosted = vault.boosted === true
+//           }
 
-          return (
-            matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted
-          )
-        })
-        .map(vault => vault.address)
+//           return (
+//             matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted
+//           )
+//         })
+//         .map(vault => vault.address)
 
-      const vaultAddress = filteredVaults[0]
-      const tokenAddress = await fetchTokenAddressByName(
-        tokenSymbol,
-        Number(chainId)
-      )
+//       const vaultAddress = filteredVaults[0]
+//       const tokenAddress = await fetchTokenAddressByName(
+//         tokenSymbol,
+//         Number(chainId)
+//       )
 
-      const walletInstance = new ethers.Wallet(
-        process.env.PRIVATE_KEY,
-        new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
-      )
+//       const walletInstance = new ethers.Wallet(
+//         process.env.PRIVATE_KEY,
+//         new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
+//       )
 
-      let adjAmount: ethers.BigNumber
+//       let adjAmount: ethers.BigNumber
 
-      if (
-        tokenSymbol === 'USDC' ||
-        tokenSymbol === 'USDT' ||
-        tokenSymbol === 'USDC.E'
-      ) {
-        adjAmount = ethers.utils.parseUnits(amount, 6)
-      } else if (tokenSymbol === 'WBTC') {
-        adjAmount = ethers.utils.parseUnits(amount, 8)
-      } else {
-        adjAmount = ethers.utils.parseUnits(amount, 18)
-      }
+//       if (
+//         tokenSymbol === 'USDC' ||
+//         tokenSymbol === 'USDT' ||
+//         tokenSymbol === 'USDC.E'
+//       ) {
+//         adjAmount = ethers.utils.parseUnits(amount, 6)
+//       } else if (tokenSymbol === 'WBTC') {
+//         adjAmount = ethers.utils.parseUnits(amount, 8)
+//       } else {
+//         adjAmount = ethers.utils.parseUnits(amount, 18)
+//       }
 
-      const result = await depositToYearn(
-        walletInstance,
-        tokenAddress,
-        vaultAddress.address,
-        adjAmount,
-        receiver,
-        chainId
-      )
+//       const result = await depositToYearn(
+//         walletInstance,
+//         tokenAddress,
+//         vaultAddress.address,
+//         adjAmount,
+//         receiver,
+//         chainId
+//       )
 
-      res.json(result)
-    } catch (error) {
-      console.error(error)
-      res.status(500).json({ error: error.toString() })
-    }
-  }
-)
+//       res.json(result)
+//     } catch (error) {
+//       console.error(error)
+//       res.status(500).json({ error: error.toString() })
+//     }
+//   }
+// )
 
-app.get(
-  ':chainId/yearn-v3/redeem/:tokenSymbol/:strategy/:boosted/:amount/:receiver/',
-  async (req, res) => {
-    try {
-      const { tokenSymbol, strategy, amount, receiver, chainId, boosted } =
-        req.params
+// app.get(
+//   ':chainId/yearn-v3/redeem/:tokenSymbol/:strategy/:boosted/:amount/:receiver/',
+//   async (req, res) => {
+//     try {
+//       const { tokenSymbol, strategy, amount, receiver, chainId, boosted } =
+//         req.params
 
-      let adjAmount: ethers.BigNumber
+//       let adjAmount: ethers.BigNumber
 
-      if (
-        tokenSymbol === 'USDC' ||
-        tokenSymbol === 'USDT' ||
-        tokenSymbol === 'USDC.E'
-      ) {
-        adjAmount = ethers.utils.parseUnits(amount, 6)
-      } else if (tokenSymbol === 'WBTC') {
-        adjAmount = ethers.utils.parseUnits(amount, 8)
-      } else {
-        adjAmount = ethers.utils.parseUnits(amount, 18)
-      }
+//       if (
+//         tokenSymbol === 'USDC' ||
+//         tokenSymbol === 'USDT' ||
+//         tokenSymbol === 'USDC.E'
+//       ) {
+//         adjAmount = ethers.utils.parseUnits(amount, 6)
+//       } else if (tokenSymbol === 'WBTC') {
+//         adjAmount = ethers.utils.parseUnits(amount, 8)
+//       } else {
+//         adjAmount = ethers.utils.parseUnits(amount, 18)
+//       }
 
-      const filteredVaults = await fetchYearnVaultsData(Number(chainId))
+//       const filteredVaults = await fetchYearnVaultsData(Number(chainId))
 
-      filteredVaults
-        .filter(vault => {
-          const matchesSymbol =
-            vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase()
-          const isVersion3 =
-            vault.version?.startsWith('3.0') ||
-            vault.name.includes('3.0') ||
-            vault.symbol.includes('3.0')
-          let matchesStrategyType = true
-          let matchesBoosted = true
+//       filteredVaults
+//         .filter(vault => {
+//           const matchesSymbol =
+//             vault.token.symbol.toLowerCase() === tokenSymbol.toLowerCase()
+//           const isVersion3 =
+//             vault.version?.startsWith('3.0') ||
+//             vault.name.includes('3.0') ||
+//             vault.symbol.includes('3.0')
+//           let matchesStrategyType = true
+//           let matchesBoosted = true
 
-          if (strategy === 'multi') {
-            matchesStrategyType = vault.kind === 'Multi Strategy'
-          } else if (strategy === 'single') {
-            matchesStrategyType = vault.kind !== 'Multi Strategy'
-          }
+//           if (strategy === 'multi') {
+//             matchesStrategyType = vault.kind === 'Multi Strategy'
+//           } else if (strategy === 'single') {
+//             matchesStrategyType = vault.kind !== 'Multi Strategy'
+//           }
 
-          if (boosted === 'true') {
-            matchesBoosted = vault.boosted === true
-          }
+//           if (boosted === 'true') {
+//             matchesBoosted = vault.boosted === true
+//           }
 
-          return (
-            matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted
-          )
-        })
-        .map(vault => vault.address)
+//           return (
+//             matchesSymbol && isVersion3 && matchesStrategyType && matchesBoosted
+//           )
+//         })
+//         .map(vault => vault.address)
 
-      const vaultAddress = filteredVaults[0]
+//       const vaultAddress = filteredVaults[0]
 
-      const walletInstance = new ethers.Wallet(
-        process.env.PRIVATE_KEY,
-        new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
-      )
+//       const walletInstance = new ethers.Wallet(
+//         process.env.PRIVATE_KEY,
+//         new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
+//       )
 
-      const result = await redeemFromYearn(
-        walletInstance,
-        vaultAddress.address,
-        adjAmount,
-        receiver,
-        chainId
-      )
+//       const result = await redeemFromYearn(
+//         walletInstance,
+//         vaultAddress.address,
+//         adjAmount,
+//         receiver,
+//         chainId
+//       )
 
-      res.json(result)
-    } catch (error) {
-      console.error(error)
-      res.status(500).json({ error: error.toString() })
-    }
-  }
-)
-
-app.post('/:chainId/odos/swap', async (req, res) => {
-  const { address, inputTokens, outputTokens, slippage } = req.body
-
-  const { chainId } = req.params
-  try {
-    const inputTokensArray = inputTokens.map(
-      (token: { tokenAddress: any; amount: any }) => ({
-        tokenAddress: token.tokenAddress,
-        amount: token.amount,
-      })
-    )
-    const outputTokensArray = outputTokens.map(
-      (token: { tokenAddress: any; proportion: any }) => ({
-        tokenAddress: token.tokenAddress,
-        proportion: token.proportion,
-      })
-    )
-
-    const wallet = new ethers.Wallet(
-      process.env.PRIVATE_KEY,
-      new ethers.providers.JsonRpcProvider(NETWORKS[chainId])
-    )
-
-    const swapResult = await buildSwapOdos(
-      wallet,
-      address,
-      chainId,
-      inputTokensArray,
-      outputTokensArray,
-      Number(slippage),
-      3844415834, // referralCode
-      false, // disableRFQs
-      true // compact
-    )
-
-    console.log('Swap result:', swapResult)
-
-    res.json({
-      Approvals: swapResult.Approvals,
-      Calldatas: swapResult.Calldatas,
-      TokensReturn: swapResult.TokensReturn,
-    })
-  } catch (error) {
-    console.error('Error during swap operation:', error)
-    res.status(500).json({ error: 'Error during swap operation' })
-  }
-})
+//       res.json(result)
+//     } catch (error) {
+//       console.error(error)
+//       res.status(500).json({ error: error.toString() })
+//     }
+//   }
+// )
 
 app.post('/route', (req, res) => {
   const reqBody = req.body

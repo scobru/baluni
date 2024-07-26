@@ -1,1 +1,1 @@
-export { buildSwapOdos } from './actions/buildSwapOdos'
+export { SwapTokenLogic } from './logics/logic.swap-token'
