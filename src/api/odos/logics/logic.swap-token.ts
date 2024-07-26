@@ -79,11 +79,12 @@ export class SwapTokenLogic {
     if (this.odosRouterAddress === undefined) {
       throw new Error('::API::ODOS::ROUTER_NOT_FOUND, SETUP_REQUIRED')
     }
+
     const quoteRequestBody: QuoteRequestBody = {
       chainId: params.chainId,
       inputTokens: params.inputTokens,
       outputTokens: params.outputTokens,
-      gasPrice: 100,
+      gasPrice: 80,
       userAddr: params.userAddr,
       slippageLimitPercent: params.slippageLimitPercent,
       sourceBlacklist: [],
@@ -95,13 +96,15 @@ export class SwapTokenLogic {
       pathViz: true,
     }
 
-    console.log('Get Response from ODOS api..', quoteRequestBody)
+    console.log('Get Response from ODOS api.........', quoteRequestBody)
 
     const responseQuote = await fetch('https://api.odos.xyz/sor/quote/v2', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(quoteRequestBody),
     })
+
+    console.log('Response from ODOS api..', responseQuote)
 
     if (responseQuote.status === 200) {
       return await responseQuote.json()
