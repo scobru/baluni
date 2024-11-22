@@ -9,8 +9,8 @@
   "scripts": {
     "ts-node": "ts-node",
     "build": "npx tsc",
-    "rebalance:uniswap": "npx ts-node src/core/strategies/rebalance/main.ts",
-    "rebalance:odos": "npx ts-node src/core/strategies/rebalanceOdos/main.ts",
+    "rebalance:uniswap": "npx ts-node src/core/strategies/loops/rebalanceuniswap/main.ts",
+    "rebalance:odos": "npx ts-node src/core/strategies/loops/rebalanceOdos/main.ts",
     "format": "npx prettier --write . --ignore-path .gitignore",
     "check-types": "tsc --noEmit --incremental",
     "dev": "tsc --watch",
